@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
 
       // IMPORTANT: return a normal 200 JSON with reply
       return res.status(200).json({
-        reply: ✅ Thank you! We will contact you on WhatsApp at ${phone}.,
+        reply: `✅ Thank you! We will contact you on WhatsApp at ${phone}.`,
       });
     }
 
