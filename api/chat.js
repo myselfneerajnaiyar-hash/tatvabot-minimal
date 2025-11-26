@@ -1,40 +1,65 @@
-// Simple Node serverless function for Vercel
-// Uses global fetch and process.env.OPENAI_API_KEY
-
+// api/chat.js
 module.exports = async (req, res) => {
+  const userMessage =
+    (req.query && req.query.message) ||
+    (req.body && req.body.message) ||
+    "no message received";
+
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "Missing OPENAI_API_KEY environment variable",
+    });
+  }
+
   try {
-    const message =
-      (req.query && req.query.message) ||
-      (req.body && req.body.message) ||
-      "no message received";
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // 👇 THIS was the bug – must be a string with backticks
+        Authorization: Bearer ${apiKey},
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are TatvaBot, an expert in vermicompost, balcony/terrace gardening, and Tatvabhoomi products. Answer clearly and practically for Indian home gardeners.",
+          },
+          {
+            role: "user",
+            content: userMessage,
+          },
+        ],
+      }),
+    });
 
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    if (!apiKey) {
-      console.error("OPENAI_API_KEY is missing");
-      return res.status(500).json({ error: "Server misconfigured." });
+    if (!response.ok) {
+      const text = await response.text();
+      return res.status(500).json({
+        error: "OpenAI API error",
+        status: response.status,
+        details: text,
+      });
     }
 
-    const openaiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: Bearer ${apiKey},
-        },
-        body: JSON.stringify({
-          model: "gpt-4.1-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are TatvaBot, a helpful assistant for Tatvabhoomi. You answer questions about vermicomposting, balcony gardening, terrace gardens, soil health, and small home gardens. Be clear, practical, and beginner-friendly. Keep answers under 200 words.",
-            },
-            { role: "user", content: message },
-          ],
-        }),
-      }
-    );
+    const data = await response.json();
 
-    if (!openaiResponse.ok) {
+    const reply =
+      (data.choices &&
+        data.choices[0] &&
+        data.choices[0].message &&
+        data.choices[0].message.content) ||
+      "Sorry, I couldn't generate a reply.";
+
+    return res.status(200).json({ reply });
+  } catch (err) {
+    return res.status(500).json({
+      error: "Server error while talking to OpenAI",
+      details: err.message,
+    });
+  }
+};
