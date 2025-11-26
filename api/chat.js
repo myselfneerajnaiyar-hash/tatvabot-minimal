@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+module.exports = (req, res) => {
   const message =
     (req.query && req.query.message) ||
     (req.body && req.body.message) ||
@@ -7,4 +7,4 @@ export default function handler(req, res) {
   res.status(200).json({
     reply: Echo from TatvaBot: ${message},
   });
-}
+};
