@@ -5,6 +5,6 @@ module.exports = (req, res) => {
     "no message received";
 
   res.status(200).json({
-    reply: Echo from TatvaBot: ${message},
+    reply: "Echo from TatvaBot: " + message,
   });
 };
