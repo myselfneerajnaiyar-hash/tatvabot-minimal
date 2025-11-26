@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         // 👇 THIS LINE IS CRITICAL
-        Authorization: 'Bearer ${apiKey}',
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
