@@ -4,16 +4,6 @@ module.exports = async (req, res) => {
     (req.query && req.query.message) ||
     (req.body && req.body.message) ||
     "no message received";
-  // Lead capture logic
-const phoneMatch = userMessage.match(/(\+91\s?)?\d{10}/);
-if (phoneMatch) {
-  // This will later store the number
-  console.log("Lead captured:", phoneMatch[0]);
-
-  return res.status(200).json({
-    reply: ✅ Thank you! We will contact you on WhatsApp at ${phoneMatch[0]}.\n\nMeanwhile, ask me anything about gardening or vermicompost! 🌱
-  });
-}
 
   const apiKey = process.env.OPENAI_API_KEY;
 
