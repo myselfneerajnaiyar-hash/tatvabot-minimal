@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // 👇 THIS was the bug – must be a string with backticks
+        // 👇 THIS LINE IS CRITICAL
         Authorization: Bearer ${apiKey},
       },
       body: JSON.stringify({
