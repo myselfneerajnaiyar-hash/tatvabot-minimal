@@ -13,41 +13,36 @@
       --accent:#16a34a;
     }
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;}
-    body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:20px;}
-
+    body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:20px}
     .chat-wrapper{
-      width:100%;max-width:920px;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.12);display:grid;
-      grid-template-columns:1fr 360px;overflow:hidden;
+      width:100%; max-width:980px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(2,6,23,0.12);
+      display:grid; grid-template-columns: 1fr 360px; overflow:hidden;
     }
-
-    .left{
-      padding:18px 20px;display:flex;flex-direction:column;gap:12px;
-      min-height:560px;
-    }
-    .chat-header{background:var(--green);color:#fefce8;padding:14px 16px;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:space-between;}
-    .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.95}
-    .chat-window{background:#fafafa;border-radius:8px;padding:14px;flex:1;overflow:auto;min-height:360px}
-    .msg{margin-bottom:12px;max-width:78%;line-height:1.4}
-    .msg-bot span{display:block;background:var(--bubble-bg);color:var(--text);padding:12px 14px;border-radius:12px;white-space:pre-wrap;}
-    .msg-user{justify-self:end;text-align:right;}
-    .msg-user span{display:inline-block;background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 2px 14px;max-width:100%;word-wrap:break-word}
-    .msg img{display:block;margin-top:8px;max-width:240px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.06)}
-    .chat-footer{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid #eee}
-    .chat-footer input[type="text"]{flex:1;padding:10px 14px;border-radius:999px;border:1px solid #ddd;outline:none}
-    .chat-footer button.send{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:999px;cursor:pointer}
-    .chat-footer button.send:disabled{opacity:.6;cursor:default}
-    .status{font-size:13px;color:#6b7280;padding:6px 0 0 6px}
-
-    /* right column (upload debug / old UI) — kept but will hide JSON block visually on final */
+    /* left (chat) */
+    .left{padding:18px 20px; display:flex; flex-direction:column; gap:12px; min-height:560px}
+    .chat-header{background:var(--green); color:#fefce8; padding:14px 16px; border-radius:8px; font-weight:600}
+    .chat-header small{display:block; font-weight:400; font-size:12px; opacity:.95}
+    .chat-window{background:#fafafa; border-radius:8px; padding:14px; flex:1; overflow:auto; min-height:360px}
+    .msg{margin-bottom:12px; max-width:78%; line-height:1.4; font-size:14px}
+    .msg-bot span{display:block;background:var(--bubble-bg);color:var(--text);padding:12px 14px;border-radius:12px;white-space:pre-wrap}
+    .msg-user{justify-self:end;text-align:right}
+    .msg-user span{display:inline-block;background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 2px 14px}
+    .msg img{display:block; margin-top:8px; max-width:240px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+    .status{font-size:13px;color:#6b7280;padding:6px 0 0}
+    /* footer: input + file */
+    .chat-footer{display:flex;gap:8px;align-items:center;padding-top:8px;border-top:1px solid #eee}
+    .chat-footer input[type="text"]{flex:1;padding:12px 14px;border-radius:999px;border:1px solid #ddd;outline:none}
+    .chat-footer input[type="file"]{display:none}
+    .file-button{padding:8px 10px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer}
+    .footer-actions{display:flex;gap:8px;align-items:center}
+    .send{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:999px;cursor:pointer}
+    .send:disabled{opacity:.6;cursor:default}
+    /* right column (upload debug/old UI) - hide JSON by default */
     .right{padding:18px;border-left:1px solid #f1f1f1;background:#fff}
     .upload-title{font-weight:700;margin-bottom:10px}
-    .upload-controls{display:flex;flex-direction:column;gap:8px}
-    .upload-controls input[type=file]{}
-    .upload-controls .buttons{display:flex;gap:8px}
-    .upload-controls button{padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
     .upload-url{color:#0b6a3b;padding-top:6px;word-break:break-all}
-    pre.json{background:#f8fafc;border-radius:8px;padding:12px;height:360px;overflow:auto;margin-top:8px;font-size:12px}
-    /* small screen */
+    pre.json{background:#f8fafc;border-radius:8px;padding:12px;height:360px;overflow:auto;margin-top:8px;font-size:12px;display:none}
+    /* responsiveness */
     @media(max-width:880px){
       .chat-wrapper{grid-template-columns:1fr;max-width:720px}
       .right{order:2;border-left:none;border-top:1px solid #f1f1f1}
@@ -58,16 +53,181 @@
   <div class="chat-wrapper">
     <div class="left">
       <div class="chat-header">
-        <div>
-          TatvaBot – Gardening Assistant
-          <small>Ask about vermicompost, balcony/terrace gardening, Tatvabhoomi products</small>
-        </div>
+        TatvaBot – Gardening Assistant
+        <small>Ask about vermicompost, balcony/terrace gardening, Tatvabhoomi products</small>
       </div>
 
-      <div id="chat-window" class="chat-window">
+      <div id="chat-window" class="chat-window" aria-live="polite">
         <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help you with your plants or vermicompost today?</span></div>
       </div>
 
       <div id="status" class="status"></div>
 
-      <!-- chat footer: text input + file chooser + upload inside the footer (WhatsApp-style) -->
+      <!-- Footer: text input + choose file + upload (WhatsApp-style) -->
+      <div class="chat-footer" role="form" aria-label="Chat input">
+        <label class="file-button" title="Attach image">
+          📎
+          <input id="file-input" type="file" accept="image/*" />
+        </label>
+
+        <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
+
+        <div class="footer-actions">
+          <button id="upload-btn" class="file-button" type="button">Upload</button>
+          <button id="send-btn" class="send" type="button">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- right column: optional debug / old upload UI. JSON hidden by default -->
+    <div class="right">
+      <div class="upload-title">Upload image test</div>
+      <div id="upload-status">Choose an image and press Upload</div>
+      <div id="upload-url" class="upload-url"></div>
+      <pre id="upload-json" class="json"></pre>
+    </div>
+  </div>
+
+  <script>
+    // simple helpers
+    const chatWindow = document.getElementById('chat-window');
+    const statusEl = document.getElementById('status');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const uploadUrlEl = document.getElementById('upload-url');
+    const uploadJsonEl = document.getElementById('upload-json');
+
+    let uploadedImageUrl = null; // holds Cloudinary url after upload
+
+    function addMessage(text, from = 'bot', imageUrl = null) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + (from === 'user' ? 'msg-user' : 'msg-bot');
+
+      const span = document.createElement('span');
+      span.innerHTML = text || '';
+      div.appendChild(span);
+
+      if (imageUrl) {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'uploaded image';
+        img.loading = 'lazy';
+        div.appendChild(img);
+      }
+
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function showStatus(text) {
+      statusEl.textContent = text || '';
+    }
+
+    // Upload file to /api/upload
+    uploadBtn.addEventListener('click', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return alert('Choose a file first');
+
+      showStatus('Uploading image...');
+      uploadBtn.disabled = true;
+
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (res.ok && data.ok && data.url) {
+          uploadedImageUrl = data.url;
+          uploadUrlEl.textContent = data.url;
+          uploadJsonEl.textContent = JSON.stringify(data.result || data, null, 2);
+          uploadJsonEl.style.display = 'none'; // hide big JSON visually
+          showStatus('Upload OK — image attached to next message');
+          console.log('upload response:', data);
+        } else {
+          showStatus('Upload failed. See console.');
+          console.error('upload error', data);
+          alert('Upload failed. Check console.');
+        }
+      } catch (err) {
+        console.error(err);
+        showStatus('');
+        alert('Upload error: ' + (err.message || err));
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+
+    // Send message (text + optional uploaded image)
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message && !uploadedImageUrl) return; // nothing to send
+
+      // show user message + image preview (if any)
+      addMessage(message || '📷 Image sent', 'user', uploadedImageUrl || null);
+      userInput.value = '';
+      showStatus('TatvaBot is thinking...');
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message, image: uploadedImageUrl })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.reply) {
+          addMessage(data.reply, 'bot', null);
+        } else {
+          addMessage('Sorry, I had trouble replying. Please try again.', 'bot', null);
+          console.error('chat API error', data);
+        }
+      } catch (err) {
+        addMessage('Network error. Please check your connection and try again.', 'bot', null);
+        console.error(err);
+      } finally {
+        // clear uploaded image after sending (so next message is normal)
+        uploadedImageUrl = null;
+        uploadUrlEl.textContent = '';
+        uploadJsonEl.textContent = '';
+        showStatus('');
+        sendBtn.disabled = false;
+      }
+    }
+
+    // events
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // optional: clicking file button should open the file chooser (we already use native)
+    fileInput.addEventListener('change', () => {
+      // show local filename (optional)
+      if (fileInput.files && fileInput.files[0]) {
+        uploadBtn.focus();
+      }
+    });
+
+    // focus input on load
+    window.addEventListener('load', () => {
+      userInput.focus();
+    });
+
+    // accessibility: announce new messages (simple)
+    const observer = new MutationObserver(() => {
+      // keep chat scrolled to bottom
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
+    observer.observe(chatWindow, { childList: true, subtree: true });
+  </script>
+</body>
+</html>
