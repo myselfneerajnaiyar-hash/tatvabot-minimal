@@ -17,16 +17,16 @@
 
   .chat-wrapper{
     width:100%; max-width:960px; background:#fff; border-radius:12px; box-shadow:0 10px 30px rgba(2,6,23,0.08);
-    display:grid; grid-template-columns:1fr; overflow:hidden;
+    display:grid; grid-template-columns:1fr 360px; overflow:hidden;
   }
 
-  /* chat */
+  /* left = chat */
   .left { padding:18px 20px; display:flex; flex-direction:column; gap:12px; min-height:560px; }
   .chat-header{ background:var(--green); color:#fff; padding:14px; border-radius:8px; font-weight:600; display:flex; justify-content:space-between; align-items:center;}
   .chat-window{ background:#fafafa; border-radius:8px; padding:14px; flex:1; overflow:auto; min-height:360px; }
-  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; display:flex; flex-direction:column; }
+  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; }
   .msg span{ display:block; background:var(--bubble-bg); color:var(--text); padding:12px 14px; border-radius:12px; white-space:pre-wrap; word-wrap:break-word; }
-  .msg-user{ align-self:flex-end; text-align:right; }
+  .msg-user{ justify-self:end; text-align:right; align-self:flex-end; }
   .msg-user span{ background:var(--green); color:#fff; }
   .msg img{ display:block; margin-top:8px; max-width:240px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
 
@@ -40,6 +40,10 @@
   .file-input-wrapper{ display:flex; gap:8px; align-items:center; margin-left:6px; white-space:nowrap; }
   .file-input-wrapper input[type=file]{ display:none; }
   .file-btn{ padding:6px 8px; border:1px solid #ccc; background:#fff; border-radius:6px; cursor:pointer; }
+
+  /* right column hidden (we don't need debug) */
+  .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; }
+  .hidden{ display:none !important; }
 
   .status{ font-size:13px; color:#6b7280; padding:6px 0 0 0; }
 </style>
@@ -69,15 +73,12 @@
         <button id="send-btn" class="send">Send</button>
       </div>
     </div>
+
+    <!-- right column left for any future controls; hide debug JSON -->
+    <div class="right hidden" id="debug-right"></div>
   </div>
 
 <script>
-/*
-  Expectations:
-  - POST /api/upload receives form-data (key "file") and returns JSON: { url: "<public image url>" }
-  - POST /api/chat receives JSON { message: "...", image: "<url|null>" } and returns { reply: "..." }
-*/
-
 const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
@@ -124,35 +125,25 @@ uploadBtn.addEventListener('click', async (e) => {
     fd.append('file', file);
 
     const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    if(!res.ok){
-      const txt = await res.text().catch(()=>null);
-      console.error('Upload failed:', res.status, txt);
-      alert('Upload failed (server). Check server logs.');
-      showStatus('Upload failed');
-      return;
-    }
     const data = await res.json().catch(()=>null);
 
-    // Accept many shapes, but prefer data.url
-    const url = data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url);
-    if(!url){
-      console.error('Upload returned unexpected payload:', data);
-      alert('Upload succeeded but server returned unexpected response. See console.');
-      showStatus('Upload OK (no url)');
-      return;
+    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
+      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || null;
+      showStatus('Upload OK');
+      addMessage('Image attached', 'user', uploadedImageUrl);
+      fileInput.value = '';
+    } else {
+      console.error('Upload failed:', res, data);
+      alert('Upload failed. See console logs (F12).');
+      showStatus('Upload failed');
     }
-
-    uploadedImageUrl = url;
-    showStatus('Upload OK');
-    addMessage('Image attached', 'user', uploadedImageUrl);
-    fileInput.value = '';
   } catch(err){
     console.error('Upload error', err);
     alert('Upload error: ' + (err.message || err));
     showStatus('Upload error');
   } finally {
     uploadBtn.disabled = false;
-    setTimeout(()=>showStatus(''), 2200);
+    setTimeout(()=>showStatus(''), 2500);
   }
 });
 
