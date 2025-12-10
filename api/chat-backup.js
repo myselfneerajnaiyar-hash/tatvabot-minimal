@@ -4,6 +4,32 @@ module.exports = async (req, res) => {
     (req.query && req.query.message) ||
     (req.body && req.body.message) ||
     "no message received";
+  // 🔹 Lead capture: detect Indian phone number and send to Formspree
+  const phoneMatch = userMessage && userMessage.match(/(\+91[\s-]*)?\d{10}\b/);
+
+  if (phoneMatch) {
+    try {
+      await fetch("https://formspree.io/f/xwpdkjaa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          phone: phoneMatch[0],
+          message: userMessage,
+          source: "TatvaBot on tatvasutra.in",
+        }),
+      });
+    } catch (err) {
+      console.error("Formspree lead error:", err);
+      // we still continue to reply to user even if Formspree fails
+    }
+
+    return res.status(200).json({
+      reply: `✅ Thank you! We’ve received your number (${phoneMatch[0]}). Our team will contact you shortly on WhatsApp.`,
+    });
+  }
 
   const apiKey = process.env.OPENAI_API_KEY;
 
