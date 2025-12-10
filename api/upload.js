@@ -1,14 +1,15 @@
-// api/upload.js (Vercel / Next style serverless function)
+// api/upload.js  (Vercel / Next-style serverless handler)
 import { v2 as cloudinary } from 'cloudinary';
 import formidable from 'formidable';
 
+// configure cloudinary from env (set in Vercel / env)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// disable default body parsing (Next/Vercel)
+// disable default body parsing for Next/Vercel
 export const config = {
   api: {
     bodyParser: false,
@@ -16,22 +17,39 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Only POST');
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
 
+  // parse multipart form with formidable
   const form = new formidable.IncomingForm();
-  form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(500).send('parse error: ' + err.message);
-    const file = files.file;
-    if (!file) return res.status(400).send('no file');
-
-    try {
-      const result = await cloudinary.uploader.upload(file.filepath || file.path, {
-        folder: 'tatvabot-uploads',
+  try {
+    const parsed = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) return reject(err);
+        resolve({ fields, files });
       });
-      return res.json({ ok: true, url: result.secure_url, result });
-    } catch (e) {
-      console.error('upload error', e);
-      return res.status(500).json({ ok: false, error: e.message });
+    });
+
+    const file = parsed.files?.file || parsed.files?.image; // check common keys
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
-  });
+
+    // formidable-local file path
+    const path = file.filepath || file.path || file.file; // different versions
+    // Upload with upload_stream for less memory use (we'll pass path for simplicity)
+    const result = await cloudinary.uploader.upload(path, {
+      folder: 'tatvabot-uploads',
+      use_filename: true,
+      unique_filename: true,
+      overwrite: false,
+    });
+
+    // Return only the URL to the client
+    return res.status(200).json({ url: result.secure_url || result.url });
+  } catch (err) {
+    console.error('Upload handler error:', err);
+    return res.status(500).json({ error: 'Upload failed', details: err.message || String(err) });
+  }
 }
