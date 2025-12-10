@@ -1,26 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Upload test</title></head>
-<body>
-  <h2>Upload image test</h2>
-  <input id="file" type="file" accept="image/*" />
-  <button id="uploadBtn">Upload</button>
-  <pre id="out"></pre>
+  <head>
+    <title>Upload image test</title>
+  </head>
+  <body>
+    <h2>Upload image test (TatvaBot)</h2>
 
-  <script>
-    document.getElementById('uploadBtn').onclick = async () => {
-      const f = document.getElementById('file').files[0];
-      if (!f) { alert('Pick a file'); return; }
-      const fd = new FormData();
-      fd.append('file', f);
+    <input id="fileInput" type="file" />
+    <button onclick="upload()">Upload</button>
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: fd
-      });
+    <pre id="output"></pre>
 
-      document.getElementById('out').textContent = await res.text();
-    };
-  </script>
-</body>
+    <script>
+      async function upload() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) {
+          alert("Please choose a file first");
+          return;
+        }
+
+        const form = new FormData();
+        form.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: form,
+        });
+
+        const out = await res.json();
+        document.getElementById("output").innerText = JSON.stringify(out, null, 2);
+      }
+    </script>
+  </body>
 </html>
