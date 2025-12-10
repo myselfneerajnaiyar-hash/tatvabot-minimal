@@ -1,5 +1,6 @@
-// api/upload.js
-import { v2 as cloudinary } from "cloudinary";
+// api/upload.js (Vercel / Next style serverless function)
+import { v2 as cloudinary } from 'cloudinary';
+import formidable from 'formidable';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,30 +8,30 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// disable default body parsing (Next/Vercel)
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Only POST allowed" });
+  if (req.method !== 'POST') return res.status(405).send('Only POST');
+
+  const form = new formidable.IncomingForm();
+  form.parse(req, async (err, fields, files) => {
+    if (err) return res.status(500).send('parse error: ' + err.message);
+    const file = files.file;
+    if (!file) return res.status(400).send('no file');
+
+    try {
+      const result = await cloudinary.uploader.upload(file.filepath || file.path, {
+        folder: 'tatvabot-uploads',
+      });
+      return res.json({ ok: true, url: result.secure_url, result });
+    } catch (e) {
+      console.error('upload error', e);
+      return res.status(500).json({ ok: false, error: e.message });
     }
-
-    const { imageData, folder } = req.body; // imageData = data URL (data:image/...)
-    if (!imageData) return res.status(400).json({ error: "No imageData provided" });
-
-    // Upload via Cloudinary from the data URL:
-    const uploadResult = await cloudinary.uploader.upload(imageData, {
-      folder: folder || "tatvabot-uploads",
-      use_filename: true,
-      unique_filename: true,
-      overwrite: false,
-    });
-
-    return res.status(200).json({
-      url: uploadResult.secure_url,
-      public_id: uploadResult.public_id,
-      raw: uploadResult,
-    });
-  } catch (err) {
-    console.error("Upload error:", err);
-    return res.status(500).json({ error: "Upload failed", details: err.message });
-  }
+  });
 }
