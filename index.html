@@ -41,9 +41,8 @@
   .file-input-wrapper input[type=file]{ display:none; }
   .file-btn{ padding:6px 8px; border:1px solid #ccc; background:#fff; border-radius:6px; cursor:pointer; }
 
-  /* right column hidden (we don't need debug) */
-  .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; }
-  .hidden{ display:none !important; }
+  /* right column (kept hidden — no debug area) */
+  .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; display:none; }
 
   .status{ font-size:13px; color:#6b7280; padding:6px 0 0 0; }
 </style>
@@ -74,8 +73,8 @@
       </div>
     </div>
 
-    <!-- right column left for any future controls; hide debug JSON -->
-    <div class="right hidden" id="debug-right"></div>
+    <!-- right column kept intentionally hidden -->
+    <div class="right" id="debug-right" aria-hidden="true"></div>
   </div>
 
 <script>
@@ -127,14 +126,14 @@ uploadBtn.addEventListener('click', async (e) => {
     const res = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
 
-    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
-      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || null;
+    if(res.ok && data && (data.url || data.secure_url)){
+      uploadedImageUrl = data.url || data.secure_url || data.result?.url || data.result?.secure_url || null;
       showStatus('Upload OK');
       addMessage('Image attached', 'user', uploadedImageUrl);
       fileInput.value = '';
     } else {
       console.error('Upload failed:', res, data);
-      alert('Upload failed. See console logs (F12).');
+      alert('Upload failed. Check server logs.');
       showStatus('Upload failed');
     }
   } catch(err){
@@ -182,10 +181,7 @@ sendBtn.addEventListener('click', async () => {
 });
 
 input.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter') {
-    e.preventDefault();
-    sendBtn.click();
-  }
+  if(e.key === 'Enter') { e.preventDefault(); sendBtn.click(); }
 });
 
 input.focus();
