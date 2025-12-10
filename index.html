@@ -24,11 +24,11 @@
   .left { padding:18px 20px; display:flex; flex-direction:column; gap:12px; min-height:560px; }
   .chat-header{ background:var(--green); color:#fff; padding:14px; border-radius:8px; font-weight:600; display:flex; justify-content:space-between; align-items:center;}
   .chat-window{ background:#fafafa; border-radius:8px; padding:14px; flex:1; overflow:auto; min-height:360px; }
-  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; display:flex; flex-direction:column; }
+  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; }
   .msg span{ display:block; background:var(--bubble-bg); color:var(--text); padding:12px 14px; border-radius:12px; white-space:pre-wrap; word-wrap:break-word; }
-  .msg-user{ align-self:flex-end; text-align:right; }
+  .msg-user{ justify-self:end; text-align:right; align-self:flex-end; }
   .msg-user span{ background:var(--green); color:#fff; }
-  .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
+  .msg img{ display:block; margin-top:8px; max-width:240px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
 
   /* footer with text input + upload inside */
   .chat-footer{ display:flex; gap:8px; padding-top:10px; border-top:1px solid #eee; align-items:center; }
@@ -41,7 +41,7 @@
   .file-input-wrapper input[type=file]{ display:none; }
   .file-btn{ padding:6px 8px; border:1px solid #ccc; background:#fff; border-radius:6px; cursor:pointer; }
 
-  /* right column (hidden debug) */
+  /* right column (removed debug) - keep minimal UI for upload only if you want */
   .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; }
   .hidden{ display:none !important; }
 
@@ -65,7 +65,7 @@
 
       <div class="chat-footer">
         <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
-        <div class="file-input-wrapper" title="Attach image">
+        <div class="file-input-wrapper">
           <label class="file-btn" id="choose-file-btn">📎</label>
           <input id="file-input" type="file" accept="image/*" />
           <button id="upload-btn" class="file-btn">Upload</button>
@@ -74,18 +74,18 @@
       </div>
     </div>
 
-    <div class="right hidden" id="debug-right">
-      <!-- kept hidden -->
-    </div>
+    <!-- right column left for any future controls; hide debug JSON -->
+    <div class="right hidden" id="debug-right"></div>
   </div>
 
 <script>
 /*
-  Important: this front-end expects two server endpoints:
-  - POST /api/upload   -> receives FormData('file') and returns JSON with { ok:true, url: "<public url>" }
-  - POST /api/chat     -> receives JSON { message, image } and returns JSON { reply, image? }
-
-  Replace only this file now. After deploy, test the UI and check Network logs for /api/upload and /api/chat.
+  Workflow:
+  1) User picks file -> fileInput.files[0]
+  2) Click Upload -> POST /api/upload (FormData["file"])
+     -> server returns { ok:true, url: "https://..." } OR { ok:false, error:... }
+  3) When upload ok: show uploaded image inside chat as user message (like WhatsApp)
+  4) Then Send (or auto-trigger) posts to /api/chat with body { message, image }
 */
 
 const chatWindow = document.getElementById('chat-window');
@@ -96,7 +96,7 @@ const uploadBtn = document.getElementById('upload-btn');
 const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl = document.getElementById('status');
 
-let uploadedImageUrl = null;
+let uploadedImageUrl = null; // store url returned from /api/upload
 
 function addMessage(text, from='bot', imageUrl=null){
   const wrapper = document.createElement('div');
@@ -108,20 +108,23 @@ function addMessage(text, from='bot', imageUrl=null){
     const img = document.createElement('img');
     img.src = imageUrl;
     img.alt = "uploaded image";
+    img.onload = ()=>{ chatWindow.scrollTop = chatWindow.scrollHeight; };
     wrapper.appendChild(img);
   }
   chatWindow.appendChild(wrapper);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
+// small helper to show status
 function showStatus(text){
   statusEl.textContent = text || '';
 }
 
+// wire choose file button
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
-// UPLOAD flow -> POST /api/upload (FormData)
-uploadBtn.addEventListener('click', async () => {
+// upload handler
+uploadBtn.addEventListener('click', async (e) => {
   const file = fileInput.files && fileInput.files[0];
   if(!file){
     alert('Choose an image first');
@@ -136,15 +139,17 @@ uploadBtn.addEventListener('click', async () => {
     const res = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
 
-    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
-      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
+    if(res.ok && data && (data.url || data.secure_url || data.result?.url || data.result?.secure_url)){
+      // prefer secure_url or data.url, or nested result
+      uploadedImageUrl = data.secure_url || data.url || data.result?.secure_url || data.result?.url || null;
       showStatus('Upload OK');
-      // show uploaded image as user's message (WhatsApp style)
+      // show uploaded image as user's message in chat (WhatsApp style)
       addMessage('Image attached', 'user', uploadedImageUrl);
+      // clear file input so user won't accidentally re-upload same file
       fileInput.value = '';
     } else {
       console.error('Upload failed:', res, data);
-      alert('Upload failed. Check server logs.');
+      alert('Upload failed. See console logs.');
       showStatus('Upload failed');
     }
   } catch(err){
@@ -153,22 +158,28 @@ uploadBtn.addEventListener('click', async () => {
     showStatus('Upload error');
   } finally {
     uploadBtn.disabled = false;
-    setTimeout(()=>showStatus(''), 2000);
+    setTimeout(()=>showStatus(''), 2500);
   }
 });
 
-// SEND flow -> POST /api/chat (JSON)
+// send handler
 sendBtn.addEventListener('click', async () => {
   const message = input.value.trim();
-  if(!message && !uploadedImageUrl) return;
+  if(!message && !uploadedImageUrl){
+    return; // nothing to send
+  }
 
+  // show the user message, including image if attached
   addMessage(message || 'Image', 'user', uploadedImageUrl || null);
   input.value = '';
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
 
   try {
-    const body = { message: message || '', image: uploadedImageUrl || null };
+    const body = {
+      message: message || '',
+      image: uploadedImageUrl || null
+    };
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers:{ 'Content-Type':'application/json' },
@@ -186,18 +197,22 @@ sendBtn.addEventListener('click', async () => {
     console.error('Network error', err);
     addMessage("Network error. Please check your connection and try again.", 'bot');
   } finally {
-    uploadedImageUrl = null; // clear after send
+    // clear uploaded image after sending so next message is normal
+    uploadedImageUrl = null;
     sendBtn.disabled = false;
     showStatus('');
   }
 });
 
-// Enter to send
+// optional: press Enter to send (when text input has focus)
 input.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter') { e.preventDefault(); sendBtn.click(); }
+  if(e.key === 'Enter') {
+    e.preventDefault();
+    sendBtn.click();
+  }
 });
 
-// focus input
+// initial focus
 input.focus();
 </script>
 </body>
