@@ -43,9 +43,25 @@
         <div id="status" class="status"></div>
 
         <form id="chat-form" class="chat-footer">
-          <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" required />
-          <button type="submit">Send</button>
-        </form>
+      <input
+        id="user-input"
+        type="text"
+        placeholder="Type your question..."
+        autocomplete="off"
+        required
+      />
+
+      <!-- NEW: Upload button -->
+      <input
+        type="file"
+        id="image-input"
+        accept="image/*"
+        style="display:none"
+      />
+      <button type="button" id="upload-btn">📷</button>
+
+      <button type="submit">Send</button>
+</form>
       </div>
 
       <!-- Uploader -->
