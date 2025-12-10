@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "cloudinary": "^2.0.0",
-    "formidable": "^2.0.0"
+    "cloudinary": "^2.20.0",
+    "formidable": "^2.1.1",
+    "openai": "^4.0.0"
   }
 }
