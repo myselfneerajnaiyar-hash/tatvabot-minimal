@@ -1,192 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <title>TatvaBot – Gardening Assistant</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .chat-wrapper {
-      background: #ffffff;
-      width: 100%;
-      max-width: 420px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .chat-header {
-      padding: 14px 16px;
-      background: #14532d;
-      color: #fefce8;
-      font-weight: 600;
-      font-size: 16px;
-    }
-    .chat-header small {
-      display: block;
-      font-weight: 400;
-      font-size: 12px;
-      opacity: 0.9;
-    }
-    .chat-window {
-      padding: 12px;
-      height: 380px;
-      overflow-y: auto;
-      background: #f9fafb;
-    }
-    .msg {
-      margin-bottom: 10px;
-      line-height: 1.4;
-      font-size: 14px;
-    }
-    .msg-user {
-      text-align: right;
-    }
-    .msg-user span {
-      display: inline-block;
-      background: #14532d;
-      color: #fefce8;
-      padding: 8px 10px;
-      border-radius: 14px 14px 2px 14px;
-      max-width: 80%;
-    }
-    .msg-bot span {
-  display: block;
-  background: #e5e7eb;
-  color: #111827;
-  padding: 14px 16px;
-  border-radius: 14px;
-  max-width: 90%;
-  line-height: 1.6;
-  margin-bottom: 8px;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-}
-    .chat-footer {
-      border-top: 1px solid #e5e7eb;
-      padding: 8px;
-      background: #ffffff;
-      display: flex;
-      gap: 6px;
-    }
-    .chat-footer input {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      padding: 8px 12px;
-      font-size: 14px;
-      outline: none;
-    }
-    .chat-footer input:focus {
-      border-color: #14532d;
-    }
-    .chat-footer button {
-      border-radius: 999px;
-      border: none;
-      padding: 8px 14px;
-      font-size: 14px;
-      background: #16a34a;
-      color: #f9fafb;
-      cursor: pointer;
-    }
-    .chat-footer button:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    .status {
-      font-size: 12px;
-      color: #6b7280;
-      padding: 0 12px 6px;
-    }
+    /* (kept simple and similar to your style) */
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+    .chat-wrapper{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.08);overflow:hidden;display:flex;gap:12px;flex-direction:column}
+    .top{display:flex;gap:12px;padding:12px;background:#14532d;color:#fff;align-items:center}
+    .top h1{margin:0;font-size:18px}
+    .main{display:flex;gap:12px;padding:16px;flex-wrap:wrap}
+    .chat-box{flex:1;min-width:300px;max-width:420px;display:flex;flex-direction:column}
+    .chat-window{height:420px;overflow:auto;padding:12px;background:#f9fafb;border-radius:8px;border:1px solid #eee}
+    .msg{margin-bottom:10px}
+    .msg-bot span{display:block;background:#e5e7eb;padding:12px;border-radius:12px;max-width:90%}
+    .msg-user span{display:inline-block;background:#14532d;color:#fff;padding:10px;border-radius:12px 12px 2px 12px;max-width:80%}
+    .chat-footer{display:flex;gap:8px;margin-top:10px}
+    .chat-footer input[type=text]{flex:1;padding:10px;border-radius:999px;border:1px solid #d1d5db}
+    .chat-footer button{background:#16a34a;color:#fff;padding:10px 14px;border-radius:999px;border:0;cursor:pointer}
+    .uploader{width:300px;min-width:260px}
+    .uploader form{display:flex;flex-direction:column;gap:8px}
+    .status{font-size:13px;color:#374151;padding:0 12px 12px}
+    .result-url{word-break:break-all;color:#065f46}
+    pre{white-space:pre-wrap;word-break:break-word;background:#f3f4f6;padding:8px;border-radius:6px;border:1px dashed #e5e7eb}
   </style>
 </head>
 <body>
   <div class="chat-wrapper">
-    <div class="chat-header">
-      TatvaBot – Gardening Assistant
+    <div class="top">
+      <h1>TatvaBot – Gardening Assistant</h1>
       <small>Ask about vermicompost, balcony/terrace gardening, Tatvabhoomi products</small>
     </div>
-    <div id="chat-window" class="chat-window">
-      <div class="msg msg-bot">
-        <span>👋 Namaste! I’m TatvaBot. How can I help you with your plants or vermicompost today?</span>
+
+    <div class="main">
+      <!-- Chat -->
+      <div class="chat-box">
+        <div id="chat-window" class="chat-window">
+          <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help you with your plants or vermicompost today?</span></div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <form id="chat-form" class="chat-footer">
+          <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" required />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+
+      <!-- Uploader -->
+      <div class="uploader">
+        <h3>Upload image test</h3>
+        <form id="upload-form">
+          <input id="file-input" type="file" name="file" accept="image/*" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="upload-btn" type="button">Upload</button>
+            <button id="clear-btn" type="button">Clear</button>
+          </div>
+        </form>
+
+        <div id="upload-status" class="status"></div>
+        <div id="upload-result"></div>
       </div>
     </div>
-    <div id="status" class="status"></div>
-    <form id="chat-form" class="chat-footer">
-      <input
-        id="user-input"
-        type="text"
-        placeholder="Type your question..."
-        autocomplete="off"
-        required
-      />
-      <button type="submit">Send</button>
-    </form>
   </div>
 
   <script>
+    /* ---------- chat code (same behaviour you had) ---------- */
     const form = document.getElementById("chat-form");
     const input = document.getElementById("user-input");
     const chatWindow = document.getElementById("chat-window");
     const statusEl = document.getElementById("status");
 
-   function addMessage(text, from = "bot") {
-  const div = document.createElement("div");
-  div.className = "msg " + (from === "user" ? "msg-user" : "msg-bot");
-
-  // format text nicely
-  const formatted = text
-    .replace(/\n\n/g, "<br><br>")   // paragraph breaks
-    .replace(/\n/g, "<br>")        // single line breaks
-    .replace(/\\(.?)\\*/g, "<strong>$1</strong>"); // bold support
-
-  const span = document.createElement("span");
-  span.innerHTML = formatted;
-
-  div.appendChild(span);
-  chatWindow.appendChild(div);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
+    function addMessage(text, from = "bot") {
+      const div = document.createElement("div");
+      div.className = "msg " + (from === "user" ? "msg-user" : "msg-bot");
+      const span = document.createElement("span");
+      span.innerHTML = String(text).replace(/\n/g, "<br>");
+      div.appendChild(span);
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const message = input.value.trim();
       if (!message) return;
-
-      // show user message
       addMessage(message, "user");
       input.value = "";
       input.focus();
-
       statusEl.textContent = "TatvaBot is thinking...";
       form.querySelector("button").disabled = true;
 
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message }),
         });
-
         const data = await res.json();
-
-        if (res.ok && data.reply) {
-          addMessage(data.reply, "bot");
-        } else {
+        if (res.ok && data.reply) addMessage(data.reply, "bot");
+        else {
           addMessage("Sorry, I had trouble replying. Please try again.", "bot");
-          console.error("API error:", data);
+          console.error("chat API error", data);
         }
       } catch (err) {
         addMessage("Network error. Please check your connection and try again.", "bot");
@@ -195,6 +111,51 @@
         statusEl.textContent = "";
         form.querySelector("button").disabled = false;
       }
+    });
+
+    /* ---------- upload code ---------- */
+    const uploadBtn = document.getElementById("upload-btn");
+    const clearBtn = document.getElementById("clear-btn");
+    const fileInput = document.getElementById("file-input");
+    const uploadStatus = document.getElementById("upload-status");
+    const uploadResult = document.getElementById("upload-result");
+
+    uploadBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        uploadStatus.textContent = "Please choose a file first.";
+        return;
+      }
+
+      uploadStatus.textContent = "Uploading...";
+      uploadBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (res.ok && data.ok && data.url) {
+          uploadStatus.textContent = "Upload OK";
+          uploadResult.innerHTML = '<p class="result-url">' + data.url + "</p><pre>" + JSON.stringify(data.result || data, null, 2) + "</pre>";
+        } else {
+          uploadStatus.textContent = "Upload failed";
+          uploadResult.innerHTML = "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        }
+      } catch (err) {
+        uploadStatus.textContent = "A server error has occurred";
+        uploadResult.innerHTML = "<pre>" + (err.message || err) + "</pre>";
+        console.error(err);
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      fileInput.value = "";
+      uploadStatus.textContent = "";
+      uploadResult.innerHTML = "";
     });
   </script>
 </body>
