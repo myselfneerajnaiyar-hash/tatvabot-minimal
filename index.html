@@ -69,12 +69,7 @@ if (uploadButton && fileInput) {
         chatWindow.appendChild(link);
 
         // also show JSON debug optionally
-        const pre = document.createElement("pre");
-        pre.style.fontSize = "12px";
-        pre.style.maxWidth = "400px";
-        pre.textContent = JSON.stringify(data.result || data, null, 2);
-        chatWindow.appendChild(pre);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
       } else {
         showStatus("Upload failed");
         console.error("upload error:", data);
