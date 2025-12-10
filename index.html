@@ -1,136 +1,146 @@
 <script>
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("user-input");
-  const chatWindow = document.getElementById("chat-window");
-  const statusEl = document.getElementById("status");
+/* ---------- UI hooks ---------- */
+const form = document.getElementById("chat-form");
+const input = document.getElementById("user-input");
+const chatWindow = document.getElementById("chat-window");
+const statusEl = document.getElementById("status");
 
-  // file upload UI elements (if present on the page)
-  const fileInput = document.querySelector('input[type="file"]');
-  const uploadButton = document.querySelector('button[type="button"], button#upload') || null;
-  const clearButton = document.querySelector('button#clear') || null;
+/* file upload UI (if present) */
+const fileInput = document.querySelector('input[type="file"]');
+const uploadButton = document.querySelector('button[type="button"], button#upload');
+const clearButton = document.querySelector('button#clear') || null;
 
-  let uploadedImageUrl = null; // <-- store uploaded image url here
+let uploadedImageUrl = null; // will hold Cloudinary URL after upload
 
-  function addMessage(text, from = "bot", imageUrl = null) {
-    const div = document.createElement("div");
-    div.className = "msg " + (from === "user" ? "msg-user" : "msg-bot");
+/* ---------- helper to show messages in the chat ---------- */
+function addMessage(text, from = "bot", imageUrl = null) {
+  const div = document.createElement("div");
+  div.className = "msg " + (from === "user" ? "msg-user" : "msg-bot");
 
-    const span = document.createElement("span");
-    // keep linebreaks
-    span.innerHTML = text.replace(/\n\n/g, "<br><br>").replace(/\n/g, "<br>");
-    div.appendChild(span);
+  const span = document.createElement("span");
+  // keep simple linebreak formatting
+  span.innerHTML = (text || "").replace(/\n\n/g, "<br><br>").replace(/\n/g, "<br>");
+  div.appendChild(span);
 
-    if (imageUrl) {
-      const img = document.createElement("img");
-      img.src = imageUrl;
-      img.style.maxWidth = "180px";
-      img.style.display = "block";
-      img.style.marginTop = "8px";
-      img.alt = "uploaded image";
-      div.appendChild(img);
-    }
-
-    chatWindow.appendChild(div);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.style.maxWidth = "180px";
+    img.style.display = "block";
+    img.style.marginTop = "8px";
+    img.alt = "uploaded image";
+    div.appendChild(img);
   }
 
-  // simple helper to show small status text
-  function showStatus(text) {
-    statusEl.textContent = text || "";
-  }
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
 
-  // If you have upload controls on the page, wire them
-  if (uploadButton && fileInput) {
-    uploadButton.addEventListener("click", async () => {
-      const file = fileInput.files[0];
-      if (!file) return alert("Choose a file first");
+/* ---------- small status helper ---------- */
+function showStatus(text) {
+  statusEl.textContent = text || "";
+}
 
-      showStatus("Uploading image...");
-      uploadButton.disabled = true;
+/* ---------- wire upload controls if they exist ---------- */
+if (uploadButton && fileInput) {
+  uploadButton.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    if (!file) return alert("Choose a file first");
 
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        const data = await res.json();
-
-        if (res.ok && data.ok && data.url) {
-          uploadedImageUrl = data.url;
-          showStatus("Upload OK");
-
-          // show the uploaded image and the returned JSON in the page
-          addMessage("Image attached ▶", "user", uploadedImageUrl);
-
-          // optionally print URL and JSON to a debug area if you have it
-          const dbg = document.createElement("pre");
-          dbg.style.fontSize = "12px";
-          dbg.style.maxWidth = "300px";
-          dbg.textContent = JSON.stringify(data.result || data, null, 2);
-          chatWindow.appendChild(dbg);
-          chatWindow.scrollTop = chatWindow.scrollHeight;
-        } else {
-          showStatus("Upload failed");
-          console.error("upload error:", data);
-          alert("Upload failed. See console.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Upload error: " + err.message);
-      } finally {
-        uploadButton.disabled = false;
-        showStatus("");
-      }
-    });
-  }
-
-  if (clearButton) {
-    clearButton.addEventListener("click", () => {
-      if (fileInput) fileInput.value = "";
-      uploadedImageUrl = null;
-      showStatus("");
-    });
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    if (!message && !uploadedImageUrl) return;
-
-    // show user message (and also show image if attached)
-    addMessage(message || "🔗 Image sent", "user", uploadedImageUrl || null);
-    input.value = "";
-    showStatus("TatvaBot is thinking...");
-    form.querySelector("button").disabled = true;
+    showStatus("Uploading image...");
+    uploadButton.disabled = true;
 
     try {
-      // send message and image URL to server
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          image: uploadedImageUrl // will be null if nothing uploaded
-        }),
-      });
+      const fd = new FormData();
+      fd.append("file", file);
 
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
 
-      if (res.ok && data.reply) {
-        addMessage(data.reply, "bot");
-      } else {
-        addMessage("Sorry, I had trouble replying. Please try again.", "bot");
-        console.error("API error:", data);
-      }
+      if (res.ok && data.ok && data.url) {
+        uploadedImageUrl = data.url;
+        showStatus("Upload OK");
+        // show small confirmation in the page and the URL (optional)
+        const link = document.createElement("a");
+        link.href = uploadedImageUrl;
+        link.target = "_blank";
+        link.textContent = uploadedImageUrl;
+        chatWindow.appendChild(document.createElement("br"));
+        chatWindow.appendChild(link);
 
-      // clear image after sending so next message is normal
-      uploadedImageUrl = null;
+        // also show JSON debug optionally
+        const pre = document.createElement("pre");
+        pre.style.fontSize = "12px";
+        pre.style.maxWidth = "400px";
+        pre.textContent = JSON.stringify(data.result || data, null, 2);
+        chatWindow.appendChild(pre);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      } else {
+        showStatus("Upload failed");
+        console.error("upload error:", data);
+        alert("Upload failed. See console.");
+      }
     } catch (err) {
-      addMessage("Network error. Please check your connection and try again.", "bot");
       console.error(err);
+      alert("Upload error: " + (err.message || err));
     } finally {
+      uploadButton.disabled = false;
       showStatus("");
-      form.querySelector("button").disabled = false;
     }
   });
+}
+
+/* clear file button */
+if (clearButton) {
+  clearButton.addEventListener("click", () => {
+    if (fileInput) fileInput.value = "";
+    uploadedImageUrl = null;
+    showStatus("");
+  });
+}
+
+/* ---------- chat form submit ---------- */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = input.value.trim();
+
+  // if no text and no uploaded image, do nothing
+  if (!message && !uploadedImageUrl) return;
+
+  // show user message (if text) and image if present
+  addMessage(message || "🔗 Image sent", "user", uploadedImageUrl || null);
+  input.value = "";
+  showStatus("TatvaBot is thinking...");
+  form.querySelector("button").disabled = true;
+
+  try {
+    // send to your server function
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        image: uploadedImageUrl // may be null
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.reply) {
+      addMessage(data.reply, "bot", null);
+    } else {
+      addMessage("Sorry, I had trouble replying. Please try again.", "bot");
+      console.error("API error:", data);
+    }
+
+    // clear attached image after sending the chat so next message is normal
+    uploadedImageUrl = null;
+  } catch (err) {
+    addMessage("Network error. Please check your connection and try again.", "bot");
+    console.error(err);
+  } finally {
+    showStatus("");
+    form.querySelector("button").disabled = false;
+  }
+});
 </script>
