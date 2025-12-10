@@ -2,12 +2,10 @@
   "name": "tatvabot-minimal",
   "version": "1.0.0",
   "private": true,
-  "engines": {
-    "node": "18.x"
-  },
+  "type": "module",
   "dependencies": {
-    "openai": "^4.8.0",
-    "cloudinary": "^1.32.0",
-    "formidable": "^3.1.0"
+    "openai": "^4.7.0",
+    "cloudinary": "^2.0.0",
+    "formidable": "^2.1.2"
   }
 }
