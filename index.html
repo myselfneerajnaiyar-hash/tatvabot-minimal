@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload</title>
+<title>TatvaBot — Chat + Image Upload + Voice</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
@@ -167,6 +167,30 @@
   }
   .send:disabled{ opacity:.6; cursor:default; }
 
+  .mic-btn{
+    padding:8px 10px;
+    border-radius:50%;
+    border:1px solid #ddd;
+    background:#fff;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mic-btn.recording{
+    background:linear-gradient(90deg, #ff6b6b, #ff3b3b);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(255,59,59,0.16);
+    animation: micPulse 1.2s infinite;
+  }
+  @keyframes micPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
   .status{
     font-size:13px;
     color:#6b7280;
@@ -219,17 +243,21 @@
       <!-- attach icon opens file chooser. File selection auto-uploads. -->
       <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
       <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
+
+      <!-- voice mic -->
+      <button id="mic-btn" class="mic-btn" title="Hold / click to speak">🎙️</button>
+
       <button id="send-btn" class="send" aria-label="Send message">Send</button>
     </div>
   </div>
 
 <script>
 /*
-  Single-file front-end w/ enhancements:
-   - localStorage persistence of chat
-   - timestamps on messages
-   - typing indicator for bot replies
-   - existing image upload + dedupe + Formspree lead capture preserved
+  Single-file front-end w/ voice input added.
+  Keep your server endpoints:
+    POST /api/upload  -> returns JSON { url: "<secure_url>" } etc.
+    POST /api/chat    -> accepts { message, image } -> returns { reply, image? }
+  Formspree endpoint already wired (you provided).
 */
 
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa";
@@ -241,37 +269,25 @@ const fileInput     = document.getElementById('file-input');
 const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl      = document.getElementById('status');
 const quickRow      = document.getElementById('quick-row');
+const micBtn        = document.getElementById('mic-btn');
 
 let uploadedImageUrl     = null;  // URL returned by /api/upload for the current selection
-let lastUploadedUrlShown = null;  // last URL we displayed as "Image attached" - used to prevent duplicates
+let lastUploadedUrlShown = null;  // last URL we displayed as "Image attached"
 const STORAGE_KEY = 'tatvabot_chat_v1';
 
 // simple phone number detector: 9–15 digits, allowing spaces/dashes
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
-// ---------- persistence helpers ----------
+/* -------- persistence helpers -------- */
 function saveHistory(messages){
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch(e){ console.warn('save history failed', e); }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('save history failed', e); }
 }
 function loadHistory(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  } catch(e){
-    console.warn('load history failed', e);
-    return null;
-  }
+  try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load history failed', e); return null; }
 }
 
-// ---------- rendering ----------
-function formatTime(ts){
-  const d = new Date(ts || Date.now());
-  return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
-}
-
+/* -------- rendering helpers -------- */
+function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' }); }
 function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
@@ -291,13 +307,10 @@ function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   wrapper.appendChild(meta);
   return wrapper;
 }
-
 function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
   chatWindow.scrollTop = chatWindow.scrollHeight;
-
-  // update saved history
   if(save){
     const hist = loadHistory() || [];
     hist.push({ text, from, imageUrl, ts });
@@ -305,28 +318,11 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   }
 }
 
-function showTypingIndicator(){
-  const el = document.createElement('div');
-  el.className = 'msg msg-bot typing-wrap';
-  const span = document.createElement('span');
-  span.className = 'typing';
-  span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
-  el.appendChild(span);
-  chatWindow.appendChild(el);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-  return el;
-}
-
-function removeTypingIndicator(el){
-  if(el && el.parentNode) el.parentNode.removeChild(el);
-}
-
-// ---------- restore on load ----------
+/* restore messages on load */
 (function restore(){
   const hist = loadHistory();
   if(!hist || !hist.length) return;
   chatWindow.innerHTML = '';
-  // re-add quick-row before messages
   if(quickRow) chatWindow.appendChild(quickRow);
   hist.forEach(msg => {
     const el = createMessageElement(msg);
@@ -335,10 +331,10 @@ function removeTypingIndicator(el){
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
 
-// ---------- UI helpers ----------
+/* small utilities */
 function showStatus(text){ statusEl.textContent = text || ''; }
 
-// ---------- upload flow ----------
+/* -------- upload flow (keeps your /api/upload) -------- */
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', async () => {
@@ -353,7 +349,6 @@ fileInput.addEventListener('change', async () => {
     const fd = new FormData();
     fd.append('file', file);
 
-    // IMPORTANT: your server should still expose POST /api/upload
     const res  = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
 
@@ -383,7 +378,7 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
-// ---------- quick buttons ----------
+/* quick buttons behavior */
 if(quickRow){
   quickRow.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-q]');
@@ -396,7 +391,21 @@ if(quickRow){
   });
 }
 
-// ---------- send flow (with Formspree lead capture) ----------
+/* show / remove typing indicator helpers */
+function showTypingIndicator(){
+  const el = document.createElement('div');
+  el.className = 'msg msg-bot typing-wrap';
+  const span = document.createElement('span');
+  span.className = 'typing';
+  span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  el.appendChild(span);
+  chatWindow.appendChild(el);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+  return el;
+}
+function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
+
+/* -------- send flow (Formspree lead capture + normal chat) -------- */
 async function sendMessage(){
   const messageRaw  = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
@@ -410,7 +419,6 @@ async function sendMessage(){
     const phoneRaw    = phoneMatch[1];
     const phoneDigits = phoneRaw.replace(/\D/g, '');
 
-    // show user's message (avoid duplicate thumbnail)
     if(imageToSend && lastUploadedUrlShown === imageToSend){
       addMessage(messageRaw || 'Image', 'user', null);
     } else {
@@ -425,35 +433,20 @@ async function sendMessage(){
     try {
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          phone: phoneDigits,
-          message: messageRaw,
-          source: 'TatvaBot chat'
-        })
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneDigits, message: messageRaw, source: 'TatvaBot chat' })
       });
 
-      addMessage(
-        "Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. " +
-        "We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.",
-        'bot'
-      );
+      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.", 'bot');
     } catch(err){
       console.error('Formspree error', err);
-      addMessage(
-        "I tried to save your number but something went wrong. " +
-        "Please try again in a while or contact us through the website.",
-        'bot'
-      );
+      addMessage("I tried to save your number but something went wrong. Please try again in a while or contact us through the website.", 'bot');
     } finally {
       uploadedImageUrl = null;
       sendBtn.disabled = false;
       showStatus('');
     }
-    return; // do not call /api/chat for phone messages
+    return; // do not forward to /api/chat
   }
 
   // ---- NORMAL CHAT FLOW ----
@@ -470,11 +463,9 @@ async function sendMessage(){
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
 
-  // show typing indicator
   const typingEl = showTypingIndicator();
 
   try {
-    // send to server chat endpoint
     const body = { message: message || '', image: imageToSend || null };
     const res  = await fetch('/api/chat', {
       method: 'POST',
@@ -483,8 +474,8 @@ async function sendMessage(){
     });
 
     const data = await res.json().catch(()=>null);
-    // small artificial delay to feel natural (and allow typing indicator to show)
-    await new Promise(r => setTimeout(r, 650));
+    // small delay so typing feels natural
+    await new Promise(r => setTimeout(r, 600));
 
     if(res.ok && data && (data.reply || data.answer || data.text)){
       const replyText  = data.reply || data.answer || data.text || '';
@@ -501,14 +492,13 @@ async function sendMessage(){
     removeTypingIndicator(typingEl);
     addMessage('Network error. Please check your connection and try again.', 'bot');
   } finally {
-    // only clear in-flight uploadedImageUrl (not lastUploadedUrlShown)
     uploadedImageUrl = null;
     sendBtn.disabled = false;
     showStatus('');
   }
 }
 
-// ---------- handlers ----------
+/* handlers */
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){
@@ -517,10 +507,124 @@ input.addEventListener('keydown', (e) => {
   }
 });
 
-// focus & small analytics console hint
-input.focus();
-console.info('TatvaBot UI loaded — persistence enabled (localStorage).');
+/* ---------- VOICE INPUT (Web Speech API) ---------- */
 
+/*
+ Behaviour:
+  - Click mic to start recording, click again to stop.
+  - Interim speech appears live in input.
+  - When final result arrives it auto-sends the message to Tatvabot.
+  - If the browser doesn't support SpeechRecognition, mic is disabled and status explains it.
+*/
+
+let recognition = null;
+let isRecording = false;
+const autoSendOnFinal = true; // change to false if you prefer manual-send after voice
+
+function setupSpeech(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    micBtn.disabled = true;
+    micBtn.title = "Voice not supported in this browser";
+    showStatus('Voice input not supported in this browser (try Chrome).');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN'; // adapt: Hindi/English mix common in India. Change if needed.
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('recording');
+    micBtn.title = "Recording... click to stop";
+    showStatus('Listening...');
+  };
+
+  recognition.onend = () => {
+    // onend may be called after stop() or when speech ends
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    micBtn.title = "Click to speak";
+    showStatus('');
+  };
+
+  recognition.onerror = (ev) => {
+    console.error('Speech recognition error', ev);
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    micBtn.title = "Click to speak";
+    if(ev && ev.error){
+      if(ev.error === 'not-allowed' || ev.error === 'permission-denied') {
+        showStatus('Microphone permission denied. Allow mic and try again.');
+      } else {
+        showStatus('Voice error: ' + ev.error);
+      }
+    }
+  };
+
+  let interimTranscript = '';
+  recognition.onresult = (ev) => {
+    interimTranscript = '';
+    let finalTranscript = '';
+
+    for(let i=0;i<ev.results.length;i++){
+      const res = ev.results[i];
+      if(res.isFinal){
+        finalTranscript += res[0].transcript;
+      } else {
+        interimTranscript += res[0].transcript;
+      }
+    }
+
+    // show interim in input (do not overwrite user's typed text unless empty)
+    input.value = (finalTranscript || interimTranscript || input.value) ;
+    // if final and autoSend set, send it
+    if(finalTranscript && autoSendOnFinal){
+      // small timeout to allow UI to update
+      setTimeout(()=> {
+        // move caret/focus
+        input.focus();
+        sendMessage();
+      }, 120);
+    }
+  };
+}
+
+micBtn.addEventListener('click', async () => {
+  if(!recognition){
+    setupSpeech();
+    if(!recognition){ return; }
+  }
+
+  if(isRecording){
+    // stop recording
+    try { recognition.stop(); } catch(e){ console.warn('stop error', e); }
+    // onend will handle UI
+  } else {
+    // start recording
+    try {
+      recognition.start();
+    } catch(e){
+      console.error('recognition start error', e);
+      showStatus('Could not start microphone. Check permissions.');
+    }
+  }
+});
+
+/* initialize speech if supported so first click is responsive */
+if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+  setupSpeech();
+} else {
+  micBtn.disabled = true;
+  micBtn.title = 'Voice not supported';
+}
+
+/* initial focus */
+input.focus();
+console.info('TatvaBot UI loaded — persistence enabled (localStorage). Voice available:', !!(window.SpeechRecognition || window.webkitSpeechRecognition));
 </script>
 </body>
 </html>
