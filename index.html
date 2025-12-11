@@ -3,7 +3,7 @@
   const CLOUD_NAME = "dps3lh1ed";
   const UPLOAD_PRESET = "tatvabot_unsigned";
   // FIX: make the URL a string / template literal
-  const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
+  const CLOUD_UPLOAD_URL = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload;
 
   const chatWindow = document.getElementById('chat-window');
   const input = document.getElementById('user-input');
@@ -15,7 +15,7 @@
 
   let uploadedImageUrl = null;
   let uploadInProgress = false;
-  // remember last user-attached image so we don't show the exact same image twice
+  // Remember last user-attached image so we can avoid showing the exact same URL twice
   let lastUserImage = null;
 
   function showStatus(text){
@@ -65,18 +65,11 @@
 
       if(res.ok && (json && (json.secure_url || json.url))){
         uploadedImageUrl = json.secure_url || json.url;
-showStatus('Upload OK');
-
-// only show the image attached UI if we haven't already shown the same URL
-if (uploadedImageUrl !== lastUserImage) {
-  addMessage('Image attached', 'user', uploadedImageUrl);
-  lastUserImage = uploadedImageUrl;
-} else {
-  // image already shown — give a small status note instead of duplicating in chat
-  showStatus('Image already attached');
-}
-
-fileInput.value = '';
+        showStatus('Upload OK');
+        // show user's attached image and remember it
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        lastUserImage = uploadedImageUrl;
+        fileInput.value = '';
       } else {
         console.error('Cloudinary upload failed:', res, json);
         alert('Upload failed. Check Console for details.');
