@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload (cloudinary unsigned)</title>
+<title>TatvaBot — Chat + Image Upload</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
-    --green:#14532d; --muted:#f7f7f8; --bubble-bg:#f1f5f9; --text:#111827;
-    --accent:#16a34a; --muted-border:#e6e6e6;
+    --green:#14532d;
+    --muted:#f7f7f8;
+    --bubble-bg:#f1f5f9;
+    --text:#111827;
+    --accent:#16a34a;
+    --muted-border:#e6e6e6;
   }
   html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
   body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:18px;}
@@ -28,11 +32,12 @@
   .file-controls{ display:flex; gap:8px; align-items:center; }
   .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:14px; }
   .file-btn:disabled{ opacity:.6 }
-  .camera-note{ font-size:11px; color:#6b7280; margin-left:6px; }
   .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; }
   .status{ font-size:13px; color:#6b7280; padding:6px 0 0 0; }
-  @media(max-width:920px){ .chat-wrapper{ grid-template-columns:1fr; } .right{ display:none; } }
-  small.hint{ display:block; font-size:12px; color:#6b7280; margin-top:6px }
+  @media(max-width:920px){
+    .chat-wrapper{ grid-template-columns:1fr; }
+    .right{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -61,8 +66,6 @@
         </div>
         <button id="send-btn" class="send" aria-label="Send message">Send</button>
       </div>
-
-      <small class="hint">Uploads go directly to Cloudinary (unsigned preset).</small>
     </div>
 
     <div class="right" id="right-col" aria-hidden="true">
@@ -72,203 +75,208 @@
   </div>
 
 <script>
-/*
-  QUICK NOTES:
-  - This page uploads to Cloudinary unsigned (client-side) using your cloud name & preset.
-  - You told me:
-      cloud name: dps3lh1ed
-      unsigned preset: tatvabot_unsigned
-  - The script then posts to YOUR existing server route: POST /api/chat
-  - I do NOT modify any server files.
-  - If something fails: open DevTools (F12) -> Console and copy the first error line and send to me.
+/* Defensive chat + upload client script.
+   - Tries POST /api/upload
+   - If /api/upload fails, does unsigned direct Cloudinary upload (using provided cloud/preset).
+   - Then POSTs { message, image } to /api/chat.
 
-  IMPORTANT: If your deployment has a Content Security Policy (CSP) that blocks uploads to cloudinary,
-  the upload will fail. If that happens, paste the error console output here.
+   Cloudinary fallback settings (from you):
+     CLOUD_NAME = "dps3lh1ed"
+     UNSIGNED_PRESET = "tatvabot_unsigned"
+
+   Replace this index.html, redeploy, then test on the live URL.
 */
 
-const CLOUD_NAME = 'dps3lh1ed';
-const UPLOAD_PRESET = 'tatvabot_unsigned';
-const CLOUDINARY_ENDPOINT = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload;
+(function(){
+  const CLOUD_NAME = 'dps3lh1ed';
+  const UNSIGNED_PRESET = 'tatvabot_unsigned';
 
-// UI elements
-const chatWindow = document.getElementById('chat-window');
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const fileInput = document.getElementById('file-input');
-const chooseFileBtn = document.getElementById('choose-file-btn');
-const uploadBtn = document.getElementById('upload-btn');
-const statusEl = document.getElementById('status');
-const debugEl = document.getElementById('debug');
+  const chatWindow = document.getElementById('chat-window');
+  const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const fileInput = document.getElementById('file-input');
+  const chooseFileBtn = document.getElementById('choose-file-btn');
+  const uploadBtn = document.getElementById('upload-btn');
+  const statusEl = document.getElementById('status');
+  const debugEl = document.getElementById('debug');
 
-let lastUploadedUrl = null;
+  let uploadedImageUrl = null; // temporary url after upload
 
-function logDebug(...args){
-  try { debugEl.textContent = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' | '); }
-  catch(e){ /ignore/ }
-  console.log('[tatvabot-debug]', ...args);
-}
-
-function setStatus(t){
-  statusEl.textContent = t || '';
-}
-
-// show message (user or bot). from = 'user'|'bot'
-function addMessage(text, from='bot', imageUrl=null){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
-  const span = document.createElement('span');
-  span.innerHTML = (text||'').replace(/\n/g,'<br>');
-  wrapper.appendChild(span);
-  if(imageUrl){
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = 'attached image';
-    img.loading = 'lazy';
-    wrapper.appendChild(img);
+  function logDebug(...args){
+    // write to debug panel and console
+    if(debugEl) debugEl.textContent = args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
+    console.log('[tatvabot]', ...args);
   }
-  chatWindow.appendChild(wrapper);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
-// open native file selector
-chooseFileBtn.addEventListener('click', () => {
-  try { fileInput.click(); } catch(e){ alert('Unable to open file selector: ' + e.message); console.error(e); }
-});
-
-// upload to Cloudinary unsigned
-uploadBtn.addEventListener('click', async () => {
-  const file = fileInput.files && fileInput.files[0];
-  if(!file){
-    alert('Please choose an image first (click the paperclip 📎).');
-    return;
+  function showStatus(text){
+    statusEl.textContent = text || '';
   }
 
-  // disable while uploading
-  uploadBtn.disabled = true;
-  chooseFileBtn.disabled = true;
-  setStatus('Uploading to Cloudinary...');
+  function addMessage(text, from='bot', imageUrl=null){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
+    const span = document.createElement('span');
+    span.innerHTML = (text || '') .replace(/\n/g,'<br>');
+    wrapper.appendChild(span);
+    if(imageUrl){
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = 'attached image';
+      img.loading = 'lazy';
+      wrapper.appendChild(img);
+    }
+    chatWindow.appendChild(wrapper);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
 
-  try {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
+  // file chooser trigger
+  chooseFileBtn.addEventListener('click', () => fileInput.click());
 
-    logDebug('Calling cloudinary...', CLOUDINARY_ENDPOINT, UPLOAD_PRESET);
-    const res = await fetch(CLOUDINARY_ENDPOINT, { method: 'POST', body: fd });
-    const json = await res.json().catch(()=>null);
+  // attempt to upload using /api/upload first
+  async function uploadViaServer(file){
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      // you likely expect POST /api/upload
+      const res = await fetch('/api/upload', { method:'POST', body: fd });
+      const json = await res.json().catch(()=>null);
+      if(res.ok && json){
+        // server may return multiple shapes; try common fields
+        const url = json.url || json.secure_url || (json.result && (json.result.secure_url || json.result.url));
+        if(url) return { ok:true, url, source:'server' };
+      }
+      logDebug('server upload failed', res.status, json);
+      return { ok:false, status: res.status, json };
+    } catch(err){
+      logDebug('server upload error', err);
+      return { ok:false, error: err.message || String(err) };
+    }
+  }
 
-    if(!res.ok){
-      console.error('Cloudinary returned non-OK:', res.status, json);
-      alert('Upload failed: cloudinary returned error. See console for details.');
-      setStatus('Upload failed');
+  // fallback: direct unsigned Cloudinary upload
+  async function uploadToCloudinary(file){
+    try {
+      const cloudUrl = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload;
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('upload_preset', UNSIGNED_PRESET);
+      const res = await fetch(cloudUrl, { method:'POST', body: fd });
+      const json = await res.json().catch(()=>null);
+      if(res.ok && json && json.secure_url) {
+        return { ok:true, url: json.secure_url, source:'cloudinary' };
+      }
+      logDebug('cloudinary upload failed', res.status, json);
+      return { ok:false, status: res.status, json };
+    } catch(err){
+      logDebug('cloudinary upload error', err);
+      return { ok:false, error: err.message || String(err) };
+    }
+  }
+
+  uploadBtn.addEventListener('click', async () => {
+    const file = fileInput.files[0];
+    if(!file){
+      alert('Please choose an image first (click the 📎 icon).');
+      return;
+    }
+    try {
+      uploadBtn.disabled = true;
+      chooseFileBtn.disabled = true;
+      showStatus('Uploading image...');
+      logDebug('start upload', file.name, file.size);
+
+      // try server upload
+      const serverResult = await uploadViaServer(file);
+      if(serverResult.ok){
+        uploadedImageUrl = serverResult.url;
+        showStatus('Upload OK (server)');
+        logDebug('uploaded via server', uploadedImageUrl);
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        fileInput.value = '';
+        return;
+      }
+
+      // fallback to Cloudinary unsigned
+      const cloudResult = await uploadToCloudinary(file);
+      if(cloudResult.ok){
+        uploadedImageUrl = cloudResult.url;
+        showStatus('Upload OK (cloudinary)');
+        logDebug('uploaded via cloudinary', uploadedImageUrl);
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        fileInput.value = '';
+        return;
+      }
+
+      // both failed
+      logDebug('both upload methods failed', {serverResult, cloudResult});
+      alert('Upload failed. Open the browser console (F12) and send me the first error line.');
+      showStatus('Upload failed');
+    } catch(err) {
+      logDebug('upload error', err);
+      alert('Upload error: ' + (err.message || err));
+      showStatus('Upload error');
+    } finally {
+      uploadBtn.disabled = false;
+      chooseFileBtn.disabled = false;
+      setTimeout(()=>showStatus(''), 2500);
+    }
+  });
+
+  // send message (text + optional uploadedImageUrl) to /api/chat
+  async function sendMessage(){
+    const message = input.value.trim();
+    if(!message && !uploadedImageUrl){
+      // nothing to send
       return;
     }
 
-    // find secure_url
-    const secureUrl = (json && (json.secure_url || json.url)) || null;
-    if(!secureUrl){
-      console.error('Cloudinary response missing url:', json);
-      alert('Upload failed: no url returned. See console.');
-      setStatus('Upload failed');
-      return;
+    // immediately show user message
+    addMessage(message || 'Image', 'user', uploadedImageUrl || null);
+    input.value = '';
+    showStatus('TatvaBot is thinking...');
+    sendBtn.disabled = true;
+
+    try {
+      const body = { message: message || '', image: uploadedImageUrl || null };
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json().catch(()=>null);
+      logDebug('chat response', res.status, json);
+
+      if(res.ok && json && (json.reply || json.answer || json.text)){
+        const replyText = json.reply || json.answer || json.text || '';
+        const replyImage = json.image || (json.result && (json.result.secure_url || json.result.url)) || null;
+        addMessage(replyText, 'bot', replyImage);
+      } else {
+        // if server returned some error details, log them
+        logDebug('chat api error', res.status, json);
+        addMessage('Sorry — failed to reach bot. See console.', 'bot');
+        alert('Chat API returned error. Open console (F12) and paste the first error line here.');
+      }
+    } catch(err) {
+      logDebug('network/chat error', err);
+      addMessage('Network error. Check console and try again.', 'bot');
+      alert('Network error: ' + (err.message || err));
+    } finally {
+      // clear temp uploaded image (we already showed it as user message)
+      uploadedImageUrl = null;
+      sendBtn.disabled = false;
+      showStatus('');
     }
-
-    lastUploadedUrl = secureUrl;
-    setStatus('Upload OK');
-    addMessage('Image attached', 'user', lastUploadedUrl);
-    fileInput.value = '';
-    logDebug('Cloudinary upload OK', secureUrl);
-  } catch(err){
-    console.error('Upload error', err);
-    alert('Upload error: ' + (err.message || err));
-    setStatus('Upload error');
-  } finally {
-    uploadBtn.disabled = false;
-    chooseFileBtn.disabled = false;
-    setTimeout(()=>setStatus(''), 1800);
-  }
-});
-
-// send text + optional lastUploadedUrl to /api/chat
-async function doSend(){
-  const text = (input.value || '').trim();
-  if(!text && !lastUploadedUrl){
-    // nothing to send
-    return;
   }
 
-  // add user's message immediately
-  addMessage(text || 'Image', 'user', lastUploadedUrl || null);
-  input.value = '';
-  setStatus('Sending to TatvaBot...');
-  sendBtn.disabled = true;
+  // handlers
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
 
-  try {
-    const body = { message: text || '', image: lastUploadedUrl || null };
+  // initial focus
+  input.focus();
 
-    logDebug('Posting /api/chat', body);
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+  // Helpful note in console
+  console.log('[tatvabot] client loaded. If upload/send fails, open Console (F12) and copy the first error line.');
 
-    // safety: log raw status
-    logDebug('/api/chat status', res.status);
-
-    // try to parse JSON even on failure
-    const json = await res.json().catch(()=>null);
-
-    if(!res.ok){
-      console.error('/api/chat returned error', res.status, json);
-      addMessage('Sorry — failed to reach bot. Check console.','bot');
-      alert('Chat API returned error: ' + (res.status || 'unknown') + '. See console/Network.');
-      return;
-    }
-
-    // expected reply property
-    const replyText = (json && (json.reply || json.answer || json.text)) || '';
-    const replyImage = (json && (json.image || json.img || json.result?.secure_url)) || null;
-
-    if(replyText || replyImage){
-      addMessage(replyText || '', 'bot', replyImage || null);
-      logDebug('bot reply', replyText, replyImage);
-    } else {
-      console.warn('Chat API response had no reply:', json);
-      addMessage('Sorry — bot returned empty reply. See console.', 'bot');
-    }
-  } catch(err){
-    console.error('Network/Chat error', err);
-    addMessage('Network error while contacting bot. See console.', 'bot');
-    alert('Network error: ' + (err.message || err));
-  } finally {
-    // clear lastUploadedUrl after sending (so the image is not reused)
-    lastUploadedUrl = null;
-    sendBtn.disabled = false;
-    setStatus('');
-  }
-}
-
-// Bind UI
-sendBtn.addEventListener('click', doSend);
-input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); doSend(); } });
-
-// quick sanity console message so we can detect if this script runs
-console.log('[tatvabot] client script loaded. Cloud:', CLOUD_NAME, 'preset:', UPLOAD_PRESET);
-
-// Helpful tip to user: if buttons don't work, open Console (F12) and paste first error here.
-(function quickCheckAndAdvice(){
-  // small quick patch: if send button wasn't wired by some other script, we already wired it above,
-  // but if other code prevents it we will show message in console so you can copy the error.
-  try {
-    if(typeof window.__tatvabot_quick_patch_applied === 'undefined'){
-      window.__tatvabot_quick_patch_applied = true;
-      console.log('[tatvabot] quick patch applied (client-only). If Upload/Send still fail, open Console (F12) -> Network and copy the first error line here.');
-      alert('Quick fix installed in this browser. Try Upload then Send. If it fails, open Console (F12) and copy the first error line and send it to me.');
-    }
-  } catch(e){
-    console.warn('tatvabot self-check error', e);
-  }
 })();
 </script>
 </body>
