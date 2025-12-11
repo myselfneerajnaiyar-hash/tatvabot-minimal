@@ -13,251 +13,263 @@
     --accent:#16a34a;
     --muted-border:#e6e6e6;
   }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
+  body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:18px;}
 
-  html,body{
-    height:100%;
-    margin:0;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
-    background:var(--muted);
+  .chat-wrapper{ width:100%; max-width:960px; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(2,6,23,0.08); display:grid; grid-template-columns:1fr 340px; overflow:hidden; min-height:540px; }
+
+  /* left = chat */
+  .left {
+    padding:18px 20px;
     display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
+    flex-direction:column;
+    gap:12px;
+    min-height:520px;
+    /* ensure chat area itself scrolls so header can stick */
+    max-height: calc(100vh - 36px);
   }
-
-  .chat-wrapper{
-    width:100%;
-    max-width:960px;
-    background:#fff;
-    border-radius:12px;
-    box-shadow:0 12px 30px rgba(2,6,23,0.08);
-    display:grid;
-    grid-template-columns:1fr 340px;
-    overflow:hidden;
-    min-height:540px;
-    position:relative;
-  }
-
-  /* ---- FIXED HEADER ---- */
   .chat-header{
     background:var(--green);
     color:#fff;
     padding:14px;
+    border-radius:8px;
     font-weight:600;
-    position:sticky;
-    top:0;
-    z-index:50;
-    border-radius:0;
-  }
-  .chat-header small{
-    display:block;
-    font-weight:400;
-    font-size:12px;
-    opacity:.9;
-    margin-top:4px;
-  }
-
-  .left{
-    padding:0 20px 18px 20px;
     display:flex;
-    flex-direction:column;
-    height:100%;
-  }
-
-  .chat-window{
-    background:#fafafa;
-    border-radius:8px;
-    padding:14px;
-    overflow:auto;
-    flex:1;
-    min-height:340px;
-    margin-top:10px;
-  }
-
-  .msg{
-    margin-bottom:12px;
-    max-width:78%;
-    line-height:1.4;
-    display:flex;
-    flex-direction:column;
-  }
-
-  .msg span{
-    display:block;
-    background:var(--bubble-bg);
-    color:var(--text);
-    padding:12px 14px;
-    border-radius:12px;
-    white-space:pre-wrap;
-    word-wrap:break-word;
-  }
-
-  .msg-user{
-    align-items:flex-end;
-    margin-left:auto;
-    text-align:right;
-  }
-
-  .msg-user span{
-    background:var(--green);
-    color:#fff;
-  }
-
-  .msg img{
-    display:block;
-    margin-top:8px;
-    max-width:320px;
-    border-radius:8px;
-  }
-
-  .chat-footer{
-    display:flex;
-    gap:8px;
-    padding-top:12px;
-    border-top:1px solid var(--muted-border);
+    justify-content:space-between;
     align-items:center;
+    /* make header sticky so it doesn't scroll away */
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
+  .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.9;margin-top:4px}
+  .chat-window{ background:#fafafa; border-radius:8px; padding:14px; flex:1; overflow:auto; min-height:340px; }
+  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; display:flex; flex-direction:column; }
+  .msg span{ display:block; background:var(--bubble-bg); color:var(--text); padding:12px 14px; border-radius:12px; white-space:pre-wrap; word-wrap:break-word; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
+  .msg-user{ align-items:flex-end; margin-left:auto; text-align:right; }
+  .msg-user span{ background:var(--green); color:#fff; }
+  .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
 
-  .chat-footer input[type="text"]{
-    flex:1;
-    padding:10px 14px;
-    border-radius:999px;
-    border:1px solid #ddd;
-  }
+  .chat-footer{ display:flex; gap:8px; padding-top:10px; border-top:1px solid var(--muted-border); align-items:center; }
+  .chat-footer input[type="text"]{ flex:1; padding:10px 14px; border-radius:999px; border:1px solid #ddd; outline:none; font-size:14px; }
+  .chat-footer input[type="text"]:focus{ border-color:var(--green); }
+  .send{ background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:999px; cursor:pointer; }
+  .send:disabled{ opacity:.6; cursor:default; }
 
-  .send{
-    background:var(--accent);
-    color:#fff;
-    border:none;
-    padding:10px 16px;
-    border-radius:999px;
-    cursor:pointer;
-  }
+  /* file controls styled inline inside footer */
+  .file-controls{ display:flex; gap:8px; align-items:center; }
+  .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:14px; }
+  .file-btn:disabled{ opacity:.6 }
+  .camera-note{ font-size:11px; color:#6b7280; margin-left:6px; }
 
-  .file-btn{
-    padding:8px 10px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    background:#fff;
-    cursor:pointer;
-  }
+  /* right column minimal */
+  .right{ padding:18px; border-left:1px solid #f1f1f1; background:#fff; }
+  .status{ font-size:13px; color:#6b7280; padding:6px 0 0 0; }
 
+  /* small responsiveness */
   @media(max-width:920px){
     .chat-wrapper{ grid-template-columns:1fr; }
     .right{ display:none; }
   }
 </style>
 </head>
-
 <body>
-<div class="chat-wrapper">
-  <div class="left">
-    
-    <!-- FIXED HEADER -->
-    <div class="chat-header">
-      TatvaBot — Gardening Assistant
-      <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
+  <div class="chat-wrapper" role="application" aria-label="TatvaBot chat">
+    <div class="left" id="left-col">
+      <div class="chat-header" aria-hidden="false">
+        <div>
+          TatvaBot — Gardening Assistant
+          <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
+        </div>
+        <div style="font-size:12px;opacity:.9">v1</div>
+      </div>
+
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
+        <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help with your plants today?</span></div>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+
+      <div class="chat-footer" role="region" aria-label="Chat controls">
+        <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" aria-label="Type message" />
+        <div class="file-controls" aria-hidden="false">
+          <!-- camera-capable file input; capture="environment" suggests camera on mobile -->
+          <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
+          <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
+          <button id="upload-btn" class="file-btn" title="Upload selected image">Upload</button>
+        </div>
+        <button id="send-btn" class="send" aria-label="Send message">Send</button>
+      </div>
     </div>
 
-    <!-- CHAT WINDOW -->
-    <div id="chat-window" class="chat-window">
-      <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help with your plants today?</span></div>
-    </div>
-
-    <div id="status" class="status"></div>
-
-    <!-- FOOTER -->
-    <div class="chat-footer">
-      <label class="file-btn" id="choose-file-btn">📎</label>
-      <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
-
-      <input id="user-input" type="text" placeholder="Type your message..." />
-      <button id="send-btn" class="send">Send</button>
+    <div class="right" id="right-col" aria-hidden="true">
+      <!-- Placeholder for future controls -->
+      <div style="font-weight:600;margin-bottom:8px">Debug & Controls</div>
+      <div id="debug" style="font-size:13px;color:#444;line-height:1.4">Hidden</div>
     </div>
   </div>
 
-  <div class="right"></div>
-</div>
-
 <script>
+/*
+ Single-file chat page (modified):
+  - header is sticky so it stays visible when you scroll the chat
+  - picking a file automatically uploads it (no second Upload click needed)
+  - prevents duplicate user image previews using lastUserImage guard
+  - POST /api/upload and POST /api/chat routes are expected on server
+*/
+
 const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const fileInput = document.getElementById('file-input');
 const chooseFileBtn = document.getElementById('choose-file-btn');
+const uploadBtn = document.getElementById('upload-btn');
 const statusEl = document.getElementById('status');
+const debugEl = document.getElementById('debug');
 
 let uploadedImageUrl = null;
+// guard to avoid showing the same uploaded image twice
+let lastUserImage = null;
 
-function showStatus(text){
-  statusEl.textContent = text || "";
-}
+function showStatus(text){ statusEl.textContent = text || ''; }
+function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); }
 
-function addMessage(text, from="bot", imageUrl=null){
-  const box = document.createElement("div");
-  box.className = "msg " + (from === "user" ? "msg-user" : "msg-bot");
-
-  const span = document.createElement("span");
-  span.innerHTML = text.replace(/\n/g, "<br>");
-  box.appendChild(span);
-
+// Create and append message (text + optional image)
+function addMessage(text, from='bot', imageUrl=null){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
+  const span = document.createElement('span');
+  span.innerHTML = (text || '') .replace(/\n/g,'<br>');
+  wrapper.appendChild(span);
   if(imageUrl){
-    const img = document.createElement("img");
+    const img = document.createElement('img');
     img.src = imageUrl;
-    box.appendChild(img);
+    img.alt = 'attached image';
+    img.loading = 'lazy';
+    img.style.maxWidth = '320px';
+    img.style.marginTop = '8px';
+    wrapper.appendChild(img);
   }
-
-  chatWindow.appendChild(box);
+  chatWindow.appendChild(wrapper);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-/* 1️⃣ AUTO-UPLOAD AFTER SELECTING IMAGE */
-chooseFileBtn.addEventListener("click", () => fileInput.click());
+// file chooser trigger
+chooseFileBtn.addEventListener('click', () => fileInput.click());
 
-fileInput.addEventListener("change", async () => {
-  const file = fileInput.files[0];
-  if(!file) return;
-
-  showStatus("Uploading image…");
-
-  const fd = new FormData();
-  fd.append("file", file);
-
-  const res = await fetch("/api/upload", { method:"POST", body:fd });
-  const data = await res.json();
-
-  uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url;
-
-  addMessage("Image attached", "user", uploadedImageUrl);
-  showStatus("");
+// auto-upload when user picks a file (so they don't have to press Upload again)
+fileInput.addEventListener('change', (e) => {
+  // if a file was selected, start upload immediately
+  if (fileInput.files && fileInput.files[0]) {
+    // call upload handler directly (same logic as Upload button)
+    doUpload();
+  }
 });
 
-/* 2️⃣ SEND MESSAGE + (OPTIONAL IMAGE) */
-async function sendMessage(){
-  const text = input.value.trim();
-  if(!text && !uploadedImageUrl) return;
+// central upload function used by both auto and manual flows
+async function doUpload(){
+  const file = fileInput.files[0];
+  if(!file){
+    alert('Please choose an image first (click the 📎).');
+    return;
+  }
 
-  addMessage(text || "Image", "user", uploadedImageUrl);
-  input.value = "";
+  try{
+    showStatus('Uploading image...');
+    uploadBtn.disabled = true;
+    chooseFileBtn.disabled = true;
 
-  const body = { message:text, image:uploadedImageUrl };
+    const fd = new FormData();
+    fd.append('file', file);
 
-  const res = await fetch("/api/chat", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(body)
-  });
+    // your server /api/upload should accept the file and return { url: "<secure_url>" }
+    const res = await fetch('/api/upload', { method:'POST', body: fd });
+    const data = await res.json().catch(()=>null);
 
-  const data = await res.json();
-  addMessage(data.reply, "bot", data.image);
+    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
+      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
 
-  uploadedImageUrl = null;
+      // Prevent duplicate previews: only show the preview if it's different from lastUserImage
+      if(uploadedImageUrl && uploadedImageUrl !== lastUserImage){
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        // remember this as the last previewed user image
+        lastUserImage = uploadedImageUrl;
+      } else {
+        // if same image already previewed, just note success quietly
+        debugLog('Upload returned same image as lastUserImage, skipping duplicate preview.');
+      }
+
+      showStatus('Upload successful');
+      fileInput.value = '';
+    } else {
+      console.error('Upload failed', res, data);
+      alert('Upload failed. Check server logs. See console.');
+      showStatus('Upload failed');
+    }
+  } catch(err){
+    console.error('Upload error', err);
+    alert('Upload error: ' + (err.message || err));
+    showStatus('Upload error');
+  } finally {
+    uploadBtn.disabled = false;
+    chooseFileBtn.disabled = false;
+    setTimeout(()=>showStatus(''), 2200);
+  }
 }
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keydown", (e)=>{
-  if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
-});
+// wire upload button to same function (manual upload still works)
+uploadBtn.addEventListener('click', doUpload);
+
+// Send message + optional uploadedImageUrl to /api/chat
+async function sendMessage(){
+  const message = input.value.trim();
+  if(!message && !uploadedImageUrl) return;
+
+  // show user's message immediately
+  // Avoid duplicating the image bubble: if uploadedImageUrl was already previewed (lastUserImage),
+  // then show only the text bubble here (image already shown). Otherwise include image in this message.
+  const includeImageOnSend = uploadedImageUrl && uploadedImageUrl !== lastUserImage;
+
+  addMessage(message || 'Image', 'user', includeImageOnSend ? uploadedImageUrl : null);
+
+  input.value = '';
+  showStatus('TatvaBot is thinking...');
+  sendBtn.disabled = true;
+
+  try {
+    const body = { message: message || '', image: uploadedImageUrl || null };
+    const res = await fetch('/api/chat', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(()=>null);
+
+    if(res.ok && data && data.reply){
+      // server reply may include an image; show it if present
+      addMessage(data.reply, 'bot', data.image || null);
+    } else {
+      console.error('Chat API error', res, data);
+      addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
+    }
+  } catch(err){
+    console.error('Network error', err);
+    addMessage('Network error. Please check your connection and try again.', 'bot');
+  } finally {
+    // clear uploaded image after sending so next upload is fresh
+    uploadedImageUrl = null;
+    lastUserImage = null; // reset guard after send (so same image can be uploaded again later if desired)
+    sendBtn.disabled = false;
+    showStatus('');
+  }
+}
+
+// handlers
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+
+// focus
+input.focus();
 </script>
 </body>
 </html>
