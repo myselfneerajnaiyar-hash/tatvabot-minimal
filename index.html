@@ -112,6 +112,7 @@ const statusEl = document.getElementById('status');
 const debugEl = document.getElementById('debug');
 
 let uploadedImageUrl = null;
+  let lastUserImage = null;
 
 function showStatus(text){ statusEl.textContent = text || ''; }
 function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); }
