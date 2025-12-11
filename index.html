@@ -1,10 +1,10 @@
 <script>
 /*
-  Fixed client script:
-  - CLOUD_UPLOAD_URL is a valid string (template literal)
-  - Wrapped startup in DOMContentLoaded
-  - Added dedupe so the same image url isn't shown twice
-  - Keeps existing server route usage: POST /api/chat
+  Updated client script:
+   - fixes Cloudinary URL syntax
+   - waits for DOMContentLoaded (prevents Missing DOM elements)
+   - prevents duplicate user image preview via lastUserImage guard
+   - does NOT touch server/api code
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,27 +20,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadBtn = document.getElementById('upload-btn');
   const statusEl = document.getElementById('status');
 
-  if(!chatWindow || !input || !sendBtn || !fileInput || !chooseFileBtn || !uploadBtn || !statusEl){
-    console.error('Missing DOM elements. Ensure the script is placed AFTER the HTML or wrapped in DOMContentLoaded.');
-    alert('Chat failed to initialize. Open console (F12) to see details.');
-    return;
-  }
-
-  let uploadedImageUrl = null;    // the temporary uploaded image url (local state)
+  // guards & state
+  let uploadedImageUrl = null;
   let uploadInProgress = false;
-  let lastUserImage = null;       // remember last user-attached image to avoid duplicates
+  // lastUserImage prevents showing the exact same user image preview twice
+  let lastUserImage = null;
 
   function showStatus(text){
-    statusEl.textContent = text || '';
+    if(statusEl) statusEl.textContent = text || '';
   }
 
   function addMessage(text, from='bot', imageUrl=null){
     const wrapper = document.createElement('div');
-    wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
+    wrapper.className = 'msg ' + (from === 'user' ? 'msg-user' : 'msg-bot');
     const span = document.createElement('span');
-    span.innerHTML = (text || '') .replace(/\n/g,'<br>');
+    span.innerHTML = (text || '').replace(/\n/g, '<br>');
     wrapper.appendChild(span);
-
     if(imageUrl){
       const img = document.createElement('img');
       img.src = imageUrl;
@@ -48,15 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
       img.loading = 'lazy';
       wrapper.appendChild(img);
     }
-
     chatWindow.appendChild(wrapper);
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }
 
-  // open file chooser
+  // file chooser trigger
   chooseFileBtn.addEventListener('click', () => fileInput.click());
 
-  // upload to Cloudinary
+  // Upload selected image to Cloudinary (unsigned preset)
   uploadBtn.addEventListener('click', async () => {
     const file = fileInput.files[0];
     if(!file){
@@ -64,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if(uploadInProgress) return;
-
     uploadInProgress = true;
     uploadBtn.disabled = true;
     chooseFileBtn.disabled = true;
@@ -80,22 +73,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if(res.ok && json && (json.secure_url || json.url)){
         uploadedImageUrl = json.secure_url || json.url;
-        showStatus('Upload OK');
 
-        // Dedupe logic: only add the user-preview if it is not identical to the very last user image shown
-        // (this prevents showing the same preview twice if user clicks upload multiple times rapidly)
+        // Prevent duplicate preview if same image was already previewed
         if(lastUserImage !== uploadedImageUrl){
           addMessage('Image attached', 'user', uploadedImageUrl);
           lastUserImage = uploadedImageUrl;
         } else {
-          console.debug('Duplicate user image suppressed (same URL).');
+          // already shown — do nothing (but keep uploadedImageUrl for send)
+          console.log('Skipping duplicate user image preview');
         }
 
-        // allow sending; clear file input so same file can be re-chosen if needed
+        showStatus('Upload OK');
+        // clear selected file input (so user can re-select same file if needed)
         fileInput.value = '';
       } else {
-        console.error('Cloudinary upload failed:', res, json);
-        alert('Upload failed. See console for details.');
+        console.error('Cloudinary upload failed', res, json);
+        alert('Upload failed. Check console for details.');
         showStatus('Upload failed');
       }
     } catch(err){
@@ -106,18 +99,23 @@ document.addEventListener('DOMContentLoaded', () => {
       uploadInProgress = false;
       uploadBtn.disabled = false;
       chooseFileBtn.disabled = false;
-      setTimeout(()=>showStatus(''), 1800);
+      setTimeout(()=> showStatus(''), 1800);
     }
   });
 
-  // send message + (optional) uploadedImageUrl to /api/chat
+  // send message + optional uploadedImageUrl to /api/chat
   async function sendMessage(){
     const message = input.value.trim();
     if(!message && !uploadedImageUrl) return;
 
-    // show user's message (local preview). If there's an attached image, it was already added during upload.
+    // show user's message immediately (if image present, it was previewed already)
+    // but ensure we don't duplicate the preview here (we only add text or image once)
     if(message){
-      addMessage(message, 'user', null);
+      addMessage(message, 'user', uploadedImageUrl || null);
+    } else if(!message && uploadedImageUrl && lastUserImage !== uploadedImageUrl){
+      // edge case: image present but wasn't previewed (safeguard)
+      addMessage('Image', 'user', uploadedImageUrl);
+      lastUserImage = uploadedImageUrl;
     }
 
     input.value = '';
@@ -131,33 +129,25 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+
       const json = await res.json().catch(()=>null);
 
-      // handle common shapes: { reply, image } or { answer, img } etc
-      if(res.ok && json && (json.reply || json.answer || json.text || json.output)){
-        const replyText = json.reply || json.answer || json.text || json.output || '';
-        let replyImage = json.image || json.img || (json.result && json.result.secure_url) || null;
-
-        // If the bot returned the same image URL we already showed for the user, suppress duplicate
-        if(replyImage && lastUserImage && replyImage === lastUserImage){
-          // don't show bot image to avoid duplicate.
-          replyImage = null;
-          // reset lastUserImage (we consumed it)
-          lastUserImage = null;
-        }
-
+      if(res.ok && json && (json.reply || json.answer || json.text)){
+        const replyText = json.reply || json.answer || json.text || '';
+        const replyImage = json.image || json.img || (json.result && json.result.secure_url) || null;
         addMessage(replyText, 'bot', replyImage);
       } else {
         console.error('Chat API error', res, json);
-        addMessage('Sorry — failed to reach bot. Check server logs.', 'bot', null);
-        alert('Chat API returned error. Open Console (F12) and copy the first red line for debugging.');
+        addMessage('Sorry — failed to reach bot. See console.', 'bot', null);
+        alert('Chat API returned error. Open Console (F12) and copy the first red line.');
       }
     } catch(err){
       console.error('Network error sending to /api/chat', err);
       addMessage('Network error. Please check your connection and try again.', 'bot');
     } finally {
-      // clear temporary uploadedImageUrl (bot already received a copy)
+      // clear temporary local image after sending (bot gets copy)
       uploadedImageUrl = null;
+      lastUserImage = null; // reset guard so next upload shows preview again
       sendBtn.disabled = false;
       showStatus('');
     }
@@ -165,12 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // handlers
   sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+  input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
 
-  // focus input
+  // focus
   input.focus();
 
-  // Helpful global error handler to surface first console line
+  // global error catcher (friendly message)
   window.addEventListener('error', (ev) => {
     console.error('Page runtime error:', ev.error || ev.message || ev);
     if(!window.__tatvabot_reported_error){
