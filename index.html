@@ -1,234 +1,221 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TatvaBot — Chat with image upload</title>
-  <style>
-    /* Minimal clean styles */
-    body { font-family: Inter, system-ui, Arial; margin: 0; background:#f6f7f8; color:#222; }
-    .container { max-width:900px; margin:28px auto; padding:18px; background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
-    header { background:#197a3b; color:white; padding:14px 20px; border-radius:8px; margin-bottom:18px; }
-    .chat { min-height:360px; border:1px solid #eee; border-radius:8px; padding:14px; overflow:auto; background: #fafafa; }
-    .bubble { display:inline-block; padding:12px 16px; border-radius:14px; margin:8px 0; max-width:78%; }
-    .bot { background:#eaf6ea; color:#0f2; border-radius:14px 14px 14px 2px; }
-    .user { background:#197a3b; color:white; float:right; border-radius:14px 14px 2px 14px; }
-    .preview { margin:8px 0; display:block; }
-    .controls { display:flex; gap:10px; align-items:center; margin-top:16px; }
-    input.text { flex:1; padding:12px 14px; border-radius:22px; border:1px solid #ddd; }
-    button { padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
-    button.primary { background:#197a3b; color:#fff; }
-    .smallBtn { background:#fff; border:1px solid #ddd; display:flex; gap:6px; align-items:center; padding:6px 10px; border-radius:8px; }
-    .status { font-size:12px; color:#888; margin-top:6px; }
-    .note { font-size:12px; color:#666; margin-top:8px; }
-    .hidden { display:none; }
-    .image-card { width:280px; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.08); background:#fff; }
-    .img-thumb { width:100%; display:block; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TatvaBot — Upload + Camera</title>
+<style>
+  :root{--green:#0a8f3b;--muted:#f1f6f2;--bubble:#e9f5ec}
+  body{font-family:Inter,Arial,sans-serif;margin:0;background:#fff;color:#222}
+  .topbar{background:var(--green);color:#fff;padding:18px;border-radius:6px;margin:20px;max-width:980px}
+  .container{max-width:980px;margin:0 auto;padding:10px}
+  .chat-window{min-height:380px;border-radius:8px;border:1px solid #eee;padding:18px;margin-top:12px;background:#fff}
+  .msg{display:flex;gap:10px;margin-bottom:18px;align-items:flex-start}
+  .bubble{background:var(--bubble);padding:14px;border-radius:10px;max-width:70%}
+  .right{justify-content:flex-end}
+  .right .bubble{background:#e7f3ea}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:14px}
+  .input{flex:1}
+  input[type="text"]{width:100%;padding:12px;border-radius:999px;border:1px solid #ddd}
+  button{background:var(--green);color:white;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
+  button[disabled]{opacity:0.5;cursor:not-allowed}
+  .btn-outline{background:transparent;color:#444;border:1px solid #ddd;padding:8px;border-radius:8px}
+  .small-note{font-size:12px;color:#666;margin-top:8px}
+  .preview-img{max-width:320px;border-radius:10px;border:1px solid #ddd}
+  .status{display:inline-block;background:var(--green);color:#fff;padding:7px 10px;border-radius:16px;margin-left:8px}
+  .muted{color:#666;font-size:13px}
+</style>
 </head>
 <body>
   <div class="container">
-    <header><strong>TatvaBot — Gardening Assistant</strong><div style="font-size:13px;opacity:.9">Ask about vermicompost, plants, etc.</div></header>
+    <div class="topbar">TatvaBot — Gardening Assistant</div>
 
-    <div id="chat" class="chat" role="log" aria-live="polite">
-      <div class="bubble bot">👋 Namaste! I'm TatvaBot. How can I help with your plants today?</div>
+    <div class="chat-window" id="chatWindow">
+      <div class="msg"><div class="bubble">👋 Namaste! I'm TatvaBot. How can I help with your plants today?</div></div>
     </div>
 
     <div class="controls">
-      <input id="msgInput" class="text" placeholder="Type your question..." />
-      <button id="cameraBtn" class="smallBtn" title="Use camera">📷 Camera</button>
-      <button id="uploadBtn" class="smallBtn" title="Upload image">📁 Upload</button>
-      <button id="sendBtn" class="primary">Send</button>
+      <div class="input">
+        <input id="textInput" type="text" placeholder="Type your question..." />
+        <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+          <!-- camera input (capture for phone camera) -->
+          <label class="btn-outline" id="cameraLabel" title="Camera">
+            📷 Camera
+            <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" />
+          </label>
+
+          <!-- upload file selector -->
+          <label class="btn-outline" id="fileLabel" title="Choose file">
+            ⬆️ Upload
+            <input id="fileInput" type="file" accept="image/*" style="display:none" />
+          </label>
+
+          <button id="uploadBtn" class="btn-outline" style="min-width:86px">Upload</button>
+        </div>
+        <div class="small-note muted" id="note">Uploads go directly to Cloudinary (unsigned preset).</div>
+      </div>
+
+      <button id="sendBtn" disabled>Send</button>
     </div>
-
-    <div id="uploadStatus" class="status"></div>
-    <div id="previewWrap" class="note"></div>
-
-    <!-- hidden file inputs -->
-    <input id="fileInput" class="hidden" type="file" accept="image/*" />
-    <!-- file input for camera on devices: capture attribute -->
-    <input id="cameraInput" class="hidden" type="file" accept="image/*" capture="environment" />
-
-    <div class="note">Uploads go directly to Cloudinary (unsigned preset).</div>
   </div>
 
 <script>
-/* ====== CONFIG - update only these if needed ====== */
-const CLOUD_NAME = 'dps3lh1ed';                // your cloud name (given)
-const UPLOAD_PRESET = 'tatvabot_unsigned';     // your unsigned preset (given)
-const BOT_API_URL = '/api/chat';               // backend endpoint that receives messages (change if different)
-/* ================================================= */
+/*
+  Replace: cloud name and preset with your values (already filled per your message).
+*/
+const CLOUD_NAME = 'dps3lh1ed';
+const UPLOAD_PRESET = 'tatvabot_unsigned'; // unsigned preset you created
 
-const chat = document.getElementById('chat');
-const msgInput = document.getElementById('msgInput');
-const fileInput = document.getElementById('fileInput');
+// DOM
 const cameraInput = document.getElementById('cameraInput');
-const cameraBtn = document.getElementById('cameraBtn');
+const fileInput = document.getElementById('fileInput');
 const uploadBtn = document.getElementById('uploadBtn');
 const sendBtn = document.getElementById('sendBtn');
-const uploadStatus = document.getElementById('uploadStatus');
-const previewWrap = document.getElementById('previewWrap');
+const textInput = document.getElementById('textInput');
+const chatWindow = document.getElementById('chatWindow');
+const note = document.getElementById('note');
 
-let lastImageUrl = null;  // store uploaded image URL
+let uploadedImageUrl = null; // holds Cloudinary URL after upload
+let isUploading = false;
 
-// helpers
-function appendUserMessage(text, imageUrl = null) {
-  const container = document.createElement('div');
-  container.style.clear = 'both';
+// Helpers
+function addBotMessage(text) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg';
   const bubble = document.createElement('div');
-  bubble.className = 'bubble user';
-  bubble.innerText = text;
-  container.appendChild(bubble);
-  if (imageUrl) {
-    const imgCard = document.createElement('div');
-    imgCard.className = 'image-card';
-    imgCard.style.marginTop = '12px';
-    const img = document.createElement('img');
-    img.className = 'img-thumb';
-    img.src = imageUrl;
-    imgCard.appendChild(img);
-    container.appendChild(imgCard);
+  bubble.className = 'bubble';
+  bubble.innerHTML = text;
+  wrapper.appendChild(bubble);
+  chatWindow.appendChild(wrapper);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+function addUserMessage(text, imgUrl) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg right';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if (imgUrl) {
+    bubble.innerHTML = '<div style="text-align:right"><span class="status">Image attached</span></div><img src="'+imgUrl+'" class="preview-img" style="display:block;margin-top:10px"/>';
   }
-  chat.appendChild(container);
-  chat.scrollTop = chat.scrollHeight;
+  if (text) bubble.innerHTML += '<div style="margin-top:10px;background:transparent;">'+escapeHtml(text)+'</div>';
+  wrapper.appendChild(bubble);
+  chatWindow.appendChild(wrapper);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-function appendBotMessage(html) {
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble bot';
-  bubble.innerHTML = html;
-  chat.appendChild(bubble);
-  chat.scrollTop = chat.scrollHeight;
-}
-function setStatus(text) {
-  uploadStatus.innerText = text || '';
+function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function setUploadState(uploading){
+  isUploading = uploading;
+  uploadBtn.textContent = uploading ? 'Uploading...' : 'Upload';
+  uploadBtn.disabled = uploading;
+  // disable send while uploading
+  sendBtn.disabled = uploading || (!uploadedImageUrl && !textInput.value.trim());
 }
 
-/* ========== Upload to Cloudinary (unsigned) ========== */
-async function uploadFileToCloudinary(file) {
-  setStatus('Uploading image...');
-  uploadBtn.disabled = true;
-  cameraBtn.disabled = true;
-  sendBtn.disabled = true;
+// Handle file selection via upload or camera
+fileInput.addEventListener('change', ()=> {
+  if (fileInput.files && fileInput.files[0]) {
+    // choose file but do not auto upload — user clicks Upload button
+    note.textContent = 'File selected: ' + fileInput.files[0].name;
+  }
+});
+cameraInput.addEventListener('change', ()=> {
+  if (cameraInput.files && cameraInput.files[0]) {
+    note.textContent = 'Camera photo selected: ' + cameraInput.files[0].name;
+  }
+});
+
+// Upload button action
+uploadBtn.addEventListener('click', async ()=> {
+  // prioritize cameraInput if has file, else fileInput
+  const file = (cameraInput.files && cameraInput.files[0]) || (fileInput.files && fileInput.files[0]);
+  if (!file) {
+    alert('Please choose or capture an image first (Camera or Upload).');
+    return;
+  }
 
   try {
-    const url = https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUD_NAME)}/image/upload;
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
+    setUploadState(true);
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', UPLOAD_PRESET);
 
-    const res = await fetch(url, { method: 'POST', body: fd });
-    const data = await res.json();
+    // Cloudinary unsigned upload endpoint:
+    const url = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload;
 
+    const res = await fetch(url, { method:'POST', body: form });
     if (!res.ok) {
-      console.error('Cloudinary error', data);
-      // show friendly message; include JSON message if present
-      const errMsg = (data && data.error && data.error.message) ? data.error.message : Upload failed: ${res.status};
-      setStatus(errMsg);
-      throw new Error(errMsg);
+      const txt = await res.text();
+      throw new Error('Upload failed: ' + res.status + ' — ' + txt);
     }
-
-    const secureUrl = data.secure_url || data.url;
-    lastImageUrl = secureUrl;
-    previewWrap.innerHTML = <div style="margin-top:8px">Image uploaded ✓ <div style="margin-top:8px"><img src="${secureUrl}" style="max-width:240px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.08)"></div></div>;
-    setStatus('Upload OK');
-    return secureUrl;
-
-  } finally {
-    uploadBtn.disabled = false;
-    cameraBtn.disabled = false;
+    const data = await res.json();
+    uploadedImageUrl = data.secure_url || data.url;
+    note.textContent = 'Upload OK — image:"' + (data.public_id||'uploaded') + '"';
+    // show preview inside chat area as a user message
+    addUserMessage('', uploadedImageUrl);
+    // enable send (text may be empty but image present)
     sendBtn.disabled = false;
-  }
-}
-
-/* ====== events ====== */
-uploadBtn.addEventListener('click', () => fileInput.click());
-cameraBtn.addEventListener('click', () => cameraInput.click());
-
-fileInput.addEventListener('change', async (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  try {
-    await uploadFileToCloudinary(f);
   } catch (err) {
-    alert('Upload failed: ' + err.message);
+    console.error(err);
+    alert('Upload failed: ' + (err.message || err));
   } finally {
+    setUploadState(false);
+    // clear file inputs so same file can be reselected if needed
+    cameraInput.value = '';
     fileInput.value = '';
   }
 });
 
-cameraInput.addEventListener('change', async (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  try {
-    await uploadFileToCloudinary(f);
-  } catch (err) {
-    alert('Upload failed: ' + err.message);
-  } finally {
-    cameraInput.value = '';
-  }
+// Enable send when user types or image exists
+textInput.addEventListener('input', ()=> {
+  sendBtn.disabled = isUploading || (!uploadedImageUrl && !textInput.value.trim());
 });
 
-/* ===== Send to bot =====
-We post JSON to BOT_API_URL: { message: text, image: lastImageUrl }
-Your backend should accept this. If your backend expects form-data or another route,
-change BOT_API_URL and payload accordingly.
-*/
-sendBtn.addEventListener('click', async () => {
-  const text = msgInput.value.trim();
-  if (!text && !lastImageUrl) {
-    alert('Type a message or upload an image first.');
+// Send button — posts message (text + image) to /api/chat (if exists)
+sendBtn.addEventListener('click', async ()=> {
+  const text = textInput.value.trim();
+  if (!text && !uploadedImageUrl) {
+    alert('Type a message, attach an image, or both.');
     return;
   }
 
-  // show user message immediately
-  appendUserMessage(text || 'Image', lastImageUrl);
-  msgInput.value = '';
+  // show immediately in chat UI
+  addUserMessage(text, uploadedImageUrl);
+  textInput.value = '';
+  // keep a copy of image url to send
+  const imageUrlToSend = uploadedImageUrl;
+  // reset local image state so user can attach another image later
+  uploadedImageUrl = null;
+  note.textContent = 'Preparing to send...';
 
-  // disable while waiting
-  sendBtn.disabled = true;
-  setStatus('Sending to bot...');
-
+  // Try to POST to your backend endpoint /api/chat
+  // If you don't have this endpoint, the message will remain on the page. No harm.
   try {
-    const payload = { message: text, image: lastImageUrl };
-    const res = await fetch(BOT_API_URL, {
+    const payload = { message: text || '', image: imageUrlToSend || null };
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(payload)
     });
-
     if (!res.ok) {
-      // show friendly error and return
+      // server returned error — display on screen and log
       const txt = await res.text();
-      setStatus('Bot error: ' + res.status);
-      appendBotMessage('Sorry — failed to reach bot. Try again.');
-      console.error('Bot response error', res.status, txt);
+      console.warn('Chat API returned error', res.status, txt);
+      // show bot error message
+      addBotMessage('⚠️ Sorry — failed to reach bot. Try again.');
+      note.textContent = 'Local: sent to UI only (server error).';
       return;
     }
-
-    // expecting JSON { reply: "...", ... } or HTML; adapt to your backend's response format
-    const json = await res.json();
-    const botReplyHtml = json.reply_html || (json.reply || 'No reply from bot.');
-    appendBotMessage(botReplyHtml);
-
-    // clear last image if you want single-use
-    lastImageUrl = null;
-    previewWrap.innerHTML = '';
-
+    const reply = await res.json();
+    // assume reply.message contains bot's text (adjust if your API shape differs)
+    addBotMessage(reply.message || 'Bot: (no reply text)');
+    note.textContent = 'Sent to server OK.';
   } catch (err) {
-    console.error('Send error', err);
-    appendBotMessage('Sorry — failed to reach bot. Try again.');
-    setStatus('Send failed: ' + err.message);
+    console.error('Failed sending to /api/chat', err);
+    addBotMessage('⚠️ Sorry — failed to reach bot. Try again.');
+    note.textContent = 'Local: sent to UI only (no server).';
   } finally {
-    sendBtn.disabled = false;
-    setStatus('');
-  }
-});
-
-/* allow Enter to send */
-msgInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendBtn.click();
+    sendBtn.disabled = true;
   }
 });
 </script>
