@@ -10,11 +10,9 @@
     --muted:#f7f7f8;
     --bubble-bg:#f1f5f9;
     --text:#111827;
-    --accent:#b8873a; /* premium golden-brown accent */
-    --accent-hover:#8c6128;
+    --accent:#16a34a;
     --muted-border:#e6e6e6;
-    --card:#ffffff;
-    --quick-bg:#fff9f3;
+    --muted-dark:#e6e6e6;
   }
   html,body{
     height:100%;
@@ -31,21 +29,21 @@
 
   /* container */
   .chat-wrapper{
-    width:100%; max-width:980px;
-    background:var(--card); border-radius:14px;
-    box-shadow:0 18px 50px rgba(7,10,15,0.12);
+    width:100%; max-width:960px;
+    background:#fff; border-radius:12px;
+    box-shadow:0 12px 30px rgba(2,6,23,0.08);
     overflow:hidden;
     display:flex; flex-direction:column;
     min-height:560px;
-    height:82vh;
+    height:80vh; /* fixed viewport so chat-window can scroll */
   }
 
   /* header - fixed inside wrapper */
   .chat-header{
-    background:linear-gradient(90deg,var(--green),#167a3a 60%);
+    background:var(--green);
     color:#fff;
-    padding:16px 20px;
-    font-weight:700;
+    padding:14px 18px;
+    font-weight:600;
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -58,7 +56,7 @@
     font-weight:400;
     font-size:12px;
     opacity:.95;
-    margin-top:6px;
+    margin-top:4px;
   }
 
   /* body area holds the scrollable chat-window */
@@ -67,24 +65,24 @@
     gap:0;
     padding:18px;
     flex:1 1 auto;
-    min-height:0;
+    min-height:0;  /* important so child can scroll */
     box-sizing:border-box;
   }
 
   .chat-window{
     flex:1;
     background:#fafafa;
-    border-radius:10px;
-    padding:18px;
+    border-radius:8px;
+    padding:14px;
     overflow:auto;
     height:100%;
     box-sizing:border-box;
   }
 
   .msg{
-    margin-bottom:14px;
+    margin-bottom:12px;
     max-width:78%;
-    line-height:1.45;
+    line-height:1.4;
     display:flex;
     flex-direction:column;
   }
@@ -96,8 +94,10 @@
     border-radius:12px;
     white-space:pre-wrap;
     word-wrap:break-word;
-    box-shadow:0 1px 0 rgba(0,0,0,0.03);
-    font-size:14px;
+    box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  }
+  .msg .meta {
+    font-size:11px; color:#7b7b7b; margin-top:6px;
   }
   .msg-user{
     align-items:flex-end;
@@ -110,33 +110,22 @@
   }
   .msg img{
     display:block;
-    margin-top:10px;
-    max-width:360px;
-    border-radius:10px;
-    box-shadow:0 8px 24px rgba(2,6,23,0.08);
+    margin-top:8px;
+    max-width:320px;
+    border-radius:8px;
+    box-shadow:0 6px 18px rgba(2,6,23,0.06);
   }
 
-  /* Quick suggestion buttons (premium pill buttons) */
-  .quick-row{
-    display:flex;
-    gap:10px;
-    margin:12px 0 6px 0;
-    flex-wrap:wrap;
-  }
-  .quick-btn{
-    background:var(--quick-bg);
-    border:1px solid #f0e6dd;
+  /* typing indicator */
+  .typing {
+    display:inline-block;
     padding:8px 12px;
-    border-radius:999px;
-    cursor:pointer;
-    font-size:13px;
-    box-shadow:0 4px 12px rgba(2,6,23,0.04);
+    background:#ececec;
+    border-radius:12px;
   }
-  .quick-btn:hover{ transform:translateY(-2px); box-shadow:0 10px 30px rgba(2,6,23,0.08); transition:all .18s; }
-  .quick-btn.primary{
-    background:var(--accent); color:#fff; border-color:rgba(0,0,0,0.04);
-  }
-  .quick-btn.primary:hover{ background:var(--accent-hover); }
+  .typing .dot { width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6; animation: blink 1s infinite; }
+  .typing .dot:nth-child(2){ animation-delay:.15s; } .typing .dot:nth-child(3){ animation-delay:.3s; }
+  @keyframes blink { 0%{opacity:.15} 50%{opacity:1} 100%{opacity:.15} }
 
   /* footer (controls) pinned to bottom of wrapper */
   .chat-footer{
@@ -145,17 +134,16 @@
     display:flex;
     gap:8px;
     align-items:center;
-    background:var(--card);
+    background:#fff;
   }
 
   .chat-footer input[type="text"]{
     flex:1;
-    padding:12px 14px;
+    padding:10px 14px;
     border-radius:999px;
-    border:1px solid #e7e7e7;
+    border:1px solid #ddd;
     outline:none;
     font-size:14px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
   }
   .chat-footer input[type="text"]:focus{ border-color:var(--green); }
 
@@ -173,25 +161,26 @@
     background:var(--accent);
     color:#fff;
     border:none;
-    padding:11px 18px;
+    padding:10px 16px;
     border-radius:999px;
     cursor:pointer;
-    font-weight:600;
-    box-shadow: 0 8px 22px rgba(184,135,58,0.14);
   }
   .send:disabled{ opacity:.6; cursor:default; }
 
   .status{
     font-size:13px;
     color:#6b7280;
-    padding:8px 18px 12px;
-    min-height:22px;
+    padding:6px 18px 10px;
+    min-height:20px;
   }
 
-  /* small responsiveness */
-  @media(max-width:760px){
-    .msg img{ max-width:260px; }
-    .chat-wrapper{ height:85vh; }
+  /* quick buttons area (optional, inline) */
+  .quick-row{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
+  .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
+  .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
+
+  @media(max-width:640px){
+    .msg img{ max-width:220px; }
   }
 </style>
 </head>
@@ -200,24 +189,25 @@
     <div class="chat-header" id="chat-header">
       <div>
         <div style="font-size:16px"><strong>TatvaBot — Gardening Assistant</strong></div>
-        <small>Ask about vermicompost, terrace & balcony gardening, or Tatvabhoomi products</small>
+        <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
       </div>
       <div style="font-size:12px;opacity:.95">v1</div>
     </div>
 
     <div class="chat-body">
-      <div style="flex:1; display:flex; flex-direction:column;">
-        <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-          <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help with your plants today?</span></div>
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
+        <div class="msg msg-bot">
+          <span>👋 Namaste! I’m TatvaBot. How can I help with your plants today?</span>
+          <div class="meta">just now</div>
+        </div>
 
-          <!-- QUICK BUTTONS -->
-          <div id="quick-row" class="quick-row" aria-hidden="false">
-            <button class="quick-btn" data-q="Why are my leaves turning yellow?">Why are leaves yellow?</button>
-            <button class="quick-btn" data-q="My plant has white powder/powdery mildew">Powdery mildew</button>
-            <button class="quick-btn" data-q="There are small holes on leaves — what is this?">Leaf holes / pests</button>
-            <button class="quick-btn" data-q="My soil smells bad — what should I do?">Soil smell / drainage</button>
-            <button class="quick-btn primary" data-q="I want Tatvabhoomi vermicompost details">Buy vermicompost</button>
-          </div>
+        <!-- suggested quick buttons -->
+        <div id="quick-row" class="quick-row" aria-hidden="false" style="margin-bottom:14px;">
+          <button class="quick-btn" data-q="Why are leaves yellow?">Why are leaves yellow?</button>
+          <button class="quick-btn" data-q="Powdery mildew">Powdery mildew</button>
+          <button class="quick-btn" data-q="Leaf holes / pests">Leaf holes / pests</button>
+          <button class="quick-btn" data-q="Soil smell / drainage">Soil smell / drainage</button>
+          <button class="quick-btn primary" data-q="Buy vermicompost">Buy vermicompost</button>
         </div>
       </div>
     </div>
@@ -225,8 +215,8 @@
     <div id="status" class="status" aria-live="polite"></div>
 
     <div class="chat-footer" role="region" aria-label="Chat controls">
-      <input id="user-input" type="text" placeholder="Type your question or paste your phone number to get a callback" autocomplete="off" aria-label="Type message" />
-      <!-- attach icon opens file chooser; file selection auto-uploads -->
+      <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" aria-label="Type message" />
+      <!-- attach icon opens file chooser. File selection auto-uploads. -->
       <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
       <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
       <button id="send-btn" class="send" aria-label="Send message">Send</button>
@@ -235,13 +225,14 @@
 
 <script>
 /*
- Final index.html for TatvaBot front-end.
- - KEEP server routes as they are: POST /api/upload and POST /api/chat
- - Keeps Formspree flow already in your code (phone detection).
- - Quick buttons insert text & auto-send.
+  Single-file front-end w/ enhancements:
+   - localStorage persistence of chat
+   - timestamps on messages
+   - typing indicator for bot replies
+   - existing image upload + dedupe + Formspree lead capture preserved
 */
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your formspree
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa";
 
 const chatWindow    = document.getElementById('chat-window');
 const input         = document.getElementById('user-input');
@@ -251,15 +242,37 @@ const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl      = document.getElementById('status');
 const quickRow      = document.getElementById('quick-row');
 
-let uploadedImageUrl     = null;
-let lastUploadedUrlShown = null; // prevents duplicate thumbnail display
+let uploadedImageUrl     = null;  // URL returned by /api/upload for the current selection
+let lastUploadedUrlShown = null;  // last URL we displayed as "Image attached" - used to prevent duplicates
+const STORAGE_KEY = 'tatvabot_chat_v1';
 
-// phone regex same as before
+// simple phone number detector: 9–15 digits, allowing spaces/dashes
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
-function showStatus(text){ statusEl.textContent = text || ''; }
+// ---------- persistence helpers ----------
+function saveHistory(messages){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  } catch(e){ console.warn('save history failed', e); }
+}
+function loadHistory(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){
+    console.warn('load history failed', e);
+    return null;
+  }
+}
 
-function addMessage(text, from='bot', imageUrl=null){
+// ---------- rendering ----------
+function formatTime(ts){
+  const d = new Date(ts || Date.now());
+  return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+}
+
+function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
   const span = document.createElement('span');
@@ -272,23 +285,60 @@ function addMessage(text, from='bot', imageUrl=null){
     img.loading = 'lazy';
     wrapper.appendChild(img);
   }
-  chatWindow.appendChild(wrapper);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = formatTime(ts);
+  wrapper.appendChild(meta);
+  return wrapper;
 }
 
-/* Quick buttons behaviour:
-   - click => sets input to that question and auto-sends
-*/
-quickRow.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-q]');
-  if(!btn) return;
-  const q = btn.getAttribute('data-q') || '';
-  input.value = q;
-  // small delay to show text insertion then send
-  setTimeout(()=> sendMessage(), 120);
-});
+function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
+  const el = createMessageElement({ text, from, imageUrl, ts });
+  chatWindow.appendChild(el);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 
-/* Upload (auto) flow - same robust dedupe logic */
+  // update saved history
+  if(save){
+    const hist = loadHistory() || [];
+    hist.push({ text, from, imageUrl, ts });
+    saveHistory(hist);
+  }
+}
+
+function showTypingIndicator(){
+  const el = document.createElement('div');
+  el.className = 'msg msg-bot typing-wrap';
+  const span = document.createElement('span');
+  span.className = 'typing';
+  span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  el.appendChild(span);
+  chatWindow.appendChild(el);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+  return el;
+}
+
+function removeTypingIndicator(el){
+  if(el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+// ---------- restore on load ----------
+(function restore(){
+  const hist = loadHistory();
+  if(!hist || !hist.length) return;
+  chatWindow.innerHTML = '';
+  // re-add quick-row before messages
+  if(quickRow) chatWindow.appendChild(quickRow);
+  hist.forEach(msg => {
+    const el = createMessageElement(msg);
+    chatWindow.appendChild(el);
+  });
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+})();
+
+// ---------- UI helpers ----------
+function showStatus(text){ statusEl.textContent = text || ''; }
+
+// ---------- upload flow ----------
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', async () => {
@@ -303,7 +353,8 @@ fileInput.addEventListener('change', async () => {
     const fd = new FormData();
     fd.append('file', file);
 
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    // IMPORTANT: your server should still expose POST /api/upload
+    const res  = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
 
     if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
@@ -328,11 +379,24 @@ fileInput.addEventListener('change', async () => {
     fileInput.value = '';
     chooseFileBtn.disabled = false;
     sendBtn.disabled = false;
-    setTimeout(()=>showStatus(''), 1400);
+    setTimeout(()=>showStatus(''), 1600);
   }
 });
 
-/* Send + Formspree logic (unchanged behavior) */
+// ---------- quick buttons ----------
+if(quickRow){
+  quickRow.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-q]');
+    if(!btn) return;
+    const q = btn.getAttribute('data-q');
+    if(q){
+      input.value = q;
+      sendMessage();
+    }
+  });
+}
+
+// ---------- send flow (with Formspree lead capture) ----------
 async function sendMessage(){
   const messageRaw  = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
@@ -341,11 +405,12 @@ async function sendMessage(){
 
   const phoneMatch = messageRaw.match(PHONE_REGEX);
 
+  // ---- LEAD CAPTURE FLOW (Formspree) ----
   if (phoneMatch) {
-    // Lead capture via Formspree
     const phoneRaw    = phoneMatch[1];
     const phoneDigits = phoneRaw.replace(/\D/g, '');
 
+    // show user's message (avoid duplicate thumbnail)
     if(imageToSend && lastUploadedUrlShown === imageToSend){
       addMessage(messageRaw || 'Image', 'user', null);
     } else {
@@ -360,26 +425,38 @@ async function sendMessage(){
     try {
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneDigits, message: messageRaw, source: 'TatvaBot chat' })
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: phoneDigits,
+          message: messageRaw,
+          source: 'TatvaBot chat'
+        })
       });
 
       addMessage(
-        "Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out soon. Meanwhile, keep asking plant questions here.",
+        "Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. " +
+        "We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.",
         'bot'
       );
     } catch(err){
       console.error('Formspree error', err);
-      addMessage("I tried to save your number but something went wrong. Please try again later.", 'bot');
+      addMessage(
+        "I tried to save your number but something went wrong. " +
+        "Please try again in a while or contact us through the website.",
+        'bot'
+      );
     } finally {
       uploadedImageUrl = null;
       sendBtn.disabled = false;
       showStatus('');
     }
-    return;
+    return; // do not call /api/chat for phone messages
   }
 
-  // Normal chat flow (send to /api/chat)
+  // ---- NORMAL CHAT FLOW ----
   const message = messageRaw;
 
   if(imageToSend && lastUploadedUrlShown === imageToSend){
@@ -393,39 +470,57 @@ async function sendMessage(){
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
 
+  // show typing indicator
+  const typingEl = showTypingIndicator();
+
   try {
+    // send to server chat endpoint
     const body = { message: message || '', image: imageToSend || null };
     const res  = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(body)
     });
+
     const data = await res.json().catch(()=>null);
+    // small artificial delay to feel natural (and allow typing indicator to show)
+    await new Promise(r => setTimeout(r, 650));
 
     if(res.ok && data && (data.reply || data.answer || data.text)){
       const replyText  = data.reply || data.answer || data.text || '';
       const replyImage = data.image || data.img || (data.result && data.result.secure_url) || null;
+      removeTypingIndicator(typingEl);
       addMessage(replyText, 'bot', replyImage || null);
     } else {
       console.error('Chat API error', res, data);
+      removeTypingIndicator(typingEl);
       addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
     }
   } catch(err){
     console.error('Network error', err);
+    removeTypingIndicator(typingEl);
     addMessage('Network error. Please check your connection and try again.', 'bot');
   } finally {
-    uploadedImageUrl = null; // clear in-flight image
+    // only clear in-flight uploadedImageUrl (not lastUploadedUrlShown)
+    uploadedImageUrl = null;
     sendBtn.disabled = false;
     showStatus('');
   }
 }
 
-// handlers
+// ---------- handlers ----------
 sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+input.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    sendMessage();
+  }
+});
 
-// autofocus
+// focus & small analytics console hint
 input.focus();
+console.info('TatvaBot UI loaded — persistence enabled (localStorage).');
+
 </script>
 </body>
 </html>
