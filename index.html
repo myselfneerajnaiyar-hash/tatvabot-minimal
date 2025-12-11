@@ -2,7 +2,7 @@
 (function(){
   const CLOUD_NAME = "dps3lh1ed";
   const UPLOAD_PRESET = "tatvabot_unsigned";
-  // FIX: make the URL a string / template literal
+  // <-- FIX: Cloudinary URL must be a string with template literal
   const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
 
   const chatWindow = document.getElementById('chat-window');
@@ -15,8 +15,8 @@
 
   let uploadedImageUrl = null;
   let uploadInProgress = false;
-  // Remember last image URL we showed as a user message so we don't show it twice 
-  let lastUserImage = null;
+  // remember what image we already showed in the chat so we don't duplicate
+  let lastShownUserImage = null;
 
   function showStatus(text){
     statusEl.textContent = text || '';
@@ -26,7 +26,7 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
     const span = document.createElement('span');
-    span.innerHTML = (text || '') .replace(/\n/g,'<br>');
+    span.innerHTML = (text || '').replace(/\n/g,'<br>');
     wrapper.appendChild(span);
     if(imageUrl){
       const img = document.createElement('img');
@@ -39,9 +39,7 @@
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }
 
-  chooseFileBtn.addEventListener('click', () => {
-    fileInput.click();
-  });
+  chooseFileBtn.addEventListener('click', () => fileInput.click());
 
   uploadBtn.addEventListener('click', async () => {
     const file = fileInput.files[0];
@@ -63,23 +61,21 @@
       const res = await fetch(CLOUD_UPLOAD_URL, { method: 'POST', body: fd });
       const json = await res.json().catch(()=>null);
 
-     if(res.ok && (json && (json.secure_url || json.url))){
-  uploadedImageUrl = json.secure_url || json.url;
-  showStatus('Upload OK');
+      if(res.ok && json && (json.secure_url || json.url)){
+        uploadedImageUrl = json.secure_url || json.url;
+        showStatus('Upload OK');
 
-  // only add user image message if it isn't the same we already showed
-  if(uploadedImageUrl !== lastUserImage){
-    addMessage('Image attached', 'user', uploadedImageUrl);
-    lastUserImage = uploadedImageUrl;
-  }
+        // show a single user image preview only once
+        // set lastShownUserImage so sendMessage doesn't duplicate it later
+        lastShownUserImage = uploadedImageUrl;
+        addMessage('Image attached', 'user', uploadedImageUrl);
 
-  // clear chosen file so user can choose same file again if needed
-  fileInput.value = '';
-} else {
-  console.error('Cloudinary upload failed:', res, json);
-  alert('Upload failed. Check Console for details.');
-  showStatus('Upload failed');
-}
+        fileInput.value = '';
+      } else {
+        console.error('Cloudinary upload failed:', res, json);
+        alert('Upload failed. Check Console for details.');
+        showStatus('Upload failed');
+      }
     } catch(err){
       console.error('Upload error', err);
       alert('Upload error: ' + (err.message || err));
@@ -88,16 +84,25 @@
       uploadInProgress = false;
       uploadBtn.disabled = false;
       chooseFileBtn.disabled = false;
-      setTimeout(()=>showStatus(''), 2000);
+      setTimeout(()=>showStatus(''), 1800);
     }
   });
 
   async function sendMessage(){
     const message = input.value.trim();
+    // if nothing typed and nothing uploaded, do nothing
     if(!message && !uploadedImageUrl) return;
 
-    // show user message immediately
-    addMessage(message || 'Image', 'user', uploadedImageUrl || null);
+    // Only add user message with image if we haven't already shown this exact uploaded image.
+    // If uploadedImageUrl equals lastShownUserImage, that means upload step already showed it,
+    // so show only the text (or skip if empty).
+    if(uploadedImageUrl && uploadedImageUrl !== lastShownUserImage){
+      addMessage(message || 'Image', 'user', uploadedImageUrl);
+    } else if(message){
+      addMessage(message, 'user', null);
+    }
+
+    // after showing message locally, clear the input
     input.value = '';
     showStatus('TatvaBot is thinking...');
     sendBtn.disabled = true;
@@ -113,17 +118,8 @@
 
       if(res.ok && json && (json.reply || json.answer || json.text)){
         const replyText = json.reply || json.answer || json.text || '';
-        // possible shapes where server returns image
         const replyImage = json.image || json.img || (json.result && json.result.secure_url) || null;
-
-        // DEDUPE: if the bot reply contains the same image URL the user already attached,
-        // skip adding the duplicate image so it doesn't appear twice
-        if(replyImage && replyImage === lastUserImage){
-          // add only bot text, not the duplicate image
-          addMessage(replyText, 'bot', null);
-        } else {
-          addMessage(replyText, 'bot', replyImage || null);
-        }
+        addMessage(replyText, 'bot', replyImage);
       } else {
         console.error('Chat API error', res, json);
         addMessage('Sorry — failed to reach bot. See console.', 'bot', null);
@@ -133,9 +129,9 @@
       console.error('Network error sending to /api/chat', err);
       addMessage('Network error. Please check your connection and try again.', 'bot');
     } finally {
-      // clear temporary local image after sending (bot will have copy)
+      // clear the temporary local image (bot got a copy)
       uploadedImageUrl = null;
-      lastUserImage = null; // reset dedupe memory for next message
+      lastShownUserImage = null;
       sendBtn.disabled = false;
       showStatus('');
     }
@@ -153,6 +149,5 @@
       alert('A script error occurred. Open Console (F12) and copy the first red line and send it to me.');
     }
   });
-
 })();
 </script>
