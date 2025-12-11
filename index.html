@@ -150,6 +150,9 @@
   Server endpoints expected:
     POST /api/upload  -> returns JSON, e.g. { url: "<secure_url>" } (or secure_url/result.secure_url)
     POST /api/chat    -> accepts { message, image } and returns { reply, image? }
+
+  Formspree integration: when user sends a phone-number-like message, we POST it to Formspree
+  and show a thank-you bot message when Formspree responds OK.
 */
 
 const chatWindow = document.getElementById('chat-window');
@@ -158,6 +161,10 @@ const sendBtn = document.getElementById('send-btn');
 const fileInput = document.getElementById('file-input');
 const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl = document.getElementById('status');
+
+// ---- EDIT: put your formspree endpoint here ----
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xwpdkjaa';
+// ------------------------------------------------
 
 let uploadedImageUrl = null;       // URL returned by /api/upload for the current selection
 let lastUploadedUrlShown = null;   // last URL we displayed as "Image attached" - used to prevent duplicates
@@ -181,11 +188,7 @@ function addMessage(text, from='bot', imageUrl=null){
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-/* Upload flow:
-   - user clicks 📎 => file dialog
-   - on file selection, we immediately POST to /api/upload
-   - when upload succeeds, we show a single "Image attached" user message with thumbnail
-   - lastUploadedUrlShown prevents showing same image twice */
+/* Upload flow (unchanged from your working flow) */
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', async () => {
@@ -229,11 +232,41 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
+/* Basic phone detection: reasonably permissive — matches digits with optional +, spaces or dashes */
+function isPhoneNumber(str){
+  if(!str) return false;
+  const s = str.trim();
+  // require at least 7 digits (common minimum) and only allowed separators
+  const digits = s.replace(/[^\d]/g,'');
+  if(digits.length < 7) return false;
+  // a simple pattern prohibiting letters
+  if(/[A-Za-z]/.test(s)) return false;
+  return true;
+}
+
+/* Submit a lead to Formspree. Returns true on success. */
+async function submitLeadToFormspree(phone, messageText){
+  if(!FORMSPREE_ENDPOINT) return false;
+  try{
+    // Formspree accepts JSON (with Accept: application/json) or form data
+    const payload = { phone: phone || '', message: messageText || '' };
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(()=>null);
+    // Formspree returns 200 / 201 for success and includes ok/message
+    return res.ok;
+  } catch(e){
+    console.error('Formspree submit error', e);
+    return false;
+  }
+}
+
 /* Send message:
-   - if the image was already shown during upload (lastUploadedUrlShown matches uploadedImageUrl),
-     we only show the user's text when sending (to avoid duplicating the thumbnail).
-   - we DO send the image URL to /api/chat so server gets it.
-   - crucial fix: DO NOT reset lastUploadedUrlShown here — keep it until the next upload to prevent duplicate display.
+   - keeps the existing behavior with no duplicate thumbnails
+   - if user message looks like phone number, we also post to Formspree and show a thank-you bot reply
 */
 async function sendMessage(){
   const message = input.value.trim();
@@ -255,6 +288,7 @@ async function sendMessage(){
   sendBtn.disabled = true;
 
   try {
+    // send the chat request to your server
     const body = { message: message || '', image: imageToSend || null };
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -271,6 +305,24 @@ async function sendMessage(){
       console.error('Chat API error', res, data);
       addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
     }
+
+    // ---- Formspree lead submission: if input looks like a phone number, call Formspree ----
+    // (we run this AFTER /api/chat so we don't block the main chat flow)
+    if(isPhoneNumber(message) && FORMSPREE_ENDPOINT){
+      // show small status while submitting
+      showStatus('Submitting your number...');
+      const ok = await submitLeadToFormspree(message, 'User entered phone number via bot UI');
+      if(ok){
+        // show a confirmation message in chat from bot (so user sees Thank You)
+        addMessage('Thanks — we received your number. Our team will call you soon.', 'bot');
+      } else {
+        // optional: show failure status but don't spam alerts
+        console.warn('Formspree submission failed');
+      }
+      // clear status after short delay
+      setTimeout(()=>showStatus(''), 1600);
+    }
+
   } catch(err){
     console.error('Network error', err);
     addMessage('Network error. Please check your connection and try again.', 'bot');
@@ -289,6 +341,7 @@ input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefa
 
 // initial focus
 input.focus();
+
 </script>
 </body>
 </html>
