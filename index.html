@@ -13,17 +13,21 @@
     --accent:#16a34a;
     --muted-border:#e6e6e6;
   }
-  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
-  body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:18px;}
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;background:var(--muted);}
+  body{display:flex;align-items:center;justify-content:center;padding:18px;}
 
   /* container */
   .chat-wrapper{
-    width:100%; max-width:960px; background:#fff; border-radius:12px;
-    box-shadow:0 12px 30px rgba(2,6,23,0.08); overflow:hidden;
-    display:flex; flex-direction:column; min-height:560px;
+    width:100%; max-width:960px;
+    background:#fff; border-radius:12px;
+    box-shadow:0 12px 30px rgba(2,6,23,0.08);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    min-height:560px;
+    height:80vh; /* so there is a fixed viewport for scrolling chat-window */
   }
 
-  /* header - fixed inside wrapper (won't scroll with messages) */
+  /* header - fixed inside wrapper */
   .chat-header{
     background:var(--green);
     color:#fff;
@@ -34,17 +38,18 @@
     align-items:center;
     position:sticky;
     top:0;
-    z-index:5;
+    z-index:1000;
   }
   .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.95;margin-top:4px;}
 
-  /* chat window area */
+  /* body area holds the scrollable chat-window */
   .chat-body{
     display:flex;
     gap:0;
     padding:18px;
     flex:1 1 auto;
     min-height:0; /* important so child can scroll */
+    box-sizing:border-box;
   }
 
   .chat-window{
@@ -70,7 +75,7 @@
     display:flex;
     gap:8px;
     align-items:center;
-    background: #fff;
+    background:#fff;
   }
 
   .chat-footer input[type="text"]{
@@ -110,12 +115,6 @@
   @media(max-width:640px){
     .msg img{ max-width:220px; }
   }
-  /* FIXED CHAT HEADER */
-.chat-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
 </style>
 </head>
 <body>
@@ -148,10 +147,9 @@
 <script>
 /*
   Single-file front-end.
-  - Uses existing server endpoints:
-      POST /api/upload  -> returns JSON { ok:true, url: "<secure_url>" } (or similar)
-      POST /api/chat    -> accepts { message, image } and returns { reply, image? }
-  Replace this file only; do NOT change server files.
+  Server endpoints expected:
+    POST /api/upload  -> returns JSON, e.g. { url: "<secure_url>" } (or secure_url/result.secure_url)
+    POST /api/chat    -> accepts { message, image } and returns { reply, image? }
 */
 
 const chatWindow = document.getElementById('chat-window');
@@ -161,8 +159,8 @@ const fileInput = document.getElementById('file-input');
 const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl = document.getElementById('status');
 
-let uploadedImageUrl = null;       // holds URL returned by /api/upload
-let lastUploadedUrlShown = null;   // used to avoid duplicate display
+let uploadedImageUrl = null;       // URL returned by /api/upload for the current selection
+let lastUploadedUrlShown = null;   // last URL we displayed as "Image attached" - used to prevent duplicates
 
 function showStatus(text){ statusEl.textContent = text || ''; }
 
@@ -183,31 +181,32 @@ function addMessage(text, from='bot', imageUrl=null){
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-/* ---- File selection -> AUTO upload ----
-   Behavior:
-   - User clicks 📎 (chooseFileBtn) -> file dialog opens
-   - On file selection, we POST to /api/upload once
-   - When upload succeeds we show 1 user message "Image attached" + thumbnail
-   - We ensure we don't show the same image twice */
+/* Upload flow:
+   - user clicks 📎 => file dialog
+   - on file selection, we immediately POST to /api/upload
+   - when upload succeeds, we show a single "Image attached" user message with thumbnail
+   - lastUploadedUrlShown prevents showing same image twice */
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0];
   if(!file) return;
-  // upload
+
   showStatus('Uploading image...');
   chooseFileBtn.disabled = true;
   sendBtn.disabled = true;
+
   try {
     const fd = new FormData();
     fd.append('file', file);
+
     const res = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
 
     if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
       uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
 
-      // Avoid duplicate if same URL already shown
+      // show thumbnail only if we haven't already shown it
       if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){
         addMessage('Image attached', 'user', uploadedImageUrl);
         lastUploadedUrlShown = uploadedImageUrl;
@@ -215,7 +214,7 @@ fileInput.addEventListener('change', async () => {
       showStatus('Upload OK');
     } else {
       console.error('Upload failed', res, data);
-      alert('Upload failed. Check server logs (Vercel) and console.');
+      alert('Upload failed. Check server logs and console.');
       showStatus('Upload failed');
     }
   } catch(err){
@@ -223,31 +222,30 @@ fileInput.addEventListener('change', async () => {
     alert('Upload error: ' + (err.message || err));
     showStatus('Upload error');
   } finally {
-    // allow next actions
     fileInput.value = '';
     chooseFileBtn.disabled = false;
     sendBtn.disabled = false;
-    // clear status after short delay
-    setTimeout(()=>showStatus(''), 1800);
+    setTimeout(()=>showStatus(''), 1600);
   }
 });
 
-/* ---- Send message (text + optional uploadedImageUrl) ----
-   Important: if the image was already shown during upload (lastUploadedUrlShown),
-   do NOT duplicate it when showing user's message. We send the image URL to /api/chat,
-   but the local UI will only show the image once. */
+/* Send message:
+   - if the image was already shown during upload (lastUploadedUrlShown matches uploadedImageUrl),
+     we only show the user's text when sending (to avoid duplicating the thumbnail).
+   - we DO send the image URL to /api/chat so server gets it.
+   - crucial fix: DO NOT reset lastUploadedUrlShown here — keep it until the next upload to prevent duplicate display.
+*/
 async function sendMessage(){
   const message = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
 
-  if(!message && !imageToSend) return; // nothing to send
+  if(!message && !imageToSend) return;
 
-  // Show user text. If image already displayed via upload, don't re-embed it again in user message.
   if(imageToSend && lastUploadedUrlShown === imageToSend){
-    // image already visible; show only text
+    // image already visible, show only text
     addMessage(message || 'Image', 'user', null);
   } else {
-    // image not shown locally; include it with user's message
+    // image not yet shown locally, include it with user's message
     addMessage(message || 'Image', 'user', imageToSend);
     lastUploadedUrlShown = imageToSend;
   }
@@ -277,9 +275,9 @@ async function sendMessage(){
     console.error('Network error', err);
     addMessage('Network error. Please check your connection and try again.', 'bot');
   } finally {
-    // clear the local upload buffer so next message is fresh
+    // clear ONLY the in-flight uploadedImageUrl (so next message won't resend it),
+    // but KEEP lastUploadedUrlShown until the next upload — this prevents duplicate thumbnails.
     uploadedImageUrl = null;
-    lastUploadedUrlShown = null;
     sendBtn.disabled = false;
     showStatus('');
   }
@@ -291,7 +289,6 @@ input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefa
 
 // initial focus
 input.focus();
-
 </script>
 </body>
 </html>
