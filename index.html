@@ -91,137 +91,152 @@
 <script>
 /*
  Single-file chat page.
- Expects these server routes (already present in your project):
-  - POST /api/upload   -> returns JSON { ok:true, url: "<secure_url>" }
-  - POST /api/chat     -> accepts { message, image } and returns { reply: "text", image?: "<url>" }
 
- After replacing HTML:
- 1) commit & push
- 2) redeploy on Vercel
- 3) test live URL: choose a local photo, click Upload, you should see the image appear in chat as your message
- 4) click Send to send both text+image to /api/chat
+ Fixes implemented:
+ 1) Wrap script in DOMContentLoaded so document.getElementById(...) won't be null.
+ 2) Prevent duplicate image preview by tracking lastUserImage:
+    - Upload shows a preview
+    - When sending, if image equals lastUserImage we avoid rendering the same image again
 */
 
-const chatWindow = document.getElementById('chat-window');
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const fileInput = document.getElementById('file-input');
-const chooseFileBtn = document.getElementById('choose-file-btn');
-const uploadBtn = document.getElementById('upload-btn');
-const statusEl = document.getElementById('status');
-const debugEl = document.getElementById('debug');
+document.addEventListener('DOMContentLoaded', () => {
 
-let uploadedImageUrl = null;
-  let lastUserImage = null;
+  const chatWindow = document.getElementById('chat-window');
+  const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const fileInput = document.getElementById('file-input');
+  const chooseFileBtn = document.getElementById('choose-file-btn');
+  const uploadBtn = document.getElementById('upload-btn');
+  const statusEl = document.getElementById('status');
+  const debugEl = document.getElementById('debug');
 
-function showStatus(text){ statusEl.textContent = text || ''; }
-function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); }
+  let uploadedImageUrl = null;
+  let lastUserImage = null; // guard to avoid duplicate image preview
 
-// Create and append message (text + optional image)
-function addMessage(text, from='bot', imageUrl=null){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
-  const span = document.createElement('span');
-  span.innerHTML = (text || '') .replace(/\n/g,'<br>');
-  wrapper.appendChild(span);
-  if(imageUrl){
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = 'attached image';
-    img.loading = 'lazy';
-    img.style.maxWidth = '320px';
-    img.style.marginTop = '8px';
-    wrapper.appendChild(img);
-  }
-  chatWindow.appendChild(wrapper);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
+  function showStatus(text){ statusEl.textContent = text || ''; }
+  function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); }
 
-// file chooser trigger
-chooseFileBtn.addEventListener('click', () => fileInput.click());
-
-// Upload selected image to /api/upload
-uploadBtn.addEventListener('click', async () => {
-  const file = fileInput.files[0];
-  if(!file){
-    alert('Please choose an image first (click the 📎).');
-    return;
-  }
-
-  try{
-    showStatus('Uploading image...');
-    uploadBtn.disabled = true;
-    chooseFileBtn.disabled = true;
-
-    const fd = new FormData();
-    fd.append('file', file);
-
-    const res = await fetch('/api/upload', { method:'POST', body: fd });
-    const data = await res.json().catch(()=>null);
-
-    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
-      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
-      showStatus('Upload successful');
-      addMessage('Image attached', 'user', uploadedImageUrl);
-      fileInput.value = '';
-    } else {
-      console.error('Upload failed', res, data);
-      alert('Upload failed. Check server logs. See console.');
-      showStatus('Upload failed');
+  // Create and append message (text + optional image)
+  function addMessage(text, from='bot', imageUrl=null){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
+    const span = document.createElement('span');
+    span.innerHTML = (text || '') .replace(/\n/g,'<br>');
+    wrapper.appendChild(span);
+    if(imageUrl){
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = 'attached image';
+      img.loading = 'lazy';
+      img.style.maxWidth = '320px';
+      img.style.marginTop = '8px';
+      wrapper.appendChild(img);
     }
-  } catch(err){
-    console.error('Upload error', err);
-    alert('Upload error: ' + (err.message || err));
-    showStatus('Upload error');
-  } finally {
-    uploadBtn.disabled = false;
-    chooseFileBtn.disabled = false;
-    setTimeout(()=>showStatus(''), 2200);
+    chatWindow.appendChild(wrapper);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
   }
+
+  // file chooser trigger
+  chooseFileBtn.addEventListener('click', () => fileInput.click());
+
+  // Upload selected image to /api/upload
+  uploadBtn.addEventListener('click', async () => {
+    const file = fileInput.files[0];
+    if(!file){
+      alert('Please choose an image first (click the 📎).');
+      return;
+    }
+
+    try{
+      showStatus('Uploading image...');
+      uploadBtn.disabled = true;
+      chooseFileBtn.disabled = true;
+
+      const fd = new FormData();
+      fd.append('file', file);
+
+      const res = await fetch('/api/upload', { method:'POST', body: fd });
+      const data = await res.json().catch(()=>null);
+
+      if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
+        uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
+        showStatus('Upload successful');
+
+        // show preview in chat; record it so we don't show the same image again at send
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        lastUserImage = uploadedImageUrl;
+
+        // clear chosen file so same file can be chosen again if needed
+        fileInput.value = '';
+      } else {
+        console.error('Upload failed', res, data);
+        alert('Upload failed. Check server logs. See console.');
+        showStatus('Upload failed');
+      }
+    } catch(err){
+      console.error('Upload error', err);
+      alert('Upload error: ' + (err.message || err));
+      showStatus('Upload error');
+    } finally {
+      uploadBtn.disabled = false;
+      chooseFileBtn.disabled = false;
+      setTimeout(()=>showStatus(''), 2200);
+    }
+  });
+
+  // Send message + optional uploadedImageUrl to /api/chat
+  async function sendMessage(){
+    const message = input.value.trim();
+    if(!message && !uploadedImageUrl) return;
+
+    // decide whether to show image again in the user's message:
+    // if uploadedImageUrl equals lastUserImage (we already showed a preview during Upload),
+    // DO NOT show it again in the immediate user message to avoid duplicate display.
+    const showImageInUserBubble = uploadedImageUrl && uploadedImageUrl !== lastUserImage ? uploadedImageUrl : null;
+
+    // show user's message immediately (text + only new image if it's different)
+    addMessage(message || 'Image', 'user', showImageInUserBubble);
+
+    // clear input and set UI state
+    input.value = '';
+    showStatus('TatvaBot is thinking...');
+    sendBtn.disabled = true;
+
+    try {
+      const body = { message: message || '', image: uploadedImageUrl || null };
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(()=>null);
+
+      if(res.ok && data && data.reply){
+        addMessage(data.reply, 'bot', data.image || null);
+      } else {
+        console.error('Chat API error', res, data);
+        addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
+      }
+    } catch(err){
+      console.error('Network error', err);
+      addMessage('Network error. Please check your connection and try again.', 'bot');
+    } finally {
+      // clear state: uploaded image was sent to server; avoid replaying it again later
+      uploadedImageUrl = null;
+      lastUserImage = null;
+      sendBtn.disabled = false;
+      showStatus('');
+    }
+  }
+
+  // handlers
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+
+  // focus
+  input.focus();
+
 });
-
-// Send message + optional uploadedImageUrl to /api/chat
-async function sendMessage(){
-  const message = input.value.trim();
-  if(!message && !uploadedImageUrl) return;
-
-  // show user's message immediately
-  addMessage(message || 'Image', 'user', uploadedImageUrl || null);
-  input.value = '';
-  showStatus('TatvaBot is thinking...');
-  sendBtn.disabled = true;
-
-  try {
-    const body = { message: message || '', image: uploadedImageUrl || null };
-    const res = await fetch('/api/chat', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json().catch(()=>null);
-
-    if(res.ok && data && data.reply){
-      addMessage(data.reply, 'bot', data.image || null);
-    } else {
-      console.error('Chat API error', res, data);
-      addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
-    }
-  } catch(err){
-    console.error('Network error', err);
-    addMessage('Network error. Please check your connection and try again.', 'bot');
-  } finally {
-    uploadedImageUrl = null; // clear uploaded image after sending
-    sendBtn.disabled = false;
-    showStatus('');
-  }
-}
-
-// handlers
-sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
-
-// focus
-input.focus();
 </script>
 </body>
 </html>
