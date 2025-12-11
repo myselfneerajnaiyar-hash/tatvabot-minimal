@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload (Voice + Location)</title>
+<title>TatvaBot — Chat + Image Upload (Location + Voice)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
@@ -36,7 +36,7 @@
     overflow:hidden;
     display:flex; flex-direction:column;
     min-height:560px;
-    height:80vh; /* fixed viewport so chat-window can scroll */
+    height:80vh;
   }
 
   /* header - fixed inside wrapper */
@@ -53,24 +53,13 @@
     z-index:1000;
   }
   .chat-header-left{display:flex; gap:12px; align-items:center;}
-  .chat-header small{
-    display:block;
-    font-weight:400;
-    font-size:12px;
-    opacity:.95;
-    margin-top:2px;
-  }
+  .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.95;margin-top:2px;}
   .header-controls{ display:flex; gap:8px; align-items:center; }
 
   .btn-clear{
     background:transparent; border:1px solid rgba(255,255,255,0.18); color:#fff; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:13px;
   }
-
-  .btn-loc{
-    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:13px;
-  }
-
-  .loc-badge{ font-size:12px; opacity:.95; margin-left:6px; background:rgba(255,255,255,0.06); padding:6px 8px; border-radius:8px; }
+  .btn-loc{ background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:13px; }
 
   /* body area holds the scrollable chat-window */
   .chat-body{
@@ -78,7 +67,7 @@
     gap:0;
     padding:18px;
     flex:1 1 auto;
-    min-height:0;  /* important so child can scroll */
+    min-height:0;
     box-sizing:border-box;
   }
 
@@ -109,33 +98,13 @@
     word-wrap:break-word;
     box-shadow:0 1px 0 rgba(0,0,0,0.02);
   }
-  .msg .meta {
-    font-size:11px; color:#7b7b7b; margin-top:6px;
-  }
-  .msg-user{
-    align-items:flex-end;
-    margin-left:auto;
-    text-align:right;
-  }
-  .msg-user span{
-    background:var(--green);
-    color:#fff;
-  }
-  .msg img{
-    display:block;
-    margin-top:8px;
-    max-width:320px;
-    border-radius:8px;
-    box-shadow:0 6px 18px rgba(2,6,23,0.06);
-  }
+  .msg .meta { font-size:11px; color:#7b7b7b; margin-top:6px; }
+  .msg-user{ align-items:flex-end; margin-left:auto; text-align:right; }
+  .msg-user span{ background:var(--green); color:#fff; }
+  .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
 
   /* typing indicator */
-  .typing {
-    display:inline-block;
-    padding:8px 12px;
-    background:#ececec;
-    border-radius:12px;
-  }
+  .typing { display:inline-block; padding:8px 12px; background:#ececec; border-radius:12px; }
   .typing .dot { width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6; animation: blink 1s infinite; }
   .typing .dot:nth-child(2){ animation-delay:.15s; } .typing .dot:nth-child(3){ animation-delay:.3s; }
   @keyframes blink { 0%{opacity:.15} 50%{opacity:1} 100%{opacity:.15} }
@@ -160,46 +129,20 @@
   }
   .chat-footer input[type="text"]:focus{ border-color:var(--green); }
 
-  .file-btn{
-    padding:8px 10px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    background:#fff;
-    cursor:pointer;
-    font-size:16px;
-    line-height:1;
-  }
-
-  .send{
-    background:var(--accent);
-    color:#fff;
-    border:none;
-    padding:10px 16px;
-    border-radius:999px;
-    cursor:pointer;
-  }
+  .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:16px; line-height:1; }
+  .send{ background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:999px; cursor:pointer; }
   .send:disabled{ opacity:.6; cursor:default; }
 
-  .mic-btn{
-    width:40px; height:40px; border-radius:999px; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff;
-  }
+  .mic-btn{ width:40px; height:40px; border-radius:999px; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff; }
   .mic-btn.recording{ box-shadow:0 0 0 6px rgba(197,48,48,0.08); border-color:var(--danger); }
 
-  .status{
-    font-size:13px;
-    color:#6b7280;
-    padding:6px 18px 10px;
-    min-height:20px;
-  }
+  .status{ font-size:13px; color:#6b7280; padding:6px 18px 10px; min-height:20px; }
 
-  /* quick buttons area (optional, inline) */
   .quick-row{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
   .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
   .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
 
-  @media(max-width:640px){
-    .msg img{ max-width:220px; }
-  }
+  @media(max-width:640px){ .msg img{ max-width:220px; } }
 </style>
 </head>
 <body>
@@ -210,57 +153,48 @@
           <div style="font-size:16px"><strong>TatvaBot — Gardening Assistant</strong></div>
           <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
         </div>
+        <div id="location-display" style="font-size:13px;color:#eaf6ea;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.04);">Location — <em>not set</em></div>
       </div>
 
       <div class="header-controls">
-        <div id="loc-display" class="loc-badge" title="Location not shared">Location: —</div>
-        <button id="share-loc-btn" class="btn-loc" title="Share location">Share location</button>
-        <button id="set-loc-btn" class="btn-loc" title="Enter location manually">Set location</button>
         <div style="font-size:12px;opacity:.95">v1</div>
+        <button id="share-loc-btn" class="btn-loc" title="Share browser location">Share location</button>
+        <button id="set-loc-btn" class="btn-loc" title="Set location manually">Set location</button>
+        <button id="clear-loc-btn" class="btn-loc" title="Clear saved location">Clear loc</button>
         <button id="clear-btn" class="btn-clear" title="Clear chat history">Clear chat</button>
       </div>
     </div>
 
     <div class="chat-body">
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-        <!-- messages restored on load -->
-      </div>
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log"></div>
     </div>
 
     <div id="status" class="status" aria-live="polite"></div>
 
     <div class="chat-footer" role="region" aria-label="Chat controls">
       <input id="user-input" type="text" placeholder="Type your question or use the mic..." autocomplete="off" aria-label="Type message" />
-      <!-- voice mic -->
       <div id="mic-btn" class="mic-btn" title="Start voice input" aria-pressed="false">🎤</div>
-
-      <!-- attach icon opens file chooser. File selection auto-uploads. -->
       <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
       <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
-
       <button id="send-btn" class="send" aria-label="Send message">Send</button>
     </div>
   </div>
 
 <script>
 /*
-  TatvaBot front-end with:
-   - Voice input (Web Speech API)
-   - Location feature (share geolocation or manual set)
-   - Persistence (storage + versioning)
-   - Image upload / dedupe
-   - Formspree lead capture
-   - Quick buttons injection (kept internal)
-   - Sends location in payloads to /api/chat and Formspree
+  Full replacement file:
+   - Location (share/set/clear); included in outgoing payloads
+   - Voice (Web Speech API), quick buttons, persistence, Formspree lead capture
+   - Keep /api/upload and /api/chat behaviour unchanged on server
 */
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your endpoint
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa";
 
-// storage versioning (bump to clear old history)
+// storage keys versioned to avoid stale state
 const STORAGE_KEY_BASE = 'tatvabot_chat';
-const STORAGE_VERSION = 'v3'; // bumped
+const STORAGE_VERSION = 'v3'; // bump to reset previous history if needed
 const STORAGE_KEY = STORAGE_KEY_BASE + '_' + STORAGE_VERSION;
-const STORAGE_LOCATION_KEY = 'tatvabot_loc_' + STORAGE_VERSION;
+const LOC_KEY = 'tatvabot_location_' + STORAGE_VERSION;
 
 const chatWindow    = document.getElementById('chat-window');
 const input         = document.getElementById('user-input');
@@ -272,16 +206,16 @@ const clearBtn      = document.getElementById('clear-btn');
 const micBtn        = document.getElementById('mic-btn');
 const shareLocBtn   = document.getElementById('share-loc-btn');
 const setLocBtn     = document.getElementById('set-loc-btn');
-const locDisplay    = document.getElementById('loc-display');
+const clearLocBtn   = document.getElementById('clear-loc-btn');
+const locationDisplay = document.getElementById('location-display');
 
-let uploadedImageUrl     = null;  // current uploaded image url
-let lastUploadedUrlShown = null;  // to avoid duplicates
+let uploadedImageUrl     = null;
+let lastUploadedUrlShown = null;
 let recognition = null;
 let isRecording = false;
+let currentLocation = null; // { lat, lon, label }
 
-let currentLocation = null; // { lat, lon, accuracy, ts, label? }
-
-// simple phone number detector: 9–15 digits, allowing spaces/dashes
+// phone regex
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
 // ---------- persistence ----------
@@ -289,22 +223,45 @@ function saveHistory(messages){
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('save history failed', e); }
 }
 function loadHistory(){
-  try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load history failed', e); return null; }
-}
-function saveLocation(loc){
-  try { localStorage.setItem(STORAGE_LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn('save location failed', e); }
-}
-function loadLocation(){
-  try { const raw = localStorage.getItem(STORAGE_LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load location failed', e); return null; }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){ console.warn('load history failed', e); return null; }
 }
 function clearHistory(){
-  try {
+  try{
     localStorage.removeItem(STORAGE_KEY);
-    // keep location
     chatWindow.innerHTML = '';
     ensureInitialMessage();
-    injectQuickRow();
-  } catch(e){ console.warn('clear history failed', e); }
+  }catch(e){console.warn(e)}
+}
+
+// ---------- location helpers ----------
+function saveLocation(loc){
+  try { localStorage.setItem(LOC_KEY, JSON.stringify(loc)); } catch(e){ console.warn('save loc', e); }
+  currentLocation = loc;
+  renderLocation();
+}
+function loadLocation(){
+  try {
+    const raw = localStorage.getItem(LOC_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){ console.warn('load loc', e); return null; }
+}
+function clearLocation(){
+  try { localStorage.removeItem(LOC_KEY); } catch(e){}
+  currentLocation = null;
+  renderLocation();
+}
+function renderLocation(){
+  if(!currentLocation){
+    locationDisplay.innerHTML = 'Location — <em>not set</em>';
+  } else {
+    const label = currentLocation.label || (currentLocation.lat && currentLocation.lon ? ${currentLocation.lat.toFixed(3)},${currentLocation.lon.toFixed(3)} : 'set');
+    locationDisplay.textContent = 'Location — ' + label;
+  }
 }
 
 // ---------- rendering ----------
@@ -312,6 +269,7 @@ function formatTime(ts){
   const d = new Date(ts || Date.now());
   return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
 }
+
 function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
@@ -331,16 +289,19 @@ function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   wrapper.appendChild(meta);
   return wrapper;
 }
+
 function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+
   if(save){
     const hist = loadHistory() || [];
     hist.push({ text, from, imageUrl, ts });
     saveHistory(hist);
   }
 }
+
 function showTypingIndicator(){
   const el = document.createElement('div');
   el.className = 'msg msg-bot typing-wrap';
@@ -352,29 +313,30 @@ function showTypingIndicator(){
   chatWindow.scrollTop = chatWindow.scrollHeight;
   return el;
 }
-function removeTypingIndicator(el){
-  if(el && el.parentNode) el.parentNode.removeChild(el);
-}
+function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
 
-// ---------- restore or initial ----------
-function ensureInitialMessage(save=true){
+// ---------- initial restore ----------
+function ensureInitialMessage(){
   const initial = "👋 Namaste! I’m TatvaBot. How can I help with your plants today?";
-  addMessage(initial, 'bot', null, Date.now(), save);
+  addMessage(initial, 'bot', null, Date.now(), true);
+  injectQuickRow();
 }
 
 (function restore(){
-  const loc = loadLocation();
-  if(loc){ currentLocation = loc; updateLocDisplay(); }
+  currentLocation = loadLocation();
+  renderLocation();
+
   const hist = loadHistory();
-  chatWindow.innerHTML = '';
   if(!hist || !hist.length){
-    ensureInitialMessage(true);
-  } else {
-    hist.forEach(msg => {
-      const el = createMessageElement(msg);
-      chatWindow.appendChild(el);
-    });
+    chatWindow.innerHTML = '';
+    ensureInitialMessage();
+    return;
   }
+  chatWindow.innerHTML = '';
+  hist.forEach(msg => {
+    const el = createMessageElement(msg);
+    chatWindow.appendChild(el);
+  });
   injectQuickRow();
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
@@ -400,7 +362,7 @@ function injectQuickRow(){
     b.textContent = it.t;
     row.appendChild(b);
   });
-  chatWindow.insertBefore(row, chatWindow.firstChild.nextSibling || chatWindow.firstChild);
+  chatWindow.insertBefore(row, chatWindow.firstChild ? chatWindow.firstChild.nextSibling : chatWindow.firstChild);
   row.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-q]');
     if(!btn) return;
@@ -411,74 +373,25 @@ function injectQuickRow(){
 
 // ---------- UI helpers ----------
 function showStatus(text){ statusEl.textContent = text || ''; }
-function updateLocDisplay(){
-  if(!currentLocation){
-    locDisplay.textContent = 'Location: —';
-    locDisplay.title = 'Location not shared';
-    return;
-  }
-  // show label if present else lat/lon short
-  if(currentLocation.label){
-    locDisplay.textContent = 'Loc: ' + currentLocation.label;
-    locDisplay.title = Shared: ${currentLocation.label};
-  } else {
-    locDisplay.textContent = Loc: ${Number(currentLocation.lat).toFixed(3)},${Number(currentLocation.lon).toFixed(3)};
-    locDisplay.title = Shared location (accuracy ${currentLocation.accuracy || 'n/a'} m);
-  }
-}
 
-// ---------- location feature ----------
-async function requestGeolocation(){
-  if(!('geolocation' in navigator)){
-    alert('Geolocation not supported in this browser.');
-    return;
-  }
-  showStatus('Requesting location...');
-  try {
-    const pos = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
-    });
-    const loc = {
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
-      ts: pos.timestamp
-    };
-    currentLocation = loc;
-    saveLocation(loc);
-    updateLocDisplay();
-    showStatus('Location saved');
-    setTimeout(()=>showStatus(''), 1400);
-  } catch(err){
-    console.error('Geolocation error', err);
-    alert('Unable to get location: ' + (err.message || err.code || 'error'));
-    showStatus('');
-  }
-}
-
-function promptSetLocationManually(){
-  const v = prompt('Enter a location label (city / area). This will be sent with your messages. Example: "Raipur, India"');
-  if(!v) return;
-  currentLocation = { label: v, ts: Date.now() };
-  saveLocation(currentLocation);
-  updateLocDisplay();
-  showStatus('Location saved');
-  setTimeout(()=>showStatus(''), 1200);
-}
-
-// ---------- upload flow ----------
+// ---------- upload flow (unchanged server expectation) ----------
 chooseFileBtn.addEventListener('click', () => fileInput.click());
+
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0];
   if(!file) return;
+
   showStatus('Uploading image...');
   chooseFileBtn.disabled = true;
   sendBtn.disabled = true;
+
   try {
     const fd = new FormData();
     fd.append('file', file);
+
     const res  = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
+
     if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
       uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
       if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){
@@ -503,41 +416,46 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
-// ---------- send flow (with Formspree lead capture) ----------
+// ---------- send flow (with Formspree lead capture + location attached) ----------
 async function sendMessage(){
   const messageRaw  = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
   if(!messageRaw && !imageToSend) return;
+
   const phoneMatch = messageRaw.match(PHONE_REGEX);
 
-  // Helper to show user message (avoid duplicate thumbnail)
-  function showUserMsg(text){
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(text || 'Image', 'user', null);
-    } else {
-      addMessage(text || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
-  }
-
-  // ---- LEAD CAPTURE FLOW (Formspree) ----
+  // LEAD CAPTURE (phone)
   if (phoneMatch) {
     const phoneRaw    = phoneMatch[1];
     const phoneDigits = phoneRaw.replace(/\D/g, '');
-    showUserMsg(messageRaw);
+
+    if(imageToSend && lastUploadedUrlShown === imageToSend){
+      addMessage(messageRaw || 'Image', 'user', null);
+    } else {
+      addMessage(messageRaw || 'Image', 'user', imageToSend);
+      lastUploadedUrlShown = imageToSend;
+    }
+
     input.value = '';
     showStatus('Saving your number...');
     sendBtn.disabled = true;
+
     try {
-      // Include location if present
-      const payload = { phone: phoneDigits, message: messageRaw, source: 'TatvaBot chat' };
-      if(currentLocation) payload.location = currentLocation;
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          phone: phoneDigits,
+          message: messageRaw,
+          source: 'TatvaBot chat',
+          location: currentLocation || null
+        })
       });
-      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We'll reach out soon. Meanwhile, you can keep asking plant questions here.", 'bot');
+
+      addMessage(
+        "Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out to you soon. Meanwhile, you can continue asking plant questions here.",
+        'bot'
+      );
     } catch(err){
       console.error('Formspree error', err);
       addMessage("I tried to save your number but something went wrong. Please try again later.", 'bot');
@@ -546,19 +464,26 @@ async function sendMessage(){
       sendBtn.disabled = false;
       showStatus('');
     }
-    return; // do not call /api/chat for phone messages
+    return;
   }
 
-  // ---- NORMAL CHAT FLOW ----
-  showUserMsg(messageRaw);
+  // NORMAL CHAT FLOW
+  const message = messageRaw;
+  if(imageToSend && lastUploadedUrlShown === imageToSend){
+    addMessage(message || 'Image', 'user', null);
+  } else {
+    addMessage(message || 'Image', 'user', imageToSend);
+    lastUploadedUrlShown = imageToSend;
+  }
+
   input.value = '';
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
+
   const typingEl = showTypingIndicator();
 
   try {
-    // send to server chat endpoint; include location if available
-    const body = { message: messageRaw || '', image: imageToSend || null, location: currentLocation || null };
+    const body = { message: message || '', image: imageToSend || null, location: currentLocation || null };
     const res  = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type':'application/json' },
@@ -592,55 +517,99 @@ async function sendMessage(){
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
 
-// clear chat button
 clearBtn.addEventListener('click', () => {
   if(confirm('Clear saved chat history? This cannot be undone.')){
     clearHistory();
+    // also reset lastUploadedUrlShown to avoid odd duplicates next session
+    lastUploadedUrlShown = null;
   }
 });
 
-// location handlers
-shareLocBtn.addEventListener('click', () => { requestGeolocation(); });
-setLocBtn.addEventListener('click', () => { promptSetLocationManually(); });
-updateLocDisplay(); // initial
+// ---------- Location controls ----------
+shareLocBtn.addEventListener('click', () => {
+  if(!navigator.geolocation){
+    alert('Geolocation not supported by this browser.');
+    return;
+  }
+  shareLocBtn.disabled = true;
+  showStatus('Requesting location...');
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude, label: Lat ${pos.coords.latitude.toFixed(3)}, Lon ${pos.coords.longitude.toFixed(3)} };
+    saveLocation(loc);
+    showStatus('Location saved');
+    shareLocBtn.disabled = false;
+    setTimeout(()=>showStatus(''), 1400);
+  }, (err) => {
+    console.error('geo error', err);
+    alert('Could not get location: ' + (err.message || err.code));
+    showStatus('');
+    shareLocBtn.disabled = false;
+  }, { enableHighAccuracy:true, timeout:10000 });
+});
+
+setLocBtn.addEventListener('click', () => {
+  const manual = prompt('Enter location label (e.g. "Pune, India" or "Home balcony")');
+  if(!manual) return;
+  const loc = { lat: null, lon: null, label: manual };
+  saveLocation(loc);
+  showStatus('Location set');
+  setTimeout(()=>showStatus(''),1200);
+});
+
+clearLocBtn.addEventListener('click', () => {
+  if(!currentLocation) return;
+  if(!confirm('Clear saved location?')) return;
+  clearLocation();
+  showStatus('Location cleared');
+  setTimeout(()=>showStatus(''),1200);
+});
 
 // ---------- VOICE / SpeechRecognition ----------
 function initSpeech(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition) return null;
+  if(!SpeechRecognition){
+    micBtn.title = 'Voice input not supported in this browser';
+    micBtn.style.opacity = 0.6;
+    return null;
+  }
   const rec = new SpeechRecognition();
   rec.lang = 'en-IN';
   rec.interimResults = true;
   rec.maxAlternatives = 1;
   return rec;
 }
+
 function startRecording(){
   if(!recognition) recognition = initSpeech();
-  if(!recognition) {
-    alert('Voice input not supported by this browser.');
-    return;
-  }
+  if(!recognition) { alert('Voice input not supported by this browser.'); return; }
+
   isRecording = true;
   micBtn.classList.add('recording');
   micBtn.setAttribute('aria-pressed','true');
   showStatus('Listening... Tap mic to stop');
-  let interim = '';
-  let finalText = '';
+
+  let interim = '', finalText = '';
+
   recognition.onresult = (event) => {
     interim = '';
     for(let i=event.resultIndex; i < event.results.length; i++){
       const r = event.results[i];
-      if(r.isFinal) finalText += r[0].transcript;
-      else interim += r[0].transcript;
+      if(r.isFinal){
+        finalText += r[0].transcript;
+      } else {
+        interim += r[0].transcript;
+      }
     }
     input.value = (finalText + interim).trim();
   };
+
   recognition.onerror = (ev) => {
     console.error('Speech error', ev);
     stopRecording();
     showStatus('Voice recognition error');
     setTimeout(()=>showStatus(''), 1500);
   };
+
   recognition.onend = () => {
     isRecording = false;
     micBtn.classList.remove('recording');
@@ -648,27 +617,32 @@ function startRecording(){
     showStatus('');
     if(input.value.trim()) sendMessage();
   };
+
   recognition.start();
 }
+
 function stopRecording(){
   if(!recognition) return;
-  try { recognition.stop(); } catch(e){ /* ignore */ }
+  try { recognition.stop(); } catch(e){}
   isRecording = false;
   micBtn.classList.remove('recording');
   micBtn.setAttribute('aria-pressed','false');
   showStatus('');
 }
 
-micBtn.addEventListener('click', () => { if(isRecording) stopRecording(); else startRecording(); });
+micBtn.addEventListener('click', () => {
+  if(isRecording) stopRecording(); else startRecording();
+});
 
-// initialize recognition object lazily
-if(!(window.SpeechRecognition || window.webkitSpeechRecognition)){
-  micBtn.title = 'Voice input not supported in this browser';
-}
+// initialize location from storage
+(function init(){
+  const loc = loadLocation();
+  if(loc) currentLocation = loc;
+  renderLocation();
+  input.focus();
+  console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY);
+})();
 
-// focus & hint
-input.focus();
-console.info('TatvaBot UI loaded — persistence (storage key: %s). Location key: %s', STORAGE_KEY, STORAGE_LOCATION_KEY);
 </script>
 </body>
 </html>
