@@ -3,7 +3,7 @@
   const CLOUD_NAME = "dps3lh1ed";
   const UPLOAD_PRESET = "tatvabot_unsigned";
   // FIX: make the URL a string / template literal
-  const CLOUD_UPLOAD_URL = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload;
+  const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
 
   const chatWindow = document.getElementById('chat-window');
   const input = document.getElementById('user-input');
@@ -15,7 +15,7 @@
 
   let uploadedImageUrl = null;
   let uploadInProgress = false;
-  // Remember last user-attached image so we can avoid showing the exact same URL twice
+  // Remember last image URL we showed as a user message so we don't show it twice 
   let lastUserImage = null;
 
   function showStatus(text){
