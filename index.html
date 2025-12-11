@@ -1,97 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<style>
-  :root{
-    --green:#14532d;
-    --muted:#f7f7f8;
-    --bubble-bg:#f1f5f9;
-    --text:#111827;
-    --accent:#16a34a;
-    --muted-border:#e6e6e6;
-  }
-  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
-  body{background:var(--muted);display:flex;align-items:center;justify-content:center;padding:18px;}
-
-  .chat-wrapper{ width:100%; max-width:960px; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(2,6,23,0.08); display:grid; grid-template-columns:1fr; overflow:hidden; min-height:560px; }
-
-  .left { padding:18px 20px; display:flex; flex-direction:column; gap:12px; min-height:520px; }
-  .chat-header{ background:var(--green); color:#fff; padding:14px; border-radius:8px; font-weight:600; display:flex; justify-content:space-between; align-items:center;}
-  .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.9;margin-top:4px}
-  .chat-window{ background:#fafafa; border-radius:8px; padding:14px; flex:1; overflow:auto; min-height:340px; }
-  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; display:flex; flex-direction:column; }
-  .msg span{ display:block; background:var(--bubble-bg); color:var(--text); padding:12px 14px; border-radius:12px; white-space:pre-wrap; word-wrap:break-word; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
-  .msg-user{ align-items:flex-end; margin-left:auto; text-align:right; }
-  .msg-user span{ background:var(--green); color:#fff; }
-  .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
-
-  .chat-footer{ display:flex; gap:8px; padding-top:10px; border-top:1px solid var(--muted-border); align-items:center; }
-  .chat-footer input[type="text"]{ flex:1; padding:10px 14px; border-radius:999px; border:1px solid #ddd; outline:none; font-size:14px; }
-  .chat-footer input[type="text"]:focus{ border-color:var(--green); }
-  .send{ background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:999px; cursor:pointer; }
-  .send:disabled{ opacity:.6; cursor:default; }
-
-  .file-controls{ display:flex; gap:8px; align-items:center; margin-left:6px; }
-  .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:14px; }
-  .file-btn:disabled{ opacity:.6 }
-  .camera-note{ font-size:11px; color:#6b7280; margin-left:6px; }
-
-  .status{ font-size:13px; color:#6b7280; padding:6px 0 0 0; }
-
-  @media(max-width:920px){
-    .chat-wrapper{ grid-template-columns:1fr; }
-  }
-</style>
-</head>
-<body>
-  <div class="chat-wrapper" role="application" aria-label="TatvaBot chat">
-    <div class="left" id="left-col">
-      <div class="chat-header" aria-hidden="false">
-        <div>
-          TatvaBot — Gardening Assistant
-          <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
-        </div>
-        <div style="font-size:12px;opacity:.9">v1</div>
-      </div>
-
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-        <div class="msg msg-bot"><span>👋 Namaste! I’m TatvaBot. How can I help with your plants today?</span></div>
-      </div>
-
-      <div id="status" class="status" aria-live="polite"></div>
-
-      <div class="chat-footer" role="region" aria-label="Chat controls">
-        <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" aria-label="Type message" />
-        <div class="file-controls" aria-hidden="false">
-          <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📷</label>
-          <!-- single hidden file input used for both camera & file -->
-          <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
-          <button id="upload-btn" class="file-btn" title="Upload selected image">Upload</button>
-        </div>
-        <button id="send-btn" class="send" aria-label="Send message">Send</button>
-      </div>
-    </div>
-  </div>
-
 <script>
-/*
-  Replace-only index.html (keeps your existing server code).
-  Cloudinary unsigned settings (from you):
-    CLOUD_NAME = "dps3lh1ed"
-    UPLOAD_PRESET = "tatvabot_unsigned"
-
-  Behavior:
-   - Choose file (camera or gallery) → click Upload → image uploaded once to Cloudinary
-   - Image thumbnail shows in chat as user's message
-   - Click Send → sends { message, image } to your existing POST /api/chat
-*/
-
 (function(){
   const CLOUD_NAME = "dps3lh1ed";
   const UPLOAD_PRESET = "tatvabot_unsigned";
+  // FIX: make the URL a string / template literal
   const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
 
   const chatWindow = document.getElementById('chat-window');
@@ -104,6 +15,8 @@
 
   let uploadedImageUrl = null;
   let uploadInProgress = false;
+  // Remember last user-attached image so we can avoid showing the exact same URL twice
+  let lastUserImage = null;
 
   function showStatus(text){
     statusEl.textContent = text || '';
@@ -126,21 +39,17 @@
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }
 
-  // single trigger for file chooser
   chooseFileBtn.addEventListener('click', () => {
     fileInput.click();
   });
 
-  // ensure upload button only triggers our single upload flow
   uploadBtn.addEventListener('click', async () => {
     const file = fileInput.files[0];
     if(!file){
       alert('Please choose an image first (click the 📷 icon).');
       return;
     }
-    if(uploadInProgress){
-      return;
-    }
+    if(uploadInProgress) return;
     uploadInProgress = true;
     uploadBtn.disabled = true;
     chooseFileBtn.disabled = true;
@@ -157,8 +66,9 @@
       if(res.ok && (json && (json.secure_url || json.url))){
         uploadedImageUrl = json.secure_url || json.url;
         showStatus('Upload OK');
+        // show user's attached image and remember it
         addMessage('Image attached', 'user', uploadedImageUrl);
-        // clear chosen file so user can choose same file again if needed
+        lastUserImage = uploadedImageUrl;
         fileInput.value = '';
       } else {
         console.error('Cloudinary upload failed:', res, json);
@@ -173,12 +83,10 @@
       uploadInProgress = false;
       uploadBtn.disabled = false;
       chooseFileBtn.disabled = false;
-      // remove status after short delay
       setTimeout(()=>showStatus(''), 2000);
     }
   });
 
-  // send message + image to existing /api/chat route
   async function sendMessage(){
     const message = input.value.trim();
     if(!message && !uploadedImageUrl) return;
@@ -197,40 +105,44 @@
         body: JSON.stringify(body)
       });
       const json = await res.json().catch(()=>null);
-      // your api/chat can return { reply, image } or similar — handle common shapes
+
       if(res.ok && json && (json.reply || json.answer || json.text)){
         const replyText = json.reply || json.answer || json.text || '';
+        // possible shapes where server returns image
         const replyImage = json.image || json.img || (json.result && json.result.secure_url) || null;
-        addMessage(replyText, 'bot', replyImage);
+
+        // DEDUPE: if the bot reply contains the same image URL the user already attached,
+        // skip adding the duplicate image so it doesn't appear twice
+        if(replyImage && replyImage === lastUserImage){
+          // add only bot text, not the duplicate image
+          addMessage(replyText, 'bot', null);
+        } else {
+          addMessage(replyText, 'bot', replyImage || null);
+        }
       } else {
         console.error('Chat API error', res, json);
         addMessage('Sorry — failed to reach bot. See console.', 'bot', null);
-        // if server returned error details, show small alert so you can copy first console line
         alert('Chat API returned error. Open Console (F12) and send me the first red line.');
       }
     } catch(err){
       console.error('Network error sending to /api/chat', err);
       addMessage('Network error. Please check your connection and try again.', 'bot');
     } finally {
-      // clear temporary local image after sending (bot gets copy)
+      // clear temporary local image after sending (bot will have copy)
       uploadedImageUrl = null;
+      lastUserImage = null; // reset dedupe memory for next message
       sendBtn.disabled = false;
       showStatus('');
     }
   }
 
-  // attach handlers
   sendBtn.addEventListener('click', sendMessage);
   input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
 
-  // focus input on load
   input.focus();
 
-  // small helper: if anything inside this script throws, log a clear note
   window.addEventListener('error', (ev) => {
     console.error('Page runtime error:', ev.error || ev.message || ev);
-    // also show quick alert so user sees there's a JS error (copy first console line)
-    // but do not spam alerts — only the first time
     if(!window.__tatvabot_reported_error){
       window.__tatvabot_reported_error = true;
       alert('A script error occurred. Open Console (F12) and copy the first red line and send it to me.');
@@ -239,5 +151,3 @@
 
 })();
 </script>
-</body>
-</html>
