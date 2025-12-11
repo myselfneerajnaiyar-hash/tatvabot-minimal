@@ -72,7 +72,7 @@
       <div class="chat-footer" role="region" aria-label="Chat controls">
         <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" aria-label="Type message" />
         <div class="file-controls" aria-hidden="false">
-          <!-- camera-capable file input; capture="environment" suggests camera on mobile -->
+          <!-- single file input (camera on mobile) -->
           <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
           <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
           <button id="upload-btn" class="file-btn" title="Upload selected image">Upload</button>
@@ -82,25 +82,25 @@
     </div>
 
     <div class="right" id="right-col" aria-hidden="true">
-      <!-- Placeholder for future controls -->
       <div style="font-weight:600;margin-bottom:8px">Debug & Controls</div>
-      <div id="debug" style="font-size:13px;color:#444;line-height:1.4">Hidden</div>
+      <div id="debug" style="font-size:13px;color:#444;line-height:1.4">Hidden (open console for details)</div>
     </div>
   </div>
 
 <script>
 /*
- Single-file chat page.
- Expects these server routes (already present in your project):
-  - POST /api/upload   -> returns JSON { ok:true, url: "<secure_url>" }
-  - POST /api/chat     -> accepts { message, image } and returns { reply: "text", image?: "<url>" }
+ FRONT-END ONLY changes — uses Cloudinary unsigned upload.
+ Cloud credentials (from you):
+  - cloudName: dps3lh1ed
+  - preset: tatvabot_unsigned
 
- After replacing HTML:
- 1) commit & push
- 2) redeploy on Vercel
- 3) test live URL: choose a local photo, click Upload, you should see the image appear in chat as your message
- 4) click Send to send both text+image to /api/chat
+ Server routes expected (unchanged):
+  - POST /api/chat  (this handler is already in your repo)
 */
+
+const CLOUD_NAME = 'dps3lh1ed';
+const UPLOAD_PRESET = 'tatvabot_unsigned';
+const CLOUDINARY_ENDPOINT = https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload;
 
 const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('user-input');
@@ -114,9 +114,8 @@ const debugEl = document.getElementById('debug');
 let uploadedImageUrl = null;
 
 function showStatus(text){ statusEl.textContent = text || ''; }
-function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); }
+function debugLog(obj){ if(debugEl) debugEl.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2); console.debug(obj); }
 
-// Create and append message (text + optional image)
 function addMessage(text, from='bot', imageUrl=null){
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
@@ -128,18 +127,16 @@ function addMessage(text, from='bot', imageUrl=null){
     img.src = imageUrl;
     img.alt = 'attached image';
     img.loading = 'lazy';
-    img.style.maxWidth = '320px';
-    img.style.marginTop = '8px';
     wrapper.appendChild(img);
   }
   chatWindow.appendChild(wrapper);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// file chooser trigger
+// single file chooser trigger
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
-// Upload selected image to /api/upload
+// Cloudinary unsigned upload: posts file + upload_preset
 uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
   if(!file){
@@ -147,44 +144,60 @@ uploadBtn.addEventListener('click', async () => {
     return;
   }
 
-  try{
-    showStatus('Uploading image...');
+  try {
+    showStatus('Uploading image to Cloudinary...');
     uploadBtn.disabled = true;
     chooseFileBtn.disabled = true;
 
     const fd = new FormData();
     fd.append('file', file);
+    fd.append('upload_preset', UPLOAD_PRESET);
 
-    const res = await fetch('/api/upload', { method:'POST', body: fd });
-    const data = await res.json().catch(()=>null);
+    // perform upload
+    const res = await fetch(CLOUDINARY_ENDPOINT, { method: 'POST', body: fd });
+    const json = await res.json().catch(()=>null);
 
-    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url)){
-      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
-      showStatus('Upload successful');
-      addMessage('Image attached', 'user', uploadedImageUrl);
-      fileInput.value = '';
-    } else {
-      console.error('Upload failed', res, data);
-      alert('Upload failed. Check server logs. See console.');
+    if(!res.ok){
+      console.error('Cloudinary upload failed', res.status, json);
+      alert('Upload failed: ' + (json?.error?.message || res.status));
       showStatus('Upload failed');
+      debugLog({cloudinaryStatus: res.status, body: json});
+      return;
     }
+
+    // Cloudinary returns secure_url on success
+    const url = json.secure_url || json.url || null;
+    if(!url){
+      console.error('Cloudinary missing secure_url', json);
+      alert('Upload failed: missing URL in response');
+      debugLog(json);
+      return;
+    }
+
+    uploadedImageUrl = url;
+    showStatus('Upload OK');
+    addMessage('Image attached', 'user', uploadedImageUrl);
+    fileInput.value = '';
+
+    debugLog({uploadResponse: json});
   } catch(err){
     console.error('Upload error', err);
     alert('Upload error: ' + (err.message || err));
+    debugLog(err);
     showStatus('Upload error');
   } finally {
     uploadBtn.disabled = false;
     chooseFileBtn.disabled = false;
-    setTimeout(()=>showStatus(''), 2200);
+    setTimeout(()=>showStatus(''), 2500);
   }
 });
 
 // Send message + optional uploadedImageUrl to /api/chat
 async function sendMessage(){
   const message = input.value.trim();
-  if(!message && !uploadedImageUrl) return;
+  if(!message && !uploadedImageUrl) return; // nothing to send
 
-  // show user's message immediately
+  // append user's message locally
   addMessage(message || 'Image', 'user', uploadedImageUrl || null);
   input.value = '';
   showStatus('TatvaBot is thinking...');
@@ -192,24 +205,29 @@ async function sendMessage(){
 
   try {
     const body = { message: message || '', image: uploadedImageUrl || null };
+
     const res = await fetch('/api/chat', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(body)
     });
-    const data = await res.json().catch(()=>null);
 
+    const data = await res.json().catch(()=>null);
     if(res.ok && data && data.reply){
       addMessage(data.reply, 'bot', data.image || null);
+      debugLog({chatApiResponse: data});
     } else {
-      console.error('Chat API error', res, data);
-      addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
+      console.error('Chat API error', res.status, data);
+      addMessage('Sorry — failed to reach bot. Check server logs.', 'bot');
+      alert('Chat request failed: ' + (data?.error || res.status));
+      debugLog({status: res.status, body: data});
     }
   } catch(err){
-    console.error('Network error', err);
-    addMessage('Network error. Please check your connection and try again.', 'bot');
+    console.error('Network error sending chat', err);
+    addMessage('Network error. Please try again.', 'bot');
+    debugLog(err);
   } finally {
-    uploadedImageUrl = null; // clear uploaded image after sending
+    uploadedImageUrl = null; // clear after sending
     sendBtn.disabled = false;
     showStatus('');
   }
@@ -217,10 +235,13 @@ async function sendMessage(){
 
 // handlers
 sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
 
 // focus
 input.focus();
+
+// --- small helper: show initial debug info ---
+debugLog({info: 'index.html loaded', cloudinary: {cloudName: CLOUD_NAME, preset: UPLOAD_PRESET}, chatEndpoint: '/api/chat'});
 </script>
 </body>
 </html>
