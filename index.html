@@ -63,18 +63,23 @@
       const res = await fetch(CLOUD_UPLOAD_URL, { method: 'POST', body: fd });
       const json = await res.json().catch(()=>null);
 
-      if(res.ok && (json && (json.secure_url || json.url))){
-        uploadedImageUrl = json.secure_url || json.url;
-        showStatus('Upload OK');
-        // show user's attached image and remember it
-        addMessage('Image attached', 'user', uploadedImageUrl);
-        lastUserImage = uploadedImageUrl;
-        fileInput.value = '';
-      } else {
-        console.error('Cloudinary upload failed:', res, json);
-        alert('Upload failed. Check Console for details.');
-        showStatus('Upload failed');
-      }
+     if(res.ok && (json && (json.secure_url || json.url))){
+  uploadedImageUrl = json.secure_url || json.url;
+  showStatus('Upload OK');
+
+  // only add user image message if it isn't the same we already showed
+  if(uploadedImageUrl !== lastUserImage){
+    addMessage('Image attached', 'user', uploadedImageUrl);
+    lastUserImage = uploadedImageUrl;
+  }
+
+  // clear chosen file so user can choose same file again if needed
+  fileInput.value = '';
+} else {
+  console.error('Cloudinary upload failed:', res, json);
+  alert('Upload failed. Check Console for details.');
+  showStatus('Upload failed');
+}
     } catch(err){
       console.error('Upload error', err);
       alert('Upload error: ' + (err.message || err));
