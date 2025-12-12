@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload (Diagnosis + Voice + Location)</title>
+<title>TatvaBot — Chat + Image Upload (Voice + Location + Diagnosis)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
@@ -15,19 +15,27 @@
     --muted-dark:#e6e6e6;
     --danger:#c53030;
   }
-  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;background:var(--muted);}
-  body{display:flex;align-items:center;justify-content:center;padding:18px;}
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    background:var(--muted);
+  }
+  body{ display:flex; align-items:center; justify-content:center; padding:18px; }
 
+  /* container */
   .chat-wrapper{ width:100%; max-width:960px; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(2,6,23,0.08); overflow:hidden; display:flex; flex-direction:column; min-height:560px; height:80vh; }
 
+  /* header - fixed inside wrapper */
   .chat-header{ background:var(--green); color:#fff; padding:10px 14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1000; }
   .chat-header-left{display:flex; gap:12px; align-items:center;}
-  .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.95;margin-top:2px;}
+  .chat-header small{ display:block; font-weight:400; font-size:12px; opacity:.95; margin-top:2px; }
   .header-controls{ display:flex; gap:8px; align-items:center; }
 
   .btn-clear{ background:transparent; border:1px solid rgba(255,255,255,0.18); color:#fff; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:13px; }
   .btn-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.12); padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px; }
 
+  /* body area holds the scrollable chat-window */
   .chat-body{ display:flex; gap:0; padding:18px; flex:1 1 auto; min-height:0; box-sizing:border-box; }
   .chat-window{ flex:1; background:#fafafa; border-radius:8px; padding:14px; overflow:auto; height:100%; box-sizing:border-box; }
 
@@ -38,15 +46,16 @@
   .msg-user span{ background:var(--green); color:#fff; }
   .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
 
-  .typing { display:inline-block; padding:8px 12px; background:#ececec; border-radius:12px; }
+  /* typing indicator */
+  .typing{ display:inline-block; padding:8px 12px; background:#ececec; border-radius:12px; }
   .typing .dot{ width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6; animation: blink 1s infinite; }
   .typing .dot:nth-child(2){ animation-delay:.15s; } .typing .dot:nth-child(3){ animation-delay:.3s; }
   @keyframes blink { 0%{opacity:.15} 50%{opacity:1} 100%{opacity:.15} }
 
+  /* footer (controls) pinned to bottom of wrapper */
   .chat-footer{ border-top:1px solid var(--muted-border); padding:12px 14px; display:flex; gap:8px; align-items:center; background:#fff; }
   .chat-footer input[type="text"]{ flex:1; padding:10px 14px; border-radius:999px; border:1px solid #ddd; outline:none; font-size:14px; }
   .chat-footer input[type="text"]:focus{ border-color:var(--green); }
-
   .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:16px; line-height:1; }
   .send{ background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:999px; cursor:pointer; }
   .send:disabled{ opacity:.6; cursor:default; }
@@ -55,12 +64,11 @@
   .mic-btn.recording{ box-shadow:0 0 0 6px rgba(197,48,48,0.08); border-color:var(--danger); }
 
   .status{ font-size:13px; color:#6b7280; padding:6px 18px 10px; min-height:20px; }
+
+  /* quick buttons area (optional, inline) */
   .quick-row{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
   .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
   .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
-
-  .diagnosis-card{ background:#fff; border:1px dashed #e6e6e6; padding:12px; border-radius:10px; margin:8px 0; }
-  .diagnosis-controls{ display:flex; gap:8px; margin-top:8px; }
 
   @media(max-width:640px){ .msg img{ max-width:220px; } }
 </style>
@@ -79,15 +87,14 @@
         <div id="location-display" style="font-size:13px; opacity:.95">Location — <em>not set</em></div>
         <button id="share-location" class="btn-ghost" title="Share device location">Share location</button>
         <button id="set-location" class="btn-ghost" title="Set location manually">Set location</button>
+        <button id="run-diagnosis" class="btn-ghost" title="Start smart diagnosis">Run diagnosis</button>
         <div style="font-size:12px;opacity:.95">v1</div>
         <button id="clear-btn" class="btn-clear" title="Clear chat history">Clear chat</button>
       </div>
     </div>
 
     <div class="chat-body">
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-        <!-- messages restored or initial message inserted by JS -->
-      </div>
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log"></div>
     </div>
 
     <div id="status" class="status" aria-live="polite"></div>
@@ -103,22 +110,19 @@
 
 <script>
 /*
-  TatvaBot single-file UI with:
-   - persistence (localStorage)
-   - quick buttons
-   - image upload (POST /api/upload)
-   - chat backend (POST /api/chat)
-   - Formspree lead capture
-   - multi-step diagnosis flows with automatic Formspree summary sending
-   - voice input (Web Speech API)
-   - location (geolocation + manual)
+  TatvaBot single-file UI (voice + location + diagnosis summary to Formspree)
+
+  - Keep endpoints correct:
+      POST /api/upload  -> returns JSON { url: "<public_url>" } or { secure_url: ... }
+      POST /api/chat    -> returns { reply: "...", image?: "..." }
+      Formspree endpoint set below
 */
 
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your formspree endpoint
 
-// storage keys
+// storage keys (versioned so you can bump to clear)
 const STORAGE_KEY_BASE = 'tatvabot_chat';
-const STORAGE_VERSION = 'v3';
+const STORAGE_VERSION = 'v3'; // bump when you want to wipe stored history
 const STORAGE_KEY = STORAGE_KEY_BASE + '_' + STORAGE_VERSION;
 const LOCATION_KEY = 'tatvabot_location_' + STORAGE_VERSION;
 
@@ -133,13 +137,14 @@ const micBtn        = document.getElementById('mic-btn');
 const shareLocBtn   = document.getElementById('share-location');
 const setLocBtn     = document.getElementById('set-location');
 const locationDisplay = document.getElementById('location-display');
+const runDiagBtn    = document.getElementById('run-diagnosis');
 
 let uploadedImageUrl     = null;
 let lastUploadedUrlShown = null;
 let recognition = null;
 let isRecording = false;
 
-// phone detection
+// phone number regex
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
 // ---------- persistence ----------
@@ -147,31 +152,29 @@ function saveHistory(messages){
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('save history failed', e); }
 }
 function loadHistory(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  } catch(e){ console.warn('load history failed', e); return null; }
+  try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load history failed', e); return null; }
 }
 function clearHistory(){
   try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn('clear history failed', e); }
 }
 
-// location
-function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
-function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ return null; } }
+// location persistence helpers
+function saveLocation(loc){
+  try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn('save location', e); }
+}
+function loadLocation(){
+  try { const raw = localStorage.getItem(LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ return null; }
+}
 function setLocationDisplay(loc){
-  if(!loc) locationDisplay.innerHTML = 'Location — <em>not set</em>';
-  else if(loc.name) locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name);
-  else if(loc.coords) locationDisplay.innerHTML = 'Location — ' + loc.coords.latitude.toFixed(3) + ',' + loc.coords.longitude.toFixed(3);
-  else locationDisplay.innerHTML = 'Location — <em>not set</em>';
+  if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; }
+  else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); }
+  else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); }
+  else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; }
 }
 
-// ---------- render helpers ----------
-function formatTime(ts){
-  const d = new Date(ts || Date.now());
-  return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
-}
+// ---------- rendering ----------
+function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' }); }
+
 function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
@@ -191,6 +194,7 @@ function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   wrapper.appendChild(meta);
   return wrapper;
 }
+
 function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
@@ -201,6 +205,7 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
     saveHistory(hist);
   }
 }
+
 function showTypingIndicator(){
   const el = document.createElement('div');
   el.className = 'msg msg-bot typing-wrap';
@@ -213,25 +218,23 @@ function showTypingIndicator(){
   return el;
 }
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]); }
 
-// ---------- restore / init ----------
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[m]; }); }
+
+// ---------- restore ----------
 function ensureInitialMessage(){
   const initial = "👋 Namaste! I’m TatvaBot. How can I help with your plants today?";
   addMessage(initial, 'bot', null, Date.now(), true);
   injectQuickRow();
 }
+
 (function restore(){
   const hist = loadHistory();
   const loc = loadLocation();
   setLocationDisplay(loc);
-  if(!hist || !hist.length){
-    chatWindow.innerHTML = '';
-    ensureInitialMessage();
-    return;
-  }
+  if(!hist || !hist.length){ chatWindow.innerHTML = ''; ensureInitialMessage(); return; }
   chatWindow.innerHTML = '';
-  hist.forEach(msg => chatWindow.appendChild(createMessageElement(msg)));
+  hist.forEach(msg => { chatWindow.appendChild(createMessageElement(msg)); });
   injectQuickRow();
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
@@ -257,22 +260,21 @@ function injectQuickRow(){
     b.textContent = it.t;
     row.appendChild(b);
   });
+  // place after first element if exists
   let firstChild = chatWindow.firstChild;
   if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling);
   else chatWindow.appendChild(row);
+
   row.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-q]');
     if(!btn) return;
     const q = btn.getAttribute('data-q');
-    if(q){
-      input.value = q;
-      // If the button matches a diagnostic intent, start diagnosis
-      const diagKey = detectDiagnosticIntent(q);
-      if(diagKey) startDiagnosis(diagKey);
-      else sendMessage();
-    }
+    if(q){ input.value = q; sendMessage(); }
   });
 }
+
+// ---------- UI helpers ----------
+function showStatus(text){ statusEl.textContent = text || ''; }
 
 // ---------- upload flow ----------
 chooseFileBtn.addEventListener('click', () => fileInput.click());
@@ -280,15 +282,15 @@ fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0];
   if(!file) return;
   showStatus('Uploading image...');
-  chooseFileBtn.disabled = true;
-  sendBtn.disabled = true;
+  chooseFileBtn.disabled = true; sendBtn.disabled = true;
   try {
     const fd = new FormData();
     fd.append('file', file);
     const res  = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
-    if(res.ok && data && (data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url))){
-      uploadedImageUrl = data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url) || null;
+    const url = (data && (data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url))) || null;
+    if(res.ok && url){
+      uploadedImageUrl = url;
       if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){
         addMessage('Image attached', 'user', uploadedImageUrl);
         lastUploadedUrlShown = uploadedImageUrl;
@@ -311,157 +313,17 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
-// ---------- Formspree send helper ----------
-async function postToFormspree(payload){
-  try {
-    await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: {'Accept':'application/json','Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    return true;
-  } catch(e){
-    console.error('Formspree send error', e);
-    return false;
-  }
-}
-
-// ---------- multistep diagnosis flows ----------
-/* Define simple flows here. Each flow: array of questions. We'll store answers and then compile summary. */
-const DIAGNOSES = {
-  'leaf-holes': {
-    title: 'Leaf holes / pests',
-    questions: [
-      { id:'q1', text: 'What type of plant is it (flower/foliage/vegetable)?' },
-      { id:'q2', text: 'Are the holes small and scattered or large sections missing?' },
-      { id:'q3', text: 'Do you see any insects, eggs, or frass (droppings) on leaves?' },
-      { id:'q4', text: 'How often do you water and where is the plant placed (sun/shade)?' }
-    ],
-    summary: (answers) => {
-      const lines = [];
-      lines.push('Diagnosis: Leaf holes / possible pest or physical damage.');
-      lines.push('Plant: ' + (answers.q1 || 'Not specified'));
-      lines.push('Hole pattern: ' + (answers.q2 || 'Not specified'));
-      lines.push('Pests observed: ' + (answers.q3 || 'Not specified'));
-      lines.push('Water / placement: ' + (answers.q4 || 'Not specified'));
-      lines.push('Suggested next steps: Inspect undersides of leaves for insects, isolate the plant, consider neem oil or soft insecticidal soap if pests seen. If damage is mechanical, adjust placement.');
-      return lines.join('\n');
-    }
-  },
-  'powdery-mildew': {
-    title: 'Powdery mildew',
-    questions: [
-      { id:'q1', text:'Which plant is affected?' },
-      { id:'q2', text:'Is the powder white and on the upper or lower leaf surface?' },
-      { id:'q3', text:'Is the environment humid or have poor airflow?' }
-    ],
-    summary: (answers) => {
-      const lines = [];
-      lines.push('Diagnosis: Powdery mildew (likely).');
-      lines.push('Plant: ' + (answers.q1 || 'Not specified'));
-      lines.push('Appearance: ' + (answers.q2 || 'Not specified'));
-      lines.push('Environment: ' + (answers.q3 || 'Not specified'));
-      lines.push('Suggested next steps: Remove badly affected leaves, increase airflow, reduce humidity, use neem or potassium bicarbonate spray.');
-      return lines.join('\n');
-    }
-  }
-};
-
-/* Active diagnosis state */
-let activeDiagnosis = null; // { key, qIndex, answers } or null
-
-function detectDiagnosticIntent(text){
-  if(!text) return null;
-  const t = text.toLowerCase();
-  if(t.includes('leaf hole') || t.includes('holes on') || t.includes('hole') || t.includes('pest')) return 'leaf-holes';
-  if(t.includes('powdery') || t.includes('mildew')) return 'powdery-mildew';
-  return null;
-}
-
-function startDiagnosis(key){
-  if(!DIAGNOSES[key]) return;
-  activeDiagnosis = { key, qIndex:0, answers:{} };
-  const meta = DIAGNOSES[key];
-  addMessage(Starting diagnosis: ${meta.title}\nI will ask a few short questions., 'bot');
-  askNextDiagnosisQuestion();
-}
-
-function askNextDiagnosisQuestion(){
-  if(!activeDiagnosis) return;
-  const meta = DIAGNOSES[activeDiagnosis.key];
-  if(activeDiagnosis.qIndex >= meta.questions.length){
-    finishDiagnosis();
-    return;
-  }
-  const q = meta.questions[activeDiagnosis.qIndex];
-  // Add an interactive diagnosis card in chat to show progress & manual send option
-  addMessage(Q${activeDiagnosis.qIndex+1}/${meta.questions.length}: ${q.text}, 'bot');
-  // focus input so user can answer
-  input.focus();
-}
-
-function recordDiagnosisAnswer(text){
-  if(!activeDiagnosis) return false;
-  const meta = DIAGNOSES[activeDiagnosis.key];
-  const q = meta.questions[activeDiagnosis.qIndex];
-  activeDiagnosis.answers[q.id] = text;
-  activeDiagnosis.qIndex += 1;
-  if(activeDiagnosis.qIndex < meta.questions.length){
-    askNextDiagnosisQuestion();
-  } else {
-    finishDiagnosis();
-  }
-  return true;
-}
-
-async function finishDiagnosis(){
-  if(!activeDiagnosis) return;
-  const meta = DIAGNOSES[activeDiagnosis.key];
-  const summaryText = meta.summary(activeDiagnosis.answers);
-  // show summary in chat
-  addMessage('Diagnosis complete — summary:', 'bot');
-  addMessage(summaryText, 'bot');
-
-  // send summary to Formspree automatically (include location if available)
-  const loc = loadLocation();
-  const payload = {
-    category: 'diagnosis',
-    diagnosis: meta.title,
-    summary: summaryText,
-    answers: activeDiagnosis.answers,
-    location: loc || null,
-    timestamp: new Date().toISOString()
-  };
-
-  showStatus('Sending diagnosis summary to Tatvabhoomi...');
-  try {
-    const ok = await postToFormspree(payload);
-    if(ok) {
-      addMessage('✅ Diagnosis summary has been sent to the Tatvabhoomi team. They may follow up if needed.', 'bot');
-    } else {
-      addMessage('⚠️ Could not send the summary automatically. You can copy the summary and contact the team.', 'bot');
-    }
-  } catch(e){
-    console.error('diagnosis send error', e);
-    addMessage('⚠️ Error while sending diagnosis summary.', 'bot');
-  } finally {
-    showStatus('');
-    // reset diagnosis state
-    activeDiagnosis = null;
-  }
-}
-
-// ---------- send flow (with Formspree lead capture) ----------
+// ---------- send flow (Formspree phone capture preserved) ----------
 async function sendMessage(){
-  const messageRaw = input.value.trim();
+  const messageRaw  = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
   if(!messageRaw && !imageToSend) return;
+  const phoneMatch = messageRaw.match(PHONE_REGEX);
 
-  // If we are in an active diagnosis, record the answer and return
-  if(activeDiagnosis){
-    // record and continue
-    recordDiagnosisAnswer(messageRaw || '');
-    // show user's message
+  // Lead capture to Formspree if message contains phone number
+  if (phoneMatch){
+    const phoneRaw    = phoneMatch[1];
+    const phoneDigits = phoneRaw.replace(/\D/g, '');
     if(imageToSend && lastUploadedUrlShown === imageToSend){
       addMessage(messageRaw || 'Image', 'user', null);
     } else {
@@ -469,28 +331,15 @@ async function sendMessage(){
       lastUploadedUrlShown = imageToSend;
     }
     input.value = '';
-    uploadedImageUrl = null;
-    return;
-  }
-
-  // phone capture detector
-  const phoneMatch = messageRaw.match(PHONE_REGEX);
-  if(phoneMatch){
-    const phoneRaw = phoneMatch[1];
-    const phoneDigits = phoneRaw.replace(/\D/g,'');
-    if(imageToSend && lastUploadedUrlShown === imageToSend) addMessage(messageRaw || 'Image', 'user', null);
-    else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
-    input.value = '';
     showStatus('Saving your number...');
     sendBtn.disabled = true;
     try {
-      await postToFormspree({
-        phone: phoneDigits,
-        message: messageRaw,
-        source: 'TatvaBot chat',
-        location: loadLocation()
+      await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneDigits, message: messageRaw, source: 'TatvaBot chat', location: loadLocation() })
       });
-      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out to you soon.", 'bot');
+      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We'll reach out to you soon.", 'bot');
     } catch(err){
       console.error('Formspree error', err);
       addMessage("I tried to save your number but something went wrong. Please try again later.", 'bot');
@@ -502,26 +351,18 @@ async function sendMessage(){
     return;
   }
 
-  // If message triggers a diagnostic intent, start diagnosis
-  const diagKey = detectDiagnosticIntent(messageRaw);
-  if(diagKey){
-    // show user message then start diagnosis
-    if(imageToSend && lastUploadedUrlShown === imageToSend) addMessage(messageRaw || 'Image', 'user', null);
-    else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
-    input.value = '';
-    uploadedImageUrl = null;
-    startDiagnosis(diagKey);
-    return;
-  }
-
   // Normal chat flow
-  if(imageToSend && lastUploadedUrlShown === imageToSend) addMessage(messageRaw || 'Image', 'user', null);
-  else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
-
+  if(imageToSend && lastUploadedUrlShown === imageToSend){
+    addMessage(messageRaw || 'Image', 'user', null);
+  } else {
+    addMessage(messageRaw || 'Image', 'user', imageToSend);
+    lastUploadedUrlShown = imageToSend;
+  }
   input.value = '';
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
+
   try {
     const body = { message: messageRaw || '', image: imageToSend || null, location: loadLocation() || null };
     const res  = await fetch('/api/chat', {
@@ -530,14 +371,15 @@ async function sendMessage(){
       body: JSON.stringify(body)
     });
     const data = await res.json().catch(()=>null);
-    await new Promise(r => setTimeout(r, 600));
-    removeTypingIndicator(typingEl);
+    await new Promise(r => setTimeout(r, 650));
     if(res.ok && data && (data.reply || data.answer || data.text)){
       const replyText  = data.reply || data.answer || data.text || '';
       const replyImage = data.image || data.img || (data.result && data.result.secure_url) || null;
+      removeTypingIndicator(typingEl);
       addMessage(replyText, 'bot', replyImage || null);
     } else {
       console.error('Chat API error', res, data);
+      removeTypingIndicator(typingEl);
       addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
     }
   } catch(err){
@@ -554,12 +396,9 @@ async function sendMessage(){
 // ---------- handlers ----------
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
+clearBtn.addEventListener('click', () => { if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory(); });
 
-clearBtn.addEventListener('click', () => {
-  if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory();
-});
-
-// ---------- voice ----------
+// ---------- VOICE / SpeechRecognition ----------
 function initSpeech(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition){
@@ -573,86 +412,222 @@ function initSpeech(){
   rec.maxAlternatives = 1;
   return rec;
 }
+
 function startRecording(){
   if(!recognition) recognition = initSpeech();
-  if(!recognition){ alert('Voice input not supported.'); return; }
-  isRecording = true;
-  micBtn.classList.add('recording');
-  micBtn.setAttribute('aria-pressed','true');
-  showStatus('Listening... Tap mic to stop');
-  let interim = '';
-  let finalText = '';
+  if(!recognition) { alert('Voice input not supported by this browser.'); return; }
+  isRecording = true; micBtn.classList.add('recording'); micBtn.setAttribute('aria-pressed','true'); showStatus('Listening... Tap mic to stop');
+
+  let interim = ''; let finalText = '';
   recognition.onresult = (event) => {
     interim = '';
-    for(let i=event.resultIndex; i<event.results.length; i++){
+    for(let i = event.resultIndex; i < event.results.length; i++){
       const r = event.results[i];
       if(r.isFinal) finalText += r[0].transcript;
       else interim += r[0].transcript;
     }
     input.value = (finalText + interim).trim();
   };
+
   recognition.onerror = (ev) => {
     console.error('Speech error', ev);
     stopRecording();
     showStatus('Voice recognition error');
     setTimeout(()=>showStatus(''), 1500);
   };
+
   recognition.onend = () => {
-    isRecording = false;
-    micBtn.classList.remove('recording');
-    micBtn.setAttribute('aria-pressed','false');
-    showStatus('');
+    isRecording = false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus('');
     if(input.value.trim()) sendMessage();
   };
+
   recognition.start();
 }
-function stopRecording(){
-  if(!recognition) return;
-  try { recognition.stop(); } catch(e){ }
-  isRecording = false;
-  micBtn.classList.remove('recording');
-  micBtn.setAttribute('aria-pressed','false');
-  showStatus('');
-}
-micBtn.addEventListener('click', () => {
-  if(isRecording) stopRecording(); else startRecording();
-});
-if(!(window.SpeechRecognition || window.webkitSpeechRecognition)){ micBtn.title = 'Voice input not supported in this browser'; micBtn.style.opacity = 0.6; }
 
-// ---------- location ----------
+function stopRecording(){ if(!recognition) return; try { recognition.stop(); } catch(e){} isRecording = false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus(''); }
+
+micBtn.addEventListener('click', () => { if(isRecording) stopRecording(); else startRecording(); });
+
+// ---------- Location handlers ----------
 shareLocBtn.addEventListener('click', () => {
   if(!navigator.geolocation){ alert('Geolocation not supported in this browser.'); return; }
   showStatus('Requesting location...');
   navigator.geolocation.getCurrentPosition((pos) => {
-    const loc = { coords:{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, timestamp: Date.now() };
-    saveLocation(loc);
-    setLocationDisplay(loc);
-    showStatus('Location saved');
-    setTimeout(()=>showStatus(''), 1500);
+    const loc = { coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude }, timestamp: Date.now() };
+    saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500);
   }, (err) => {
     console.error('geo error', err);
-    showStatus('Could not get location: ' + (err && err.message ? err.message : 'unknown'));
-    setTimeout(()=>showStatus(''), 2200);
-  }, { enableHighAccuracy:false, timeout:10000 });
+    showStatus('Could not get location'); setTimeout(()=>showStatus(''),1500);
+  }, { enableHighAccuracy: false, timeout: 10000 });
 });
+
 setLocBtn.addEventListener('click', () => {
   const name = prompt('Enter your city or locality (e.g. "Bengaluru, India")');
   if(name && name.trim()){
     const loc = { name: name.trim(), timestamp: Date.now() };
-    saveLocation(loc);
-    setLocationDisplay(loc);
-    showStatus('Location saved');
-    setTimeout(()=>showStatus(''), 1500);
+    saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500);
   }
 });
 setLocationDisplay(loadLocation());
 
-// ---------- small utilities ----------
-function showStatus(text){ statusEl.textContent = text || ''; }
+// ---------- MULTI-STEP SMART DIAGNOSIS ----------
+/*
+  Start with runDiagBtn. Flow:
+    1) Ask a sequence of questions (client-side)
+    2) Collect answers, show them in chat as user replies
+    3) Compose a diagnosis summary and automatically POST it to Formspree
+    4) Show confirmation in chat
+*/
 
-// initial focus & hint
+const DIAG_QUESTIONS = [
+  { key: 'symptom',   q: 'Briefly describe the main symptom you see (e.g., yellow leaves, holes, brown spots).' },
+  { key: 'plant',     q: 'What type of plant is this (if unsure, describe size/leaf shape)?' },
+  { key: 'water',     q: 'How often do you water it (e.g., daily, twice a week)?' },
+  { key: 'light',     q: 'Where is it placed — full sun, partial sun, shade?' },
+  { key: 'other',     q: 'Any recent changes (new soil, new fertilizer, pests noticed)?' }
+];
+
+let diagState = null; // { idx, answers:{ key:answer } }
+
+function startDiagnosis(){
+  // initialize state
+  diagState = { idx: 0, answers: {} };
+  addMessage('Starting a short diagnosis to help identify the problem. I will ask a few quick questions.', 'bot');
+  askNextDiagQuestion();
+}
+
+function askNextDiagQuestion(){
+  if(!diagState) return;
+  const cur = DIAG_QUESTIONS[diagState.idx];
+  if(!cur){
+    finishDiagnosis();
+    return;
+  }
+  // Show the question as bot message
+  addMessage(cur.q, 'bot');
+  // Now wait for user input: capture next user message and treat as answer
+  // We'll set a temporary handler that captures the next user send
+  waitForNextUserAnswer().then(answerText => {
+    if(!diagState) return; // cancelled
+    diagState.answers[cur.key] = answerText;
+    // show user's answer in chat (it was already added by sendMessage normally)
+    diagState.idx++;
+    // small delay then next question
+    setTimeout(() => askNextDiagQuestion(), 220);
+  });
+}
+
+// returns a Promise that resolves when the user next sends a message via our normal UI
+function waitForNextUserAnswer(){
+  return new Promise((resolve) => {
+    // We'll temporarily override sendMessage to intercept the next send.
+    // Save original
+    const originalSend = sendMessage;
+    let called = false;
+
+    async function interceptSend(){
+      if(called) return;
+      called = true;
+      // read the current input value and treat it as the answer (sendMessage already added the message to chat)
+      const answer = input.value.trim();
+      // call original to keep normal behavior (which will clear uploadedImageUrl etc)
+      // But ensure we call originalSend in its original context
+      try {
+        // temporarily restore original to avoid infinite recursion
+        window.sendMessage = originalSend;
+        await originalSend();
+      } catch(e){
+        console.error('error calling original send', e);
+      } finally {
+        // restore
+        window.sendMessage = originalSend;
+      }
+      resolve(answer);
+    }
+
+    // monkey-patch sendMessage globally (safe temporary override)
+    window.sendMessage = interceptSend;
+    // also ensure Enter key triggers the intercept if user presses enter
+    // user may also click Send button which will call window.sendMessage
+    // if user doesn't respond in 2 minutes, we'll cancel
+    const timeout = setTimeout(() => {
+      if(!called){
+        window.sendMessage = originalSend;
+        resolve('(no response)');
+      }
+    }, 120000);
+  });
+}
+
+async function finishDiagnosis(){
+  if(!diagState) return;
+  const answers = diagState.answers;
+  // Compose summary
+  const summaryLines = [
+    'Diagnosis Summary (automatically generated):',
+    Symptom: ${answers.symptom || 'N/A'},
+    Plant: ${answers.plant || 'N/A'},
+    Watering: ${answers.water || 'N/A'},
+    Light: ${answers.light || 'N/A'},
+    Other notes: ${answers.other || 'N/A'},
+    Location: ${formatLocationForSummary(loadLocation())},
+    Timestamp: ${new Date().toLocaleString()}
+  ];
+  const summary = summaryLines.join('\n');
+
+  // Show summary in chat as bot message
+  addMessage(summary, 'bot');
+
+  // auto-send to Formspree for Tatvabhoomi team to review
+  showStatus('Sending diagnosis summary to Tatvabhoomi...');
+  try {
+    await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'diagnosis_summary',
+        summary: summary,
+        answers: answers,
+        location: loadLocation(),
+        source: 'TatvaBot smart diagnosis'
+      })
+    });
+    addMessage('Diagnosis summary sent to the Tatvabhoomi team. They will review and reach out if needed.', 'bot');
+  } catch(err){
+    console.error('Error sending diagnosis to Formspree', err);
+    addMessage('Could not send the diagnosis summary automatically. Please try again later or contact us via the website.', 'bot');
+  } finally {
+    showStatus('');
+    diagState = null;
+  }
+}
+
+function formatLocationForSummary(loc){
+  if(!loc) return 'not set';
+  if(loc.name) return loc.name;
+  if(loc.coords) return ${loc.coords.latitude.toFixed(3)},${loc.coords.longitude.toFixed(3)};
+  return 'not set';
+}
+
+// hook run-diagnosis button
+runDiagBtn.addEventListener('click', () => {
+  // If a diagnosis is in progress, ask to cancel
+  if(diagState){
+    if(confirm('A diagnosis is already in progress. Cancel and start new?')){
+      diagState = null;
+      startDiagnosis();
+    }
+    return;
+  }
+  startDiagnosis();
+});
+
+// Make sendMessage globally accessible so diagnosis intercept can override safely
+window.sendMessage = sendMessage;
+
+// initial focus & console hint
 input.focus();
-console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:', LOCATION_KEY);
+console.info('TatvaBot UI loaded — storage key: %s, location key: %s', STORAGE_KEY, LOCATION_KEY);
 </script>
 </body>
 </html>
