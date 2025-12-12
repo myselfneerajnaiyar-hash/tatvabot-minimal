@@ -17,37 +17,48 @@
   }
   html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;background:var(--muted);}
   body{display:flex;align-items:center;justify-content:center;padding:18px;}
-  .chat-wrapper{width:100%;max-width:960px;background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.08);overflow:hidden;display:flex;flex-direction:column;min-height:560px;height:80vh;}
+
+  .chat-wrapper{width:100%; max-width:960px;background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.08);overflow:hidden;display:flex;flex-direction:column;min-height:560px;height:80vh;}
   .chat-header{background:var(--green);color:#fff;padding:10px 14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1000;}
   .chat-header-left{display:flex;gap:12px;align-items:center;}
   .chat-header small{display:block;font-weight:400;font-size:12px;opacity:.95;margin-top:2px;}
   .header-controls{display:flex;gap:8px;align-items:center;}
   .btn-clear{background:transparent;border:1px solid rgba(255,255,255,0.18);color:#fff;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px;}
   .btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.12);padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px;}
+
   .chat-body{display:flex;gap:0;padding:18px;flex:1 1 auto;min-height:0;box-sizing:border-box;}
   .chat-window{flex:1;background:#fafafa;border-radius:8px;padding:14px;overflow:auto;height:100%;box-sizing:border-box;}
+
   .msg{margin-bottom:12px;max-width:78%;line-height:1.4;display:flex;flex-direction:column;}
   .msg span{display:block;background:var(--bubble-bg);color:var(--text);padding:12px 14px;border-radius:12px;white-space:pre-wrap;word-wrap:break-word;box-shadow:0 1px 0 rgba(0,0,0,0.02);}
   .msg .meta{font-size:11px;color:#7b7b7b;margin-top:6px;}
   .msg-user{align-items:flex-end;margin-left:auto;text-align:right;}
   .msg-user span{background:var(--green);color:#fff;}
   .msg img{display:block;margin-top:8px;max-width:320px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.06);}
+
   .typing{display:inline-block;padding:8px 12px;background:#ececec;border-radius:12px;}
-  .typing .dot{width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6;animation: blink 1s infinite;}
-  .typing .dot:nth-child(2){animation-delay:.15s;} .typing .dot:nth-child(3){animation-delay:.3s;}
+  .typing .dot{width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6;animation:blink 1s infinite;}
+  .typing .dot:nth-child(2){animation-delay:.15s;}.typing .dot:nth-child(3){animation-delay:.3s;}
   @keyframes blink{0%{opacity:.15}50%{opacity:1}100%{opacity:.15}}
+
   .chat-footer{border-top:1px solid var(--muted-border);padding:12px 14px;display:flex;gap:8px;align-items:center;background:#fff;}
   .chat-footer input[type="text"]{flex:1;padding:10px 14px;border-radius:999px;border:1px solid #ddd;outline:none;font-size:14px;}
+  .chat-footer input[type="text"]:focus{border-color:var(--green);}
+
   .file-btn{padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;line-height:1;}
   .send{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:999px;cursor:pointer;}
   .send:disabled{opacity:.6;cursor:default;}
+
   .mic-btn{width:40px;height:40px;border-radius:999px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;}
   .mic-btn.recording{box-shadow:0 0 0 6px rgba(197,48,48,0.08);border-color:var(--danger);}
+
   .status{font-size:13px;color:#6b7280;padding:6px 18px 10px;min-height:20px;}
+
   .quick-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;}
   .quick-btn{background:#fff;border:1px solid var(--muted-dark);padding:8px 12px;border-radius:999px;cursor:pointer;font-size:13px;}
   .quick-btn.primary{background:var(--green);color:#fff;border-color:var(--green);}
-  @media(max-width:640px){.msg img{max-width:220px}}
+
+  @media(max-width:640px){.msg img{max-width:220px;}}
 </style>
 </head>
 <body>
@@ -70,9 +81,7 @@
     </div>
 
     <div class="chat-body">
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-        <!-- content restored or initial message added by script -->
-      </div>
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log"></div>
     </div>
 
     <div id="status" class="status" aria-live="polite"></div>
@@ -87,15 +96,21 @@
   </div>
 
 <script>
-/* Single-file UI with multistep diagnosis + auto-send summary to Formspree
-   Replace the FORMSPREE_ENDPOINT with your live endpoint (already set).
+/*
+ Single-file TatvaBot UI:
+ - voice (Web Speech API)
+ - location (Geolocation + manual)
+ - image upload (POST /api/upload)
+ - chat backend POST /api/chat
+ - Formspree lead capture + automatic diagnosis summary POST
+ - multistep diagnosis flow (example for yellow leaves)
+ - persistence (localStorage) + clear
+ - robust error handling
 */
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // keep as provided
-
-/* ---------- state & DOM ---------- */
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your endpoint
 const STORAGE_KEY_BASE = 'tatvabot_chat';
-const STORAGE_VERSION = 'v3';
+const STORAGE_VERSION = 'v3'; // bump to clear older history
 const STORAGE_KEY = STORAGE_KEY_BASE + '_' + STORAGE_VERSION;
 const LOCATION_KEY = 'tatvabot_location_' + STORAGE_VERSION;
 
@@ -115,22 +130,28 @@ let uploadedImageUrl = null;
 let lastUploadedUrlShown = null;
 let recognition = null;
 let isRecording = false;
-
-/* phone detector */
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
-/* ---------- small helpers (defined early to avoid reference errors) ---------- */
+// ---------- helpers ----------
 function showStatus(text){ statusEl.textContent = text || ''; }
-
 function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+// ---------- persistence ----------
+function saveHistory(messages){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('save history failed', e); } }
+function loadHistory(){ try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load history failed', e); return null; } }
+function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn('clear history failed', e); } }
 
+function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
+function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ return null; } }
+function setLocationDisplay(loc){ if(!loc){ locationDisplay.innerHTML = 'Location — <em>not set</em>'; } else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); } else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); } else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } }
+
+// ---------- UI rendering ----------
 function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   const wrapper = document.createElement('div');
-  wrapper.className = 'msg ' + (from==='user' ? 'msg-user' : 'msg-bot');
+  wrapper.className = 'msg ' + (from === 'user' ? 'msg-user' : 'msg-bot');
   const span = document.createElement('span');
-  span.innerHTML = escapeHtml(text || '').replace(/\n/g, '<br>');
+  span.innerHTML = (text || '').replace(/\n/g,'<br>');
   wrapper.appendChild(span);
   if(imageUrl){
     const img = document.createElement('img');
@@ -157,7 +178,6 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   }
 }
 
-/* typing indicator */
 function showTypingIndicator(){
   const el = document.createElement('div');
   el.className = 'msg msg-bot typing-wrap';
@@ -171,22 +191,7 @@ function showTypingIndicator(){
 }
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
 
-/* ---------- persistence ---------- */
-function saveHistory(messages){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('saveHistory failed', e); } }
-function loadHistory(){ try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('loadHistory failed', e); return null; } }
-function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML=''; ensureInitialMessage(); } catch(e){ console.warn('clearHistory failed', e); } }
-
-/* location persistence */
-function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn('saveLocation failed', e); } }
-function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ return null; } }
-function setLocationDisplay(loc){
-  if(!loc) locationDisplay.innerHTML = 'Location — <em>not set</em>';
-  else if(loc.name) locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name);
-  else if(loc.coords) { const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); }
-  else locationDisplay.innerHTML = 'Location — <em>not set</em>';
-}
-
-/* ---------- restore / initial ---------- */
+// ---------- quick row ----------
 function injectQuickRow(){
   if(document.getElementById('quick-row')) return;
   const row = document.createElement('div');
@@ -207,267 +212,234 @@ function injectQuickRow(){
     b.textContent = it.t;
     row.appendChild(b);
   });
-  // place after first element (or as first)
-  const first = chatWindow.firstChild;
-  if(first) chatWindow.insertBefore(row, first.nextSibling);
-  else chatWindow.appendChild(row);
+  let firstChild = chatWindow.firstChild;
+  if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling); else chatWindow.appendChild(row);
   row.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-q]'); if(!btn) return;
     const q = btn.getAttribute('data-q'); if(q){ input.value = q; sendMessage(); }
   });
 }
 
+// ---------- restore on load ----------
 function ensureInitialMessage(){
   const initial = "👋 Namaste! I’m TatvaBot. How can I help with your plants today?";
   addMessage(initial, 'bot', null, Date.now(), true);
   injectQuickRow();
 }
-
 (function restore(){
   const hist = loadHistory();
   const loc = loadLocation();
   setLocationDisplay(loc);
-  if(!hist || !hist.length){ chatWindow.innerHTML=''; ensureInitialMessage(); return; }
+  if(!hist || !hist.length){ chatWindow.innerHTML = ''; ensureInitialMessage(); return; }
   chatWindow.innerHTML = '';
   hist.forEach(msg => chatWindow.appendChild(createMessageElement(msg)));
   injectQuickRow();
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
 
-/* ---------- upload flow (unchanged assumption: /api/upload exists) ---------- */
+// ---------- upload flow ----------
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0]; if(!file) return;
   showStatus('Uploading image...'); chooseFileBtn.disabled = true; sendBtn.disabled = true;
-  try{
+  try {
     const fd = new FormData(); fd.append('file', file);
-    const res = await fetch('/api/upload', { method:'POST', body: fd });
+    const res = await fetch('/api/upload', { method:'POST', body:fd });
     const data = await res.json().catch(()=>null);
     if(res.ok && data && (data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url))){
       uploadedImageUrl = data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url) || null;
       if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){ addMessage('Image attached', 'user', uploadedImageUrl); lastUploadedUrlShown = uploadedImageUrl; }
       showStatus('Upload OK');
     } else { console.error('Upload failed', res, data); alert('Upload failed. Check server logs and console.'); showStatus('Upload failed'); }
-  }catch(err){ console.error('Upload error', err); alert('Upload error: ' + (err.message||err)); showStatus('Upload error'); }
-  finally{ fileInput.value=''; chooseFileBtn.disabled=false; sendBtn.disabled=false; setTimeout(()=>showStatus(''), 1400); }
+  } catch(err){ console.error('Upload error', err); alert('Upload error: ' + (err.message||err)); showStatus('Upload error'); }
+  finally { fileInput.value = ''; chooseFileBtn.disabled = false; sendBtn.disabled = false; setTimeout(()=>showStatus(''), 1600); }
 });
 
-/* ---------- DIAGNOSIS: multistep smart flow ---------- */
+// ---------- Multistep diagnosis state & flow ----------
 const diagnosisFlows = {
-  'yellow_leaves': {
+  // key: flow descriptor with question list and a friendly title
+  'yellow leaves': {
     title: 'Yellow leaves diagnosis',
     questions: [
-      { key: 'pattern', q: 'Is yellowing uniform (whole leaf) or just between veins?', opts: ['whole leaf','between veins','both','not sure'] },
-      { key: 'watering', q: 'How often do you water this plant?', opts: ['daily','2-3 times a week','weekly','rarely'] },
-      { key: 'light', q: 'Is the plant in bright sun or in shade?', opts: ['bright sun','partial sun','shade','indoor'] }
+      'Is yellowing uniform (whole leaf) or just between veins?',
+      'How often do you water this plant? (daily / weekly / occasionally)',
+      'Is the plant in bright sun or in shade?',
     ]
-  },
-  // add more flows here if needed
+  }
 };
 
-let diagnosisActive = false;
-let currentFlow = null;
-let currentQuestionIndex = 0;
-let diagnosisAnswers = {}; // key->answer
-
-function startDiagnosis(flowKey){
-  const flow = diagnosisFlows[flowKey];
+let activeDiagnosis = null; // { key, answers:[], index }
+function startDiagnosis(key){
+  const flow = diagnosisFlows[key];
   if(!flow) return;
-  diagnosisActive = true;
-  currentFlow = flow;
-  currentQuestionIndex = 0;
-  diagnosisAnswers = { flow: flowKey, startedAt: new Date().toISOString() };
-  addMessage(Starting ${flow.title} — I'll ask a few quick questions. Reply naturally (or type "cancel" to stop)., 'bot');
-  askCurrentDiagnosisQuestion();
+  activeDiagnosis = { key, answers:[], index:0 };
+  // show first question
+  const q = flow.questions[0];
+  addMessage(q, 'bot');
+  showStatus('Diagnosis started');
 }
-
-function askCurrentDiagnosisQuestion(){
-  if(!diagnosisActive || !currentFlow) return;
-  const qObj = currentFlow.questions[currentQuestionIndex];
-  const prompt = qObj.q + (qObj.opts ? '\nOptions: ' + qObj.opts.join(' / ') : '');
-  addMessage(prompt, 'bot');
-}
-
-function cancelDiagnosis(){
-  diagnosisActive = false; currentFlow = null; currentQuestionIndex = 0; diagnosisAnswers = {};
-  addMessage('Diagnosis cancelled. You can continue asking other questions.', 'bot');
-}
-
-/* when user answers while a diagnosis is active, we capture and move to next question */
-async function handleDiagnosisAnswer(answerText){
-  if(!diagnosisActive || !currentFlow) return false;
-  const qObj = currentFlow.questions[currentQuestionIndex];
-  diagnosisAnswers[qObj.key] = answerText;
-  currentQuestionIndex++;
-  if(currentQuestionIndex < currentFlow.questions.length){
-    // next q
-    askCurrentDiagnosisQuestion();
-    return true;
-  } else {
-    // finished: summarize and auto-send to Formspree
-    diagnosisActive = false;
-    const summary = buildDiagnosisSummary(currentFlow.title, diagnosisAnswers);
-    addMessage('Thanks — I\'ve prepared a short summary and sent it to the Tatvabhoomi team for follow-up.', 'bot');
-    addMessage(summary, 'bot'); // also show summary to user
-    try { await sendDiagnosisToFormspree(currentFlow.title, diagnosisAnswers, summary); }
-    catch(e){ console.error('failed to send diagnosis', e); addMessage('Could not send summary to team — please try again later.', 'bot'); }
-    currentFlow = null; currentQuestionIndex = 0; diagnosisAnswers = {};
+function handleDiagnosisAnswer(text){
+  if(!activeDiagnosis) return false;
+  activeDiagnosis.answers.push(text);
+  activeDiagnosis.index++;
+  const flow = diagnosisFlows[activeDiagnosis.key];
+  if(activeDiagnosis.index < flow.questions.length){
+    const q = flow.questions[activeDiagnosis.index];
+    addMessage(q, 'bot');
     return true;
   }
+  // finished
+  const summary = buildDiagnosisSummary(activeDiagnosis);
+  addMessage('Thanks — I\'ve prepared a short summary and sent it to the Tatvabhoomi team for follow-up.', 'bot');
+  addMessage(summary, 'bot');
+  // automatic send to Formspree
+  sendDiagnosisToFormspree(activeDiagnosis, summary).catch(err => {
+    console.error('diagnosis send failed', err);
+    addMessage('Could not send the diagnosis to the team. Please try again later.', 'bot');
+  });
+  activeDiagnosis = null;
+  return true;
 }
-
-/* builds a plain-text summary */
-function buildDiagnosisSummary(title, answers){
-  const lines = [];
-  lines.push(${title} — summary\n);
-  const flowDef = (Object.values(diagnosisFlows).find(f => f.title === title)) || null;
-  if(flowDef){
-    flowDef.questions.forEach((q, idx) => {
-      const ans = answers[q.key] || 'N/A';
-      lines.push(${idx+1}. ${q.q}\n   Answer: ${ans}\n);
-    });
-  } else {
-    for(const k of Object.keys(answers)) {
-      if(k==='startedAt') continue;
-      lines.push(${k}: ${answers[k]}\n);
-    }
-  }
+function buildDiagnosisSummary(diagnosis){
+  const flow = diagnosisFlows[diagnosis.key];
+  let txt = ${flow.title} — summary\n\n;
+  flow.questions.forEach((q, i) => {
+    const ans = diagnosis.answers[i] || '';
+    txt += ${i+1}. ${q}\n   Answer: ${ans}\n\n;
+  });
   const loc = loadLocation();
-  if(loc && loc.coords) lines.push(\nLocation: ${loc.coords.latitude},${loc.coords.longitude});
-  else if(loc && loc.name) lines.push(\nLocation: ${loc.name});
-  lines.push(\nTimestamp: ${new Date().toLocaleString()});
-  return lines.join('\n');
+  if(loc && loc.coords){
+    txt += Location: ${loc.coords.latitude.toFixed(4)},${loc.coords.longitude.toFixed(4)}\n;
+  } else if(loc && loc.name){
+    txt += Location: ${loc.name}\n;
+  }
+  txt += Timestamp: ${new Date().toLocaleString()}\n;
+  return txt;
 }
-
-/* send summary to Formspree */
-async function sendDiagnosisToFormspree(title, answers, summaryText){
-  showStatus('Sending summary to Tatvabhoomi team...');
+async function sendDiagnosisToFormspree(diagnosis, summary){
+  showStatus('Sending diagnosis to Tatvabhoomi team...');
+  const phone = (loadHistory()||[]).map(m=>m.text).join(' ').match(PHONE_REGEX);
+  const phoneDigits = phone ? phone[1].replace(/\D/g,'') : null;
   const payload = {
-    subject: Diagnosis: ${title},
-    message: summaryText,
+    subject: diagnosisFlows[diagnosis.key].title,
+    message: summary,
     source: 'TatvaBot diagnosis',
     location: loadLocation(),
-    timestamp: new Date().toISOString()
+    phone: phoneDigits
   };
-  try {
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method:'POST',
-      headers: { 'Accept':'application/json', 'Content-Type':'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json().catch(()=>null);
-    // we don't require res.ok but log if not
-    if(!res.ok) console.warn('Formspree response', res.status, data);
-    addMessage('Summary sent to the team — they will follow up if needed.', 'bot');
-  } catch(err){
-    console.error('Formspree send error', err);
-    addMessage('Failed to send summary — but you can copy and share it manually.', 'bot');
-  } finally {
-    showStatus('');
-  }
+  await fetch(FORMSPREE_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Accept':'application/json', 'Content-Type':'application/json' },
+    body: JSON.stringify(payload)
+  }).then(()=> showStatus('')).catch(e => { showStatus(''); throw e; });
 }
 
-/* ---------- send flow (formspree phone + normal chat) ---------- */
+// ---------- send flow (message / phone detection / chat) ----------
 async function sendMessage(){
   const messageRaw = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
   if(!messageRaw && !imageToSend) return;
 
-  // allow cancel diagnosing by typing "cancel"
-  if(diagnosisActive && messageRaw.toLowerCase() === 'cancel'){
-    input.value = '';
-    cancelDiagnosis();
-    return;
-  }
-
-  // if diagnosis active, handle answers first
-  if(diagnosisActive){
-    // show user's message locally
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(messageRaw || 'Image', 'user', null);
-    } else {
-      addMessage(messageRaw || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
+  // if we are currently in diagnosis flow, route answer to diagnosis handler
+  if(activeDiagnosis){
+    // show user's message (avoid duplicate image)
+    if(imageToSend && lastUploadedUrlShown === imageToSend){ addMessage(messageRaw || 'Image', 'user', null); }
+    else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
     input.value = '';
     uploadedImageUrl = null;
-    try {
-      await handleDiagnosisAnswer(messageRaw || (imageToSend ? 'Image' : ''));
-    } catch(e){ console.error('handleDiagnosisAnswer err', e); addMessage('Something went wrong with the diagnosis flow.', 'bot'); }
+    // handle answer
+    const consumed = handleDiagnosisAnswer(messageRaw);
+    if(consumed) return;
+  }
+
+  // check for explicit trigger to start a diagnosis
+  const trigger = messageRaw.toLowerCase();
+  if(trigger.includes('yellow leaves') || trigger.includes('yellow leaf') || trigger.includes('yellow leaves problem')){
+    // show user message and then start
+    if(imageToSend && lastUploadedUrlShown === imageToSend){ addMessage(messageRaw || 'Image', 'user', null); }
+    else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
+    input.value = '';
+    uploadedImageUrl = null;
+    startDiagnosis('yellow leaves');
     return;
   }
 
-  // otherwise detect phone number for Formspree lead capture
+  // phone detection -> Formspree lead capture
   const phoneMatch = messageRaw.match(PHONE_REGEX);
   if(phoneMatch){
-    const phoneRaw = phoneMatch[1]; const phoneDigits = phoneRaw.replace(/\D/g,'');
-    if(imageToSend && lastUploadedUrlShown === imageToSend) addMessage(messageRaw || 'Image', 'user', null);
+    const phoneRaw = phoneMatch[1];
+    const phoneDigits = phoneRaw.replace(/\D/g,'');
+    if(imageToSend && lastUploadedUrlShown === imageToSend){ addMessage(messageRaw || 'Image', 'user', null); }
     else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
-    input.value=''; showStatus('Saving your number...'); sendBtn.disabled=true;
+    input.value = '';
+    showStatus('Saving your number...');
+    sendBtn.disabled = true;
     try {
       await fetch(FORMSPREE_ENDPOINT, {
-        method:'POST',
-        headers:{ 'Accept':'application/json', 'Content-Type':'application/json' },
+        method: 'POST',
+        headers: { 'Accept':'application/json', 'Content-Type':'application/json' },
         body: JSON.stringify({ phone: phoneDigits, message: messageRaw, source:'TatvaBot chat', location: loadLocation() })
       });
-      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We'll reach out soon.", 'bot');
-    } catch(err){
-      console.error('Formspree error', err);
-      addMessage("I tried to save your number but something went wrong. Please try again later.", 'bot');
-    } finally { uploadedImageUrl = null; sendBtn.disabled=false; showStatus(''); }
+      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.", 'bot');
+    } catch(err){ console.error('Formspree error', err); addMessage("I tried to save your number but something went wrong. Please try again in a while or contact us through the website.", 'bot'); }
+    finally{ uploadedImageUrl = null; sendBtn.disabled = false; showStatus(''); }
     return;
   }
 
-  // else normal chat flow
-  if(imageToSend && lastUploadedUrlShown === imageToSend) addMessage(messageRaw || 'Image', 'user', null);
+  // Normal chat flow -> /api/chat
+  if(imageToSend && lastUploadedUrlShown === imageToSend){ addMessage(messageRaw || 'Image', 'user', null); }
   else { addMessage(messageRaw || 'Image', 'user', imageToSend); lastUploadedUrlShown = imageToSend; }
-  input.value=''; showStatus('TatvaBot is thinking...'); sendBtn.disabled=true;
+
+  input.value = '';
+  showStatus('TatvaBot is thinking...');
+  sendBtn.disabled = true;
 
   const typingEl = showTypingIndicator();
   try {
-    // send to your backend chat endpoint
     const body = { message: messageRaw || '', image: imageToSend || null, location: loadLocation() || null };
     const res = await fetch('/api/chat', {
-      method:'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
     });
     const data = await res.json().catch(()=>null);
-    await new Promise(r => setTimeout(r, 500)); // small natural delay
-    removeTypingIndicator(typingEl);
+    await new Promise(r=>setTimeout(r, 600));
     if(res.ok && data && (data.reply || data.answer || data.text)){
       const replyText = data.reply || data.answer || data.text || '';
       const replyImage = data.image || data.img || (data.result && data.result.secure_url) || null;
+      removeTypingIndicator(typingEl);
       addMessage(replyText, 'bot', replyImage || null);
-      // if server asks to start a diagnosis, support a special trigger:
-      if(data && data.startDiagnosis && diagnosisFlows[data.startDiagnosis]){
-        // small delay, then start
-        setTimeout(()=>startDiagnosis(data.startDiagnosis), 300);
-      }
     } else {
       console.error('Chat API error', res, data);
+      removeTypingIndicator(typingEl);
       addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
     }
   } catch(err){
     console.error('Network error', err);
     removeTypingIndicator(typingEl);
     addMessage('Network error. Please check your connection and try again.', 'bot');
-  } finally { uploadedImageUrl = null; sendBtn.disabled=false; showStatus(''); }
+  } finally {
+    uploadedImageUrl = null;
+    sendBtn.disabled = false;
+    showStatus('');
+  }
 }
 
-/* ---------- handlers ---------- */
+// ---------- handlers ----------
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
-
 clearBtn.addEventListener('click', () => { if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory(); });
 
-/* ---------- voice / SpeechRecognition ---------- */
+// ---------- voice ----------
 function initSpeech(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition){ micBtn.title = 'Voice input not supported in this browser'; micBtn.style.opacity = 0.6; return null; }
   const rec = new SpeechRecognition();
-  rec.lang = 'en-IN'; rec.interimResults = true; rec.maxAlternatives = 1;
+  rec.lang = 'en-IN';
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
   return rec;
 }
-
 function startRecording(){
   if(!recognition) recognition = initSpeech();
   if(!recognition){ alert('Voice input not supported by this browser.'); return; }
@@ -475,7 +447,7 @@ function startRecording(){
   let interim = '', finalText = '';
   recognition.onresult = (event) => {
     interim = '';
-    for(let i=event.resultIndex;i<event.results.length;i++){
+    for(let i=event.resultIndex; i<event.results.length; i++){
       const r = event.results[i];
       if(r.isFinal) finalText += r[0].transcript;
       else interim += r[0].transcript;
@@ -486,57 +458,27 @@ function startRecording(){
   recognition.onend = () => { isRecording = false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus(''); if(input.value.trim()) sendMessage(); };
   recognition.start();
 }
-
 function stopRecording(){ if(!recognition) return; try{ recognition.stop(); }catch(e){} isRecording=false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus(''); }
 micBtn.addEventListener('click', () => { if(isRecording) stopRecording(); else startRecording(); });
 
-/* ---------- location ---------- */
+// ---------- location ----------
 shareLocBtn.addEventListener('click', () => {
   if(!navigator.geolocation){ alert('Geolocation not supported in this browser.'); return; }
   showStatus('Requesting location...');
   navigator.geolocation.getCurrentPosition((pos) => {
-    const loc = { coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude }, timestamp: Date.now() };
+    const loc = { coords:{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, timestamp: Date.now() };
     saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500);
-  }, (err) => { console.error('geo error', err); showStatus('Could not get location'); setTimeout(()=>showStatus(''),1500); }, { enableHighAccuracy: false, timeout: 10000 });
+  }, (err) => { console.error('geo error', err); showStatus('Could not get location'); setTimeout(()=>showStatus(''),1500); }, { enableHighAccuracy:false, timeout:10000 });
 });
-
 setLocBtn.addEventListener('click', () => {
   const name = prompt('Enter your city or locality (e.g. "Bengaluru, India")');
   if(name && name.trim()){ const loc = { name: name.trim(), timestamp: Date.now() }; saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500); }
 });
-
-// init display
 setLocationDisplay(loadLocation());
 
-/* ---------- small feature: allow starting a diagnosis with a command in input ---------- */
-(function attachDiagnosisShortcut(){
-  const observer = new MutationObserver(() => {
-    // no-op for now, but keeps console easier to debug
-  });
-  observer.observe(chatWindow, { childList: true, subtree: true });
-  // simple keyboard trigger: type "/diagnose yellow" to begin
-  input.addEventListener('input', () => {
-    const v = input.value.trim();
-    if(v.toLowerCase().startsWith('/diagnose')){
-      // example: "/diagnose yellow_leaves" or "/diagnose" shows possibilities
-      const parts = v.split(/\s+/);
-      if(parts.length>1){
-        const flowKey = parts[1].trim();
-        if(diagnosisFlows[flowKey]){ input.value = ''; startDiagnosis(flowKey); }
-      } else {
-        // show helper message once
-      }
-    }
-  });
-})();
-
-// focus & hint
+// initial focus
 input.focus();
 console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:', LOCATION_KEY);
-
-/* Optionally: start a sample diagnosis when user clicks a quick button:
-   If you want certain quick buttons to auto-run diagnosis, add logic accordingly.
-   For now, we keep quick buttons as regular queries. */
 </script>
 </body>
 </html>
