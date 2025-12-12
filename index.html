@@ -36,7 +36,7 @@
     overflow:hidden;
     display:flex; flex-direction:column;
     min-height:560px;
-    height:80vh; /* fixed viewport so chat-window can scroll */
+    height:80vh;
   }
 
   /* header - fixed inside wrapper */
@@ -75,7 +75,7 @@
     gap:0;
     padding:18px;
     flex:1 1 auto;
-    min-height:0;  /* important so child can scroll */
+    min-height:0;
     box-sizing:border-box;
   }
 
@@ -194,6 +194,8 @@
   .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
   .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
 
+  .hint { font-size:12px;color:#666;margin-left:8px; }
+
   @media(max-width:640px){
     .msg img{ max-width:220px; }
   }
@@ -219,9 +221,7 @@
     </div>
 
     <div class="chat-body">
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log">
-        <!-- restored messages appear here -->
-      </div>
+      <div id="chat-window" class="chat-window" aria-live="polite" role="log"></div>
     </div>
 
     <div id="status" class="status" aria-live="polite"></div>
@@ -241,21 +241,18 @@
 
 <script>
 /*
-  Complete single-file UI:
-    - Quick buttons
-    - Voice input (Web Speech API)
-    - Location: share (geolocation) + manual set
-    - Image upload (POST /api/upload)
-    - Chat backend (POST /api/chat)
-    - Formspree lead capture (phone numbers)
-    - Persistence with versioned storage & Clear chat
+  Single-file UI with improved permission handling and helpful fallbacks.
+  - Update FORMSPREE_ENDPOINT to your endpoint (already set).
+  - Requires your existing backend endpoints:
+     POST /api/upload  -> returns { url: "..."} (or secure_url/result.secure_url)
+     POST /api/chat    -> returns { reply: "...", image?: "..." }
 */
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your formspree endpoint
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa"; // your endpoint
 
 // storage versioning
 const STORAGE_KEY_BASE = 'tatvabot_chat';
-const STORAGE_VERSION = 'v3'; // bump to wipe old histories if needed
+const STORAGE_VERSION = 'v3';
 const STORAGE_KEY = STORAGE_KEY_BASE + '_' + STORAGE_VERSION;
 const LOCATION_KEY = 'tatvabot_location_' + STORAGE_VERSION;
 
@@ -271,60 +268,33 @@ const shareLocBtn   = document.getElementById('share-location');
 const setLocBtn     = document.getElementById('set-location');
 const locationDisplay = document.getElementById('location-display');
 
-let uploadedImageUrl     = null;  // URL returned by /api/upload for the current selection
-let lastUploadedUrlShown = null;  // last URL shown as "Image attached"
+let uploadedImageUrl     = null;
+let lastUploadedUrlShown = null;
 let recognition = null;
 let isRecording = false;
+let permissionState = { geolocation: 'unknown', microphone: 'unknown' };
 
-// phone number regex
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 
 // ---------- persistence ----------
 function saveHistory(messages){
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch(e){ console.warn('save history failed', e); }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch(e){ console.warn('save history failed', e); }
 }
 function loadHistory(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  } catch(e){
-    console.warn('load history failed', e);
-    return null;
-  }
+  try { const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ console.warn('load history failed', e); return null; }
 }
 function clearHistory(){
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    chatWindow.innerHTML = '';
-    ensureInitialMessage();
-  } catch(e){ console.warn('clear history failed', e); }
+  try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn('clear history failed', e); }
 }
 
 // location persistence
-function saveLocation(loc){
-  try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); }
-}
-function loadLocation(){
-  try {
-    const raw = localStorage.getItem(LOCATION_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  } catch(e){ return null; }
-}
+function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
+function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); if(!raw) return null; return JSON.parse(raw); } catch(e){ return null; } }
 function setLocationDisplay(loc){
-  if(!loc) {
-    locationDisplay.innerHTML = 'Location — <em>not set</em>';
-  } else if(loc.name){
-    locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name);
-  } else if(loc.coords){
-    const c = loc.coords;
-    locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3);
-  } else {
-    locationDisplay.innerHTML = 'Location — <em>not set</em>';
-  }
+  if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; }
+  else if(loc.name) { locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); }
+  else if(loc.coords) { const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); }
+  else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; }
 }
 
 // ---------- rendering ----------
@@ -357,7 +327,6 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
   chatWindow.scrollTop = chatWindow.scrollHeight;
-
   if(save){
     const hist = loadHistory() || [];
     hist.push({ text, from, imageUrl, ts });
@@ -376,16 +345,8 @@ function showTypingIndicator(){
   chatWindow.scrollTop = chatWindow.scrollHeight;
   return el;
 }
-
-function removeTypingIndicator(el){
-  if(el && el.parentNode) el.parentNode.removeChild(el);
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, function(m){
-    return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m];
-  });
-}
+function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]); }
 
 // ---------- restore or initial ----------
 function ensureInitialMessage(){
@@ -404,9 +365,8 @@ function ensureInitialMessage(){
     return;
   }
   chatWindow.innerHTML = '';
-  hist.forEach((msg, idx) => {
-    const el = createMessageElement(msg);
-    chatWindow.appendChild(el);
+  hist.forEach(msg => {
+    chatWindow.appendChild(createMessageElement(msg));
   });
   injectQuickRow();
   chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -414,7 +374,6 @@ function ensureInitialMessage(){
 
 // ---------- quick buttons ----------
 function injectQuickRow(){
-  // don't add duplicate quick row
   if(document.getElementById('quick-row')) return;
   const row = document.createElement('div');
   row.id = 'quick-row';
@@ -434,25 +393,14 @@ function injectQuickRow(){
     b.textContent = it.t;
     row.appendChild(b);
   });
-
-  // insert row at top of chat-window (after any initial bot message)
-  // find the first bot message element to place after
   let firstChild = chatWindow.firstChild;
-  if(firstChild) {
-    chatWindow.insertBefore(row, firstChild.nextSibling);
-  } else {
-    chatWindow.appendChild(row);
-  }
-
-  // attach handler using delegation
+  if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling);
+  else chatWindow.appendChild(row);
   row.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-q]');
     if(!btn) return;
     const q = btn.getAttribute('data-q');
-    if(q){
-      input.value = q;
-      sendMessage();
-    }
+    if(q){ input.value = q; sendMessage(); }
   });
 }
 
@@ -465,23 +413,16 @@ chooseFileBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0];
   if(!file) return;
-
   showStatus('Uploading image...');
   chooseFileBtn.disabled = true;
   sendBtn.disabled = true;
-
   try {
     const fd = new FormData();
     fd.append('file', file);
-
-    // IMPORTANT: your server should expose POST /api/upload
     const res  = await fetch('/api/upload', { method: 'POST', body: fd });
     const data = await res.json().catch(()=>null);
-
     if(res.ok && data && (data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url))){
       uploadedImageUrl = data.url || data.secure_url || (data.result && data.result.secure_url) || (data.result && data.result.url) || null;
-
-      // show thumbnail only if we haven't already shown it
       if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){
         addMessage('Image attached', 'user', uploadedImageUrl);
         lastUploadedUrlShown = uploadedImageUrl;
@@ -508,35 +449,26 @@ fileInput.addEventListener('change', async () => {
 async function sendMessage(){
   const messageRaw  = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
-
   if(!messageRaw && !imageToSend) return;
-
   const phoneMatch = messageRaw.match(PHONE_REGEX);
 
-  // ---- LEAD CAPTURE FLOW (Formspree) ----
+  // lead capture
   if (phoneMatch) {
     const phoneRaw    = phoneMatch[1];
     const phoneDigits = phoneRaw.replace(/\D/g, '');
-
-    // show user's message (avoid duplicate thumbnail)
     if(imageToSend && lastUploadedUrlShown === imageToSend){
       addMessage(messageRaw || 'Image', 'user', null);
     } else {
       addMessage(messageRaw || 'Image', 'user', imageToSend);
       lastUploadedUrlShown = imageToSend;
     }
-
     input.value = '';
     showStatus('Saving your number...');
     sendBtn.disabled = true;
-
     try {
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone: phoneDigits,
           message: messageRaw,
@@ -544,57 +476,40 @@ async function sendMessage(){
           location: loadLocation()
         })
       });
-
-      addMessage(
-        "Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. " +
-        "We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.",
-        'bot'
-      );
+      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We'll reach out soon.", 'bot');
     } catch(err){
       console.error('Formspree error', err);
-      addMessage(
-        "I tried to save your number but something went wrong. " +
-        "Please try again in a while or contact us through the website.",
-        'bot'
-      );
+      addMessage("I tried to save your number but something went wrong. Try again later.", 'bot');
     } finally {
       uploadedImageUrl = null;
       sendBtn.disabled = false;
       showStatus('');
     }
-    return; // do not call /api/chat for phone messages
+    return;
   }
 
-  // ---- NORMAL CHAT FLOW ----
+  // normal chat
   const message = messageRaw;
-
   if(imageToSend && lastUploadedUrlShown === imageToSend){
     addMessage(message || 'Image', 'user', null);
   } else {
     addMessage(message || 'Image', 'user', imageToSend);
     lastUploadedUrlShown = imageToSend;
   }
-
   input.value = '';
   showStatus('TatvaBot is thinking...');
   sendBtn.disabled = true;
-
-  // show typing indicator
   const typingEl = showTypingIndicator();
 
   try {
-    // send to server chat endpoint
     const body = { message: message || '', image: imageToSend || null, location: loadLocation() || null };
     const res  = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(body)
     });
-
     const data = await res.json().catch(()=>null);
-    // small artificial delay to feel natural
     await new Promise(r => setTimeout(r, 650));
-
     if(res.ok && data && (data.reply || data.answer || data.text)){
       const replyText  = data.reply || data.answer || data.text || '';
       const replyImage = data.image || data.img || (data.result && data.result.secure_url) || null;
@@ -610,37 +525,21 @@ async function sendMessage(){
     removeTypingIndicator(typingEl);
     addMessage('Network error. Please check your connection and try again.', 'bot');
   } finally {
-    // only clear in-flight uploadedImageUrl (not lastUploadedUrlShown)
     uploadedImageUrl = null;
     sendBtn.disabled = false;
     showStatus('');
   }
 }
 
-// ---------- handlers ----------
+// handlers
 sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){
-    e.preventDefault();
-    sendMessage();
-  }
-});
+input.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
+clearBtn.addEventListener('click', () => { if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory(); });
 
-// clear chat button
-clearBtn.addEventListener('click', () => {
-  if(confirm('Clear saved chat history? This cannot be undone.')){
-    clearHistory();
-  }
-});
-
-// ---------- VOICE / SpeechRecognition ----------
+// ---------- VOICE / SpeechRecognition with better error handling ----------
 function initSpeech(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition){
-    micBtn.title = 'Voice input not supported in this browser';
-    micBtn.style.opacity = 0.6;
-    return null;
-  }
+  if(!SpeechRecognition){ micBtn.title = 'Voice input not supported in this browser'; micBtn.style.opacity = 0.6; permissionState.microphone = 'unsupported'; updateMicUI(); return null; }
   const rec = new SpeechRecognition();
   rec.lang = 'en-IN';
   rec.interimResults = true;
@@ -648,13 +547,47 @@ function initSpeech(){
   return rec;
 }
 
+function updateMicUI(){
+  // show hint if permission blocked, else enable
+  if(permissionState.microphone === 'denied'){
+    micBtn.title = 'Microphone permission blocked — enable in browser settings';
+    micBtn.style.opacity = 0.5;
+    micBtn.style.pointerEvents = 'none';
+  } else if(permissionState.microphone === 'unsupported') {
+    micBtn.title = 'Voice input not supported';
+    micBtn.style.opacity = 0.6;
+    micBtn.style.pointerEvents = 'none';
+  } else {
+    micBtn.title = 'Start voice input';
+    micBtn.style.opacity = 1;
+    micBtn.style.pointerEvents = '';
+  }
+}
+
+async function checkMicrophonePermission(){
+  // permission name for microphone may be supported in some browsers
+  if(!navigator.permissions) { permissionState.microphone = 'unknown'; updateMicUI(); return; }
+  try {
+    const p = await navigator.permissions.query({ name: 'microphone' });
+    permissionState.microphone = p.state;
+    p.onchange = () => { permissionState.microphone = p.state; updateMicUI(); };
+  } catch(e){
+    // not all browsers support microphone in permissions API
+    permissionState.microphone = 'unknown';
+  }
+  updateMicUI();
+}
+
 function startRecording(){
-  if(!recognition) recognition = initSpeech();
-  if(!recognition) {
-    alert('Voice input not supported by this browser.');
+  if(permissionState.microphone === 'denied'){
+    alert('Microphone permission is blocked. Please enable it from browser settings (site permissions).');
     return;
   }
-
+  if(!recognition) recognition = initSpeech();
+  if(!recognition){
+    alert('Voice input not supported in this browser.');
+    return;
+  }
   isRecording = true;
   micBtn.classList.add('recording');
   micBtn.setAttribute('aria-pressed','true');
@@ -665,22 +598,26 @@ function startRecording(){
 
   recognition.onresult = (event) => {
     interim = '';
-    for(let i=event.resultIndex; i < event.results.length; i++){
+    for(let i=event.resultIndex; i<event.results.length; i++){
       const r = event.results[i];
-      if(r.isFinal){
-        finalText += r[0].transcript;
-      } else {
-        interim += r[0].transcript;
-      }
+      if(r.isFinal) finalText += r[0].transcript;
+      else interim += r[0].transcript;
     }
     input.value = (finalText + interim).trim();
   };
 
   recognition.onerror = (ev) => {
     console.error('Speech error', ev);
+    // if permission denied, update state
+    if(ev && ev.error === 'not-allowed'){
+      permissionState.microphone = 'denied';
+      updateMicUI();
+      showStatus('Microphone access denied — enable in browser settings');
+    } else {
+      showStatus('Voice recognition error');
+    }
     stopRecording();
-    showStatus('Voice recognition error');
-    setTimeout(()=>showStatus(''), 1500);
+    setTimeout(()=>showStatus(''), 2000);
   };
 
   recognition.onend = () => {
@@ -688,20 +625,22 @@ function startRecording(){
     micBtn.classList.remove('recording');
     micBtn.setAttribute('aria-pressed','false');
     showStatus('');
-    // auto-send if any text
-    if(input.value.trim()) {
-      sendMessage();
-    }
+    if(input.value.trim()) sendMessage();
   };
 
-  recognition.start();
+  try {
+    recognition.start();
+  } catch(err){
+    console.error('recognition start error', err);
+    // Some browsers require a user gesture or fail if not allowed
+    showStatus('Voice start error. Ensure microphone permission and secure context (HTTPS).');
+    setTimeout(()=>showStatus(''), 2500);
+  }
 }
 
 function stopRecording(){
   if(!recognition) return;
-  try {
-    recognition.stop();
-  } catch(e){ /* ignore */ }
+  try { recognition.stop(); } catch(e){ /* ignore */ }
   isRecording = false;
   micBtn.classList.remove('recording');
   micBtn.setAttribute('aria-pressed','false');
@@ -709,17 +648,42 @@ function stopRecording(){
 }
 
 micBtn.addEventListener('click', () => {
-  if(isRecording){
-    stopRecording();
-  } else {
-    startRecording();
-  }
+  if(isRecording) stopRecording();
+  else startRecording();
 });
 
-// ---------- Location handlers ----------
+// ---------- LOCATION with explicit permission guidance ----------
+async function checkGeolocationPermission(){
+  if(!navigator.permissions) { permissionState.geolocation = 'unknown'; updateLocationUI(); return; }
+  try {
+    const p = await navigator.permissions.query({ name: 'geolocation' });
+    permissionState.geolocation = p.state;
+    p.onchange = () => { permissionState.geolocation = p.state; updateLocationUI(); };
+  } catch(e){
+    permissionState.geolocation = 'unknown';
+  }
+  updateLocationUI();
+}
+
+function updateLocationUI(){
+  if(permissionState.geolocation === 'denied'){
+    shareLocBtn.title = 'Geolocation blocked — enable in browser settings';
+    shareLocBtn.style.opacity = 0.5;
+    shareLocBtn.style.pointerEvents = 'none';
+  } else {
+    shareLocBtn.title = 'Share device location';
+    shareLocBtn.style.opacity = 1;
+    shareLocBtn.style.pointerEvents = '';
+  }
+}
+
 shareLocBtn.addEventListener('click', () => {
   if(!navigator.geolocation){
     alert('Geolocation not supported in this browser.');
+    return;
+  }
+  if(permissionState.geolocation === 'denied'){
+    alert('Location permission blocked. Please enable site location permission in your browser.');
     return;
   }
   showStatus('Requesting location...');
@@ -731,8 +695,17 @@ shareLocBtn.addEventListener('click', () => {
     setTimeout(()=>showStatus(''), 1500);
   }, (err) => {
     console.error('geo error', err);
-    showStatus('Could not get location');
-    setTimeout(()=>showStatus(''), 1500);
+    // handle the most common permission error codes
+    if(err && err.code === 1){ // PERMISSION_DENIED
+      permissionState.geolocation = 'denied';
+      updateLocationUI();
+      showStatus('Location permission denied — enable in browser settings or set manually');
+    } else if(err && err.code === 2){ // POSITION_UNAVAILABLE
+      showStatus('Could not get location — try again or set manually');
+    } else {
+      showStatus('Could not get location');
+    }
+    setTimeout(()=>showStatus(''), 2000);
   }, { enableHighAccuracy: false, timeout: 10000 });
 });
 
@@ -750,9 +723,31 @@ setLocBtn.addEventListener('click', () => {
 // init location display
 setLocationDisplay(loadLocation());
 
+// ---------- initial permission checks & environment hints ----------
+async function initPermissionsAndHints(){
+  // detect secure context requirement
+  const secure = window.isSecureContext;
+  if(!secure){
+    console.warn('Not a secure context — geolocation and microphone may be blocked. Use HTTPS or localhost.');
+    showStatus('Note: for voice & location use HTTPS or localhost. If embedded in an iframe, ensure permissions are allowed.');
+    setTimeout(()=>showStatus(''), 4000);
+  }
+  // check microphone permission if possible
+  await checkMicrophonePermission();
+  await checkGeolocationPermission();
+
+  // also set initial UI state for mic and location
+  updateMicUI();
+  updateLocationUI();
+}
+
+// run init
+recognition = null;
+initPermissionsAndHints();
+
 // initial focus & hint
 input.focus();
-console.info('TatvaBot UI loaded — storage key: %s, location key: %s', STORAGE_KEY, LOCATION_KEY);
+console.info('TatvaBot UI loaded — storage key: %s, location key: %s. Ensure page served over HTTPS or localhost for voice/location.', STORAGE_KEY, LOCATION_KEY);
 </script>
 </body>
 </html>
