@@ -677,26 +677,7 @@ async function finishDiagnosis(){
 }
 
 // -----------------------------------------------------
-//  MODIFY sendMessage() TO ROUTE DIAGNOSIS MESSAGES
-// -----------------------------------------------------
-const originalSendMessage = sendMessage;
 
-sendMessage = async function(){
-
-  const messageText = input.value.trim();
-  if(!messageText) return;
-
-  // If diagnosis active → treat this as answer
-  if(diagActive){
-    addMessage(messageText, "user");
-    input.value = "";
-    handleDiagnosisAnswer(messageText);
-    return;
-  }
-
-  // Else normal chat
-  return originalSendMessage();
-};
 </script>
 <!-- ============================
      PART 4 — TREATMENT PLAN ENGINE (Option-A)
