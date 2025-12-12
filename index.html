@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>TatvaBot — Chat + Image Upload (Voice + Location + Diagnosis)</title>
+<title>TatvaBot — Gardening Assistant</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
 <style>
   :root{
     --green:#14532d;
@@ -15,414 +16,882 @@
     --muted-dark:#e6e6e6;
     --danger:#c53030;
   }
-  html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial; background:var(--muted); }
-  body{ display:flex; align-items:center; justify-content:center; padding:18px; }
-  .chat-wrapper{ width:100%; max-width:960px; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(2,6,23,0.08); overflow:hidden; display:flex; flex-direction:column; min-height:560px; height:80vh; }
-  .chat-header{ background:var(--green); color:#fff; padding:10px 14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1000; }
-  .chat-header-left{display:flex; gap:12px; align-items:center;}
-  .chat-header small{ display:block; font-weight:400; font-size:12px; opacity:.95; margin-top:2px; }
-  .header-controls{ display:flex; gap:8px; align-items:center; }
-  .btn-clear, .btn-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.12); padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px; }
-  .chat-body{ display:flex; gap:0; padding:18px; flex:1 1 auto; min-height:0; box-sizing:border-box; }
-  .chat-window{ flex:1; background:#fafafa; border-radius:8px; padding:14px; overflow:auto; height:100%; box-sizing:border-box; }
-  .msg{ margin-bottom:12px; max-width:78%; line-height:1.4; display:flex; flex-direction:column; }
-  .msg span{ display:block; background:var(--bubble-bg); color:var(--text); padding:12px 14px; border-radius:12px; white-space:pre-wrap; word-wrap:break-word; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
-  .msg .meta { font-size:11px; color:#7b7b7b; margin-top:6px; }
-  .msg-user{ align-items:flex-end; margin-left:auto; text-align:right; }
-  .msg-user span{ background:var(--green); color:#fff; }
-  .msg img{ display:block; margin-top:8px; max-width:320px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
-  .typing { display:inline-block; padding:8px 12px; background:#ececec; border-radius:12px; }
-  .typing .dot { width:6px;height:6px;background:#9a9a9a;border-radius:50%;display:inline-block;margin:0 3px;opacity:.6; animation: blink 1s infinite; }
-  @keyframes blink { 0%{opacity:.15} 50%{opacity:1} 100%{opacity:.15} }
-  .chat-footer{ border-top:1px solid var(--muted-border); padding:12px 14px; display:flex; gap:8px; align-items:center; background:#fff; }
-  .chat-footer input[type="text"]{ flex:1; padding:10px 14px; border-radius:999px; border:1px solid #ddd; outline:none; font-size:14px; }
-  .file-btn{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:16px; line-height:1; }
-  .send{ background:var(--accent); color:#fff; border:none; padding:10px 16px; border-radius:999px; cursor:pointer; }
-  .send:disabled{ opacity:.6; cursor:default; }
-  .mic-btn{ width:40px; height:40px; border-radius:999px; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff; }
-  .mic-btn.recording{ box-shadow:0 0 0 6px rgba(197,48,48,0.08); border-color:var(--danger); }
-  .status{ font-size:13px; color:#6b7280; padding:6px 18px 10px; min-height:20px; }
-  .quick-row{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
-  .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
-  .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
-  @media(max-width:640px){ .msg img{ max-width:220px; } }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    background:var(--muted);
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+  }
+
+  /* MAIN CHAT CONTAINER */
+  .chat-wrapper{
+    width:100%;
+    max-width:960px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 12px 30px rgba(2,6,23,0.08);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:560px;
+    height:80vh;
+  }
+
+  /* HEADER */
+  .chat-header{
+    background:var(--green);
+    color:#fff;
+    padding:10px 14px;
+    font-weight:600;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:1000;
+  }
+
+  .chat-header-left{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .chat-header small{
+    display:block;
+    font-weight:400;
+    font-size:12px;
+    opacity:.95;
+    margin-top:2px;
+  }
+
+  .header-controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .btn-clear,
+  .btn-ghost{
+    background:transparent;
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.12);
+    padding:6px 8px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+  }
+
+  /* CHAT WINDOW */
+  .chat-body{
+    display:flex;
+    padding:18px;
+    flex:1 1 auto;
+    min-height:0;
+    box-sizing:border-box;
+  }
+
+  .chat-window{
+    flex:1;
+    background:#fafafa;
+    border-radius:8px;
+    padding:14px;
+    overflow:auto;
+    height:100%;
+    box-sizing:border-box;
+  }
+
+  /* MESSAGES */
+  .msg{
+    margin-bottom:12px;
+    max-width:78%;
+    line-height:1.4;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .msg span{
+    display:block;
+    background:var(--bubble-bg);
+    color:var(--text);
+    padding:12px 14px;
+    border-radius:12px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  }
+
+  .msg .meta{
+    font-size:11px;
+    color:#7b7b7b;
+    margin-top:6px;
+  }
+
+  .msg-user{
+    align-items:flex-end;
+    margin-left:auto;
+    text-align:right;
+  }
+
+  .msg-user span{
+    background:var(--green);
+    color:#fff;
+  }
+
+  .msg img{
+    display:block;
+    margin-top:8px;
+    max-width:320px;
+    border-radius:8px;
+    box-shadow:0 6px 18px rgba(2,6,23,0.06);
+  }
+
+  /* TYPING */
+  .typing{
+    display:inline-block;
+    padding:8px 12px;
+    background:#ececec;
+    border-radius:12px;
+  }
+
+  /* FOOTER */
+  .chat-footer{
+    border-top:1px solid var(--muted-border);
+    padding:12px 14px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    background:#fff;
+  }
+
+  .chat-footer input[type="text"]{
+    flex:1;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid #ddd;
+    outline:none;
+    font-size:14px;
+  }
+
+  .send{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+
+  .mic-btn{
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    background:#fff;
+  }
+
+  .file-btn{
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    background:#fff;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+  }
+
+  .status{
+    font-size:13px;
+    color:#6b7280;
+    padding:6px 18px 10px;
+    min-height:20px;
+  }
+
+  /* QUICK BUTTONS */
+  .quick-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:8px 0;
+  }
+
+  .quick-btn{
+    background:#fff;
+    border:1px solid var(--muted-dark);
+    padding:8px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    font-size:13px;
+  }
+
+  .quick-btn.primary{
+    background:var(--green);
+    color:#fff;
+    border-color:var(--green);
+  }
+
 </style>
 </head>
+
 <body>
-  <div class="chat-wrapper" role="application" aria-label="TatvaBot chat">
-    <div class="chat-header" id="chat-header">
-      <div class="chat-header-left">
-        <div>
-          <div style="font-size:16px"><strong>TatvaBot — Gardening Assistant</strong></div>
-          <small>Ask about vermicompost, terrace gardening, or Tatvabhoomi products</small>
-        </div>
-      </div>
-      <div class="header-controls">
-        <div id="location-display" style="font-size:13px; opacity:.95">Location — <em>not set</em></div>
-        <button id="share-location" class="btn-ghost" title="Share device location">Share location</button>
-        <button id="set-location" class="btn-ghost" title="Set location manually">Set location</button>
-        <div style="font-size:12px;opacity:.95">v1</div>
-        <button id="clear-btn" class="btn-clear" title="Clear chat history">Clear chat</button>
+
+<div class="chat-wrapper">
+  
+  <!-- HEADER -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div>
+        <div style="font-size:16px;"><strong>TatvaBot — Gardening Assistant</strong></div>
+        <small>Your AI plant doctor & gardening guide</small>
       </div>
     </div>
 
-    <div class="chat-body">
-      <div id="chat-window" class="chat-window" aria-live="polite" role="log"></div>
-    </div>
-
-    <div id="status" class="status" aria-live="polite"></div>
-
-    <div class="chat-footer" role="region" aria-label="Chat controls">
-      <input id="user-input" type="text" placeholder="Type your question or use the mic..." autocomplete="off" aria-label="Type message" />
-      <div id="mic-btn" class="mic-btn" title="Start voice input" aria-pressed="false">🎤</div>
-      <label class="file-btn" id="choose-file-btn" title="Attach image (camera or gallery)">📎</label>
-      <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
-      <button id="send-btn" class="send" aria-label="Send message">Send</button>
+    <div class="header-controls">
+      <div id="location-display">Location — <em>not set</em></div>
+      <button id="share-location" class="btn-ghost">Share</button>
+      <button id="set-location" class="btn-ghost">Set</button>
+      <button id="clear-btn" class="btn-clear">Clear</button>
     </div>
   </div>
 
+  <!-- CHAT WINDOW -->
+  <div class="chat-body">
+    <div id="chat-window" class="chat-window"></div>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <!-- FOOTER -->
+  <div class="chat-footer">
+    <input id="user-input" type="text" placeholder="Type here…" />
+    <div id="mic-btn" class="mic-btn">🎤</div>
+    <label for="file-input" class="file-btn">📎</label>
+    <input id="file-input" type="file" accept="image/*" capture="environment" style="display:none" />
+    <button id="send-btn" class="send">Send</button>
+  </div>
+  <!-- ============================
+     PART 2 / 4  
+     MAIN HTML STRUCTURE + UI
+============================= -->
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>TatvaBot — Chat + Voice + Image + Smart Diagnosis</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<style>
+  :root{
+    --green:#14532d;
+    --muted:#f7f7f8;
+    --bubble-bg:#f1f5f9;
+    --text:#111827;
+    --accent:#16a34a;
+    --muted-border:#e6e6e6;
+    --muted-dark:#e6e6e6;
+    --danger:#c53030;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    background:var(--muted);
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+  }
+
+  .chat-wrapper{
+    width:100%; max-width:960px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 12px 30px rgba(2,6,23,0.08);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:80vh;
+    min-height:560px;
+  }
+
+  .chat-header{
+    background:var(--green);
+    color:#fff;
+    padding:10px 14px;
+    font-weight:600;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:1000;
+  }
+
+  .chat-header-left{ display:flex; gap:12px; align-items:center; }
+  .chat-header small{ opacity:0.9; font-size:12px; }
+
+  .header-controls{
+    display:flex; gap:10px; align-items:center;
+    font-size:13px;
+  }
+
+  .btn-ghost, .btn-clear{
+    padding:6px 8px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.25);
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+    font-size:12px;
+  }
+
+  .chat-body{
+    flex:1;
+    padding:18px;
+    overflow:hidden;
+    display:flex;
+  }
+
+  .chat-window{
+    flex:1;
+    background:#fafafa;
+    padding:14px;
+    border-radius:8px;
+    overflow-y:auto;
+  }
+
+  .msg{
+    margin-bottom:12px;
+    max-width:78%;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .msg-user{
+    margin-left:auto;
+    text-align:right;
+  }
+
+  .msg span{
+    padding:12px 14px;
+    border-radius:12px;
+    background:var(--bubble-bg);
+    font-size:14px;
+    line-height:1.4;
+  }
+
+  .msg-user span{
+    background:var(--green);
+    color:white;
+  }
+
+  .msg .meta{
+    font-size:11px;
+    margin-top:6px;
+    color:#666;
+  }
+
+  .msg img{
+    max-width:300px;
+    margin-top:8px;
+    border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  .chat-footer{
+    padding:12px;
+    border-top:1px solid var(--muted-border);
+    display:flex;
+    gap:10px;
+    background:white;
+    align-items:center;
+  }
+
+  .chat-footer input{
+    flex:1;
+    padding:10px 14px;
+    border:1px solid #ddd;
+    border-radius:999px;
+    font-size:14px;
+    outline:none;
+  }
+
+  .send{
+    background:var(--accent);
+    border:none;
+    color:white;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+
+  .file-btn{
+    padding:8px 10px;
+    background:white;
+    border:1px solid #ccc;
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  .quick-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:10px 0;
+  }
+
+  .quick-btn{
+    background:white;
+    border:1px solid var(--muted-dark);
+    padding:8px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    font-size:13px;
+  }
+
+  .quick-btn.primary{
+    background:var(--green);
+    color:white;
+    border-color:var(--green);
+  }
+
+  .mic-btn{
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:1px solid #ccc;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+
+  .mic-btn.recording{
+    border-color:var(--danger);
+    box-shadow:0 0 0 6px rgba(197,48,48,0.12);
+  }
+
+  .status{
+    padding:6px 16px;
+    font-size:13px;
+    color:#555;
+    min-height:18px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+  
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div>
+        <div style="font-size:16px;"><strong>TatvaBot — Gardening Assistant</strong></div>
+        <small>Ask about soil, pests, watering or Tatvabhoomi products</small>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div id="location-display">Location — <em>not set</em></div>
+      <button id="share-location" class="btn-ghost">Share</button>
+      <button id="set-location" class="btn-ghost">Set</button>
+      <button id="clear-btn" class="btn-clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="chat-body">
+    <div id="chat-window" class="chat-window"></div>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <div class="chat-footer">
+    <input id="user-input" placeholder="Type or speak…" />
+    <div id="mic-btn" class="mic-btn">🎤</div>
+    <label id="choose-file-btn" class="file-btn">📎</label>
+    <input id="file-input" type="file" accept="image/*" capture="environment" hidden />
+    <button id="send-btn" class="send">Send</button>
+  </div>
+
+</div>
+
+<!-- Script starts next in Part 3 -->
+
+<!-- ============================
+     PART 3 — NEW MULTI-TOPIC DIAGNOSIS ENGINE
+     ============================ -->
+
 <script>
-/* Single-file UI with multistep diagnosis and auto-send to Formspree.
-   Replace FORMSPREE_ENDPOINT with your endpoint.
-   Server endpoints expected:
-     POST /api/upload  -> returns JSON { url: "<url>" } (or secure_url)
-     POST /api/chat    -> used for normal chat (optional)
-*/
+// -----------------------------------------------------
+//  NEW DIAGNOSIS ENGINE (Option-A: 4 steps per topic)
+// -----------------------------------------------------
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpdkjaa";
-
-const STORAGE_KEY_BASE = 'tatvabot_chat';
-const STORAGE_VERSION = 'v3';
-const STORAGE_KEY = STORAGE_KEY_BASE + '_' + STORAGE_VERSION;
-const LOCATION_KEY = 'tatvabot_location_' + STORAGE_VERSION;
-
-const chatWindow = document.getElementById('chat-window');
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const fileInput = document.getElementById('file-input');
-const chooseFileBtn = document.getElementById('choose-file-btn');
-const statusEl = document.getElementById('status');
-const clearBtn = document.getElementById('clear-btn');
-const micBtn = document.getElementById('mic-btn');
-const shareLocBtn = document.getElementById('share-location');
-const setLocBtn = document.getElementById('set-location');
-const locationDisplay = document.getElementById('location-display');
-
-let uploadedImageUrl = null;
-let lastUploadedUrlShown = null;
-let recognition = null;
-let isRecording = false;
-
-// diagnosis state container
-let diagnosisState = null; // {flow: 'yellow_leaves', qIndex:0, answers: []}
-
-// phone regex
-const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
-
-// --- helpers ---
-function showStatus(text){ statusEl.textContent = text || ''; }
-
-function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
-function createMessageElement({ text, from='bot', imageUrl=null, ts }){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'msg ' + (from === 'user' ? 'msg-user' : 'msg-bot');
-  const span = document.createElement('span');
-  span.innerHTML = (text || '').replace(/\n/g,'<br>');
-  wrapper.appendChild(span);
-  if(imageUrl){
-    const img = document.createElement('img'); img.src = imageUrl; img.alt = 'image'; img.loading = 'lazy'; wrapper.appendChild(img);
-  }
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = formatTime(ts);
-  wrapper.appendChild(meta);
-  return wrapper;
-}
-
-function loadHistory(){ try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ console.warn(e); return null; } }
-function saveHistory(msgs){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs)); } catch(e){ console.warn(e); } }
-function appendHistoryItem(item){ const h = loadHistory() || []; h.push(item); saveHistory(h); }
-
-function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
-  const el = createMessageElement({ text, from, imageUrl, ts });
-  chatWindow.appendChild(el);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-  if(save) appendHistoryItem({ text, from, imageUrl, ts });
-}
-
-function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn(e); } }
-
-function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
-function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } }
-function setLocationDisplay(loc){ if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); } else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); } else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
-
-// typing indicator
-function showTypingIndicator(){ const el = document.createElement('div'); el.className = 'msg msg-bot typing-wrap'; const span = document.createElement('span'); span.className = 'typing'; span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>'; el.appendChild(span); chatWindow.appendChild(el); chatWindow.scrollTop = chatWindow.scrollHeight; return el; }
-function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
-
-// quick row
-function injectQuickRow(){
-  if(document.getElementById('quick-row')) return;
-  const row = document.createElement('div'); row.id = 'quick-row'; row.className = 'quick-row'; row.style.marginBottom = '14px';
-  const items = [ {t:'Why are leaves yellow?'}, {t:'Powdery mildew'}, {t:'Leaf holes / pests'}, {t:'Soil smell / drainage'}, {t:'Buy vermicompost', cls:'primary'} ];
-  items.forEach(it => { const b = document.createElement('button'); b.className = 'quick-btn ' + (it.cls || ''); b.setAttribute('data-q', it.t); b.textContent = it.t; row.appendChild(b); });
-  const firstChild = chatWindow.firstChild;
-  if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling); else chatWindow.appendChild(row);
-  row.addEventListener('click', (ev) => { const btn = ev.target.closest('button[data-q]'); if(!btn) return; const q = btn.getAttribute('data-q'); if(q){ input.value = q; sendMessage(); } });
-}
-
-// restore
-function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
-
-(function restore(){
-  const hist = loadHistory(); const loc = loadLocation(); setLocationDisplay(loc);
-  if(!hist || !hist.length){ chatWindow.innerHTML = ''; ensureInitialMessage(); return; }
-  chatWindow.innerHTML = '';
-  hist.forEach(msg => { const el = createMessageElement(msg); chatWindow.appendChild(el); });
-  injectQuickRow();
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-})();
-
-// --- upload ---
-chooseFileBtn.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', async () => {
-  const file = fileInput.files && fileInput.files[0]; if(!file) return;
-  showStatus('Uploading image...'); chooseFileBtn.disabled = true; sendBtn.disabled = true;
-  try {
-    const fd = new FormData(); fd.append('file', file);
-    const res = await fetch('/api/upload', { method:'POST', body:fd });
-    const data = await res.json().catch(()=>null);
-    if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
-      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url || null;
-      if(uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown){ addMessage('Image attached', 'user', uploadedImageUrl); lastUploadedUrlShown = uploadedImageUrl; }
-      showStatus('Upload OK');
-    } else { console.error('Upload failed', res, data); alert('Upload failed. Check server logs and console.'); showStatus('Upload failed'); }
-  } catch(err){ console.error('Upload error', err); alert('Upload error: ' + (err.message || err)); showStatus('Upload error'); }
-  finally { fileInput.value = ''; chooseFileBtn.disabled = false; sendBtn.disabled = false; setTimeout(()=>showStatus(''),1600); }
-});
-
-// --- diagnosis flows (config-driven) ---
-const DIAG_FLOWS = {
-  yellow_leaves: {
-    title: 'Yellow leaves diagnosis',
-    questions: [
-      'Is yellowing uniform (whole leaf) or just between veins?',
-      'How often do you water this plant? (daily / weekly / rarely)',
-      'Is the plant in bright sun or in shade?',
-      'Have you noticed any pests or unusual spots on the leaves? (yes / no)'
-    ],
-    finishText: function(answers, location){
-      // answers is array of responses in same order
-      let out = this.title + ' — summary\n\n';
-      for(let i=0;i<this.questions.length;i++){
-        out += (i+1) + '. ' + this.questions[i] + '\n   Answer: ' + (answers[i] || '—') + '\n';
-      }
-      if(location){
-        if(location.name) out += '\nLocation: ' + location.name + '\n';
-        else if(location.coords) out += '\nLocation: ' + location.coords.latitude.toFixed(4) + ',' + location.coords.longitude.toFixed(4) + '\n';
-      }
-      out += '\nTimestamp: ' + new Date().toLocaleString();
-      return out;
-    }
-  }
+// DIAGNOSIS TOPICS + TITLES
+const DIAG_TOPICS = {
+  A: "Yellow Leaves",
+  B: "Curling Leaves",
+  C: "Indoor Plants Dying",
+  D: "White Fungus",
+  F: "Leaf Holes",
+  G: "Slow Growth",
+  I: "Pest Attack",
+  J: "Root Rot",
 };
 
-// start diagnosis detection (simple keyword-based)
-function detectDiagnosisIntent(message){
-  const m = message.toLowerCase();
-  if(m.includes('yellow') && m.includes('leaf')) return 'yellow_leaves';
-  if(m.includes('yellow leaves') || m.includes('leaves yellow')) return 'yellow_leaves';
-  return null;
+// 4 QUESTIONS FOR EACH TOPIC
+const DIAG_QUESTIONS = {
+  A: [
+    "Step 1/4 — Are yellow leaves soft or crispy?",
+    "Step 2/4 — How often do you water this plant?",
+    "Step 3/4 — Does the plant get direct sunlight?",
+    "Step 4/4 — How old are the yellowing leaves?"
+  ],
+  B: [
+    "Step 1/4 — Are the curling leaves hard or flexible?",
+    "Step 2/4 — How many hours of sunlight does it get?",
+    "Step 3/4 — Do you notice pests under the leaves?",
+    "Step 4/4 — When did curling first appear?"
+  ],
+  C: [
+    "Step 1/4 — Do indoor plants droop frequently?",
+    "Step 2/4 — Do they receive natural or artificial light?",
+    "Step 3/4 — How often do you fertilize indoors?",
+    "Step 4/4 — How is ventilation in the room?"
+  ],
+  D: [
+    "Step 1/4 — Is the fungus powdery or cotton-like?",
+    "Step 2/4 — Does soil stay wet for long?",
+    "Step 3/4 — Are leaves sticky when touched?",
+    "Step 4/4 — Any black spots appearing?"
+  ],
+  F: [
+    "Step 1/4 — Are holes circular or irregular?",
+    "Step 2/4 — Do you see insects around leaves?",
+    "Step 3/4 — Is the plant indoors or outdoors?",
+    "Step 4/4 — Are new leaves also affected?"
+  ],
+  G: [
+    "Step 1/4 — How often do you fertilize?",
+    "Step 2/4 — Does it get 4+ hours of sunlight?",
+    "Step 3/4 — Is the pot size too small?",
+    "Step 4/4 — Do you see insect activity?"
+  ],
+  I: [
+    "Step 1/4 — Which pests do you see?",
+    "Step 2/4 — Are leaves sticky or shiny?",
+    "Step 3/4 — Are pests under leaves or on stems?",
+    "Step 4/4 — Recently changed soil?"
+  ],
+  J: [
+    "Step 1/4 — Does soil smell foul?",
+    "Step 2/4 — Does pot drain properly?",
+    "Step 3/4 — Are leaves drooping heavily?",
+    "Step 4/4 — Does soil stay wet for long hours?"
+  ]
+};
+
+// DIAGNOSIS STATE
+let diagActive = false;
+let diagTopic = null;
+let diagStep = 0;
+let diagAnswers = [];
+
+// -----------------------------------------------------
+//  START DIAGNOSIS (Triggered by Quick Button)
+// -----------------------------------------------------
+function startDiagnosis(topicKey){
+  diagActive = true;
+  diagTopic = topicKey;
+  diagStep = 0;
+  diagAnswers = [];
+
+  addMessage(`🩺 Starting diagnosis for <b>${DIAG_TOPICS[topicKey]}</b>`, "bot");
+  askNextDiagQuestion();
 }
 
-async function startDiagnosis(flowKey){
-  const flow = DIAG_FLOWS[flowKey];
-  if(!flow) return;
-  diagnosisState = { flow: flowKey, qIndex: 0, answers: [] };
-  // inform user
-  addMessage('Diagnosis — starting: ' + flow.title, 'bot');
-  // ask first question
-  await askDiagnosisQuestion();
+// -----------------------------------------------------
+//  ASK NEXT QUESTION
+// -----------------------------------------------------
+function askNextDiagQuestion(){
+  const q = DIAG_QUESTIONS[diagTopic][diagStep];
+  addMessage(q, "bot");
 }
 
-async function askDiagnosisQuestion(){
-  if(!diagnosisState) return;
-  const flow = DIAG_FLOWS[diagnosisState.flow];
-  const q = flow.questions[diagnosisState.qIndex];
-  addMessage(q, 'bot');
-  // (we wait for user message to handle)
-}
+// -----------------------------------------------------
+//  HANDLE USER ANSWER
+// -----------------------------------------------------
+function handleDiagnosisAnswer(userText){
 
-async function handleDiagnosisAnswer(answerText){
-  if(!diagnosisState) return;
-  diagnosisState.answers.push(answerText);
-  diagnosisState.qIndex++;
-  const flow = DIAG_FLOWS[diagnosisState.flow];
-  if(diagnosisState.qIndex < flow.questions.length){
-    await askDiagnosisQuestion();
-    return;
-  }
-  // finished
-  const summary = flow.finishText(diagnosisState.answers, loadLocation());
-  addMessage('Thanks — I\'ve prepared a short summary and sent it to the Tatvabhoomi team for follow-up.', 'bot');
-  // show summary in chat
-  addMessage(summary, 'bot', null);
-  // send automatically to Formspree
-  try {
-    showStatus('Sending diagnosis to team...');
-    await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject: flow.title, message: summary, source: 'Tatvabot diagnosis' })
-    });
-    showStatus('Sent');
-    setTimeout(()=>showStatus(''), 1600);
-  } catch(err){ console.error('Formspree send error', err); showStatus('Sending failed'); setTimeout(()=>showStatus(''), 1600); }
-  diagnosisState = null;
-}
+  diagAnswers.push(userText);
 
-// --- send flow (Formspree phone detection + normal chat) ---
-async function sendMessage(){
-  const messageRaw = input.value.trim();
-  const imageToSend = uploadedImageUrl || null;
-  if(!messageRaw && !imageToSend) return;
-
-  // phone capture
-  const phoneMatch = messageRaw.match(PHONE_REGEX);
-  if(phoneMatch){
-    const phoneDigits = phoneMatch[1].replace(/\D/g,'');
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(messageRaw || 'Image', 'user', null);
-    } else {
-      addMessage(messageRaw || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
-    input.value = '';
-    showStatus('Saving your number...');
-    sendBtn.disabled = true;
-    try {
-      await fetch(FORMSPREE_ENDPOINT, {
-        method:'POST',
-        headers:{ 'Accept':'application/json', 'Content-Type':'application/json' },
-        body: JSON.stringify({ phone: phoneDigits, message: messageRaw, source:'Tatvabot chat', location: loadLocation() || null })
-      });
-      addMessage("Thank you! 🌱 Your number has been shared with the Tatvabhoomi team. We’ll reach out to you soon. Meanwhile, you can keep asking your plant questions here.", 'bot');
-    } catch(err){ console.error('Formspree error', err); addMessage("I tried to save your number but something went wrong. Please try again in a while.", 'bot'); }
-    finally { uploadedImageUrl = null; sendBtn.disabled = false; showStatus(''); }
-    return;
-  }
-
-  // If a diagnosis is in progress, use answer handler instead of hitting backend
-  if(diagnosisState){
-    // show user's answer message
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(messageRaw || 'Image', 'user', null);
-    } else {
-      addMessage(messageRaw || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
-    input.value = '';
-    // handle as diagnosis answer
-    try { await handleDiagnosisAnswer(messageRaw || (imageToSend ? 'Image' : '')); }
-    catch(e){ console.error(e); addMessage('Error processing diagnosis answer.', 'bot'); diagnosisState = null; }
-    uploadedImageUrl = null;
+  if(diagStep < 3){
+    diagStep++;
+    askNextDiagQuestion();
     return;
   }
 
-  // normal chat flow: detect diagnosis intent first
-  const intent = detectDiagnosisIntent(messageRaw);
-  if(intent){
-    // record user's initiating message
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(messageRaw || 'Image', 'user', null);
-    } else {
-      addMessage(messageRaw || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
-    input.value = '';
-    // start multistep diagnosis
-    startDiagnosis(intent);
-    uploadedImageUrl = null;
+  // If step 4 done → generate summary
+  finishDiagnosis();
+}
+
+// -----------------------------------------------------
+//  FINAL SUMMARY + SEND TO FORMSPREE
+// -----------------------------------------------------
+async function finishDiagnosis(){
+
+  const title = DIAG_TOPICS[diagTopic];
+
+  let summary = `📋 <b>Diagnosis Summary — ${title}</b>\n\n +
+    1️⃣ ${DIAG_QUESTIONS[diagTopic][0]} \n➡️ <i>${diagAnswers[0]}</i>\n\n +
+    2️⃣ ${DIAG_QUESTIONS[diagTopic][1]} \n➡️ <i>${diagAnswers[1]}</i>\n\n +
+    3️⃣ ${DIAG_QUESTIONS[diagTopic][2]} \n➡️ <i>${diagAnswers[2]}</i>\n\n +
+    4️⃣ ${DIAG_QUESTIONS[diagTopic][3]} \n➡️ <i>${diagAnswers[3]}</i>\n\n +
+    Preparing your treatment plan...`;
+
+  addMessage(summary, "bot");
+
+  // Move to treatment module (Part 4)
+  setTimeout(() => generateTreatmentPlan(title, diagAnswers), 1100);
+
+  // reset
+  diagActive = false;
+}
+
+// -----------------------------------------------------
+//  MODIFY sendMessage() TO ROUTE DIAGNOSIS MESSAGES
+// -----------------------------------------------------
+const originalSendMessage = sendMessage;
+
+sendMessage = async function(){
+
+  const messageText = input.value.trim();
+  if(!messageText) return;
+
+  // If diagnosis active → treat this as answer
+  if(diagActive){
+    addMessage(messageText, "user");
+    input.value = "";
+    handleDiagnosisAnswer(messageText);
     return;
   }
 
-  // else ordinary chat: show user message and hit /api/chat backend
-  if(imageToSend && lastUploadedUrlShown === imageToSend){
-    addMessage(messageRaw || 'Image', 'user', null);
-  } else {
-    addMessage(messageRaw || 'Image', 'user', imageToSend);
-    lastUploadedUrlShown = imageToSend;
-  }
-  input.value = '';
-  showStatus('TatvaBot is thinking...');
-  sendBtn.disabled = true;
-  const typingEl = showTypingIndicator();
-  try {
-    const body = { message: messageRaw || '', image: imageToSend || null, location: loadLocation() || null };
-    const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
-    const data = await res.json().catch(()=>null);
-    await new Promise(r=>setTimeout(r,650));
-    if(res.ok && data && (data.reply || data.answer || data.text)){
-      const replyText = data.reply || data.answer || data.text || '';
-      const replyImage = data.image || data.img || (data.result && data.result.secure_url) || null;
-      removeTypingIndicator(typingEl);
-      addMessage(replyText, 'bot', replyImage || null);
-    } else {
-      console.error('Chat API error', res, data);
-      removeTypingIndicator(typingEl);
-      addMessage('Sorry — tatvabot had trouble replying. Try again later.', 'bot');
-    }
-  } catch(err){ console.error('Network error', err); removeTypingIndicator(typingEl); addMessage('Network error. Please check your connection and try again.', 'bot'); }
-  finally { uploadedImageUrl = null; sendBtn.disabled = false; showStatus(''); }
-}
-
-// handlers
-sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); }});
-clearBtn.addEventListener('click', ()=>{ if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory(); });
-
-// --- voice ---
-function initSpeech(){ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SpeechRecognition){ micBtn.title = 'Voice input not supported in this browser'; micBtn.style.opacity = 0.6; return null; } const rec = new SpeechRecognition(); rec.lang = 'en-IN'; rec.interimResults = true; rec.maxAlternatives = 1; return rec; }
-function startRecording(){
-  if(!recognition) recognition = initSpeech();
-  if(!recognition){ alert('Voice input not supported by this browser.'); return; }
-  isRecording = true; micBtn.classList.add('recording'); micBtn.setAttribute('aria-pressed','true'); showStatus('Listening... Tap mic to stop');
-  let interim = '', finalText = '';
-  recognition.onresult = (event) => {
-    interim = '';
-    for(let i = event.resultIndex; i < event.results.length; i++){
-      const r = event.results[i];
-      if(r.isFinal) finalText += r[0].transcript;
-      else interim += r[0].transcript;
-    }
-    input.value = (finalText + interim).trim();
-  };
-  recognition.onerror = (ev) => { console.error('Speech error', ev); stopRecording(); showStatus('Voice recognition error'); setTimeout(()=>showStatus(''),1500); };
-  recognition.onend = () => { isRecording = false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus(''); if(input.value.trim()) sendMessage(); };
-  recognition.start();
-}
-function stopRecording(){ if(!recognition) return; try { recognition.stop(); } catch(e){} isRecording = false; micBtn.classList.remove('recording'); micBtn.setAttribute('aria-pressed','false'); showStatus(''); }
-micBtn.addEventListener('click', ()=>{ if(isRecording) stopRecording(); else startRecording(); });
-
-// --- location ---
-shareLocBtn.addEventListener('click', ()=>{
-  if(!navigator.geolocation){ alert('Geolocation not supported in this browser.'); return; }
-  showStatus('Requesting location...');
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const loc = { coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude }, timestamp: Date.now() };
-    saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500);
-  }, (err)=>{
-    console.error('geo error', err); showStatus('Could not get location'); setTimeout(()=>showStatus(''),1500);
-  }, { enableHighAccuracy:false, timeout:10000 });
-});
-setLocBtn.addEventListener('click', ()=>{
-  const name = prompt('Enter your city or locality (e.g. "Bengaluru, India")');
-  if(name && name.trim()){ const loc = { name: name.trim(), timestamp: Date.now() }; saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500); }
-});
-
-// initial
-setLocationDisplay(loadLocation());
-input.focus();
-console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:', LOCATION_KEY);
+  // Else normal chat
+  return originalSendMessage();
+};
 </script>
-</body>
-</html>
+<!-- ============================
+     PART 4 — TREATMENT PLAN ENGINE (Option-A)
+     ============================ -->
+
+<script>
+<!-- ============================
+     PART 4 — TREATMENT PLAN ENGINE (FINAL & FIXED)
+============================= -->
+
+<script>
+// -----------------------------------------------------
+//  TREATMENT PLAN BASED ON TOPIC + USER ANSWERS
+// -----------------------------------------------------
+
+function generateTreatmentPlan(topicTitle, answers){
+
+  const plan = computeTreatment(topicTitle, answers);
+
+  const msg =
+    `🌿 <b>Treatment Plan — ${topicTitle}</b>\n\n` +
+    plan +
+    `\n\nIf you want, you can upload a plant image for more accurate advice.`;
+
+  addMessage(msg, "bot");
+}
+
+// -----------------------------------------------------
+//  RULE-BASED TREATMENT LOGIC
+// -----------------------------------------------------
+function computeTreatment(topic, ans){
+
+  const A1 = ans[0]?.toLowerCase() || "";
+  const A2 = ans[1]?.toLowerCase() || "";
+  const A3 = ans[2]?.toLowerCase() || "";
+  const A4 = ans[3]?.toLowerCase() || "";
+
+  // --------------------------------------
+  //   YELLOW LEAVES
+  // --------------------------------------
+  if(topic === "Yellow Leaves"){
+    let txt = "";
+
+    if(A2.includes("daily") || A2.includes("every day")){
+      txt += "• Reduce watering — the plant seems overwatered.\n";
+    } else if(A2.includes("rare")){
+      txt += "• Increase watering slightly — soil may be staying too dry.\n";
+    }
+
+    if(A3.includes("direct")){
+      txt += "• Provide filtered / indirect sunlight.\n";
+    } else {
+      txt += "• Give 3–4 hours of soft sunlight.\n";
+    }
+
+    if(A4.includes("old")){
+      txt += "• Old leaves yellowing is normal — prune them.\n";
+    } else {
+      txt += "• New leaves yellowing → check nutrients + pests.\n";
+    }
+
+    return txt || "• Balance watering + improve light exposure.";
+  }
+
+  // --------------------------------------
+  //   CURLING LEAVES
+  // --------------------------------------
+  if(topic === "Curling Leaves"){
+    let txt = "";
+
+    if(A1.includes("hard")){
+      txt += "• Hard curling → underwatering or low humidity.\n";
+    }
+    if(A1.includes("flexible")){
+      txt += "• Flexible curling → heat/light stress.\n";
+    }
+
+    if(A3.includes("yes")){
+      txt += "• Pests detected → spray neem oil every 3 days.\n";
+    }
+
+    return txt || "• Adjust watering + check for pests.";
+  }
+
+  // --------------------------------------
+  //   INDOOR PLANTS DYING
+  // --------------------------------------
+  if(topic === "Indoor Plants Dying"){
+    let txt = "";
+
+    if(A2.includes("artificial") || A2.includes("no")){
+      txt += "• Increase natural light or add a grow light.\n";
+    }
+
+    if(A4.includes("poor") || A4.includes("bad")){
+      txt += "• Improve ventilation — stagnant air causes fungus.\n";
+    }
+
+    return txt || "• Improve light + ventilation + watering routine.";
+  }
+
+  // --------------------------------------
+  //   WHITE FUNGUS
+  // --------------------------------------
+  if(topic === "White Fungus"){
+    let txt = "";
+
+    if(A1.includes("powder") || A1.includes("cotton")){
+      txt += "• Remove infected layer + apply neem oil spray.\n";
+    }
+
+    if(A2.includes("wet")){
+      txt += "• Reduce watering — soil is staying too moist.\n";
+    }
+
+    if(A3.includes("sticky")){
+      txt += "• Sticky leaves = pest presence — clean + neem spray.\n";
+    }
+
+    txt += "• Increase airflow around the plant.\n";
+    return txt;
+  }
+
+  // --------------------------------------
+  //   LEAF HOLES
+  // --------------------------------------
+  if(topic === "Leaf Holes"){
+    let txt = "";
+
+    if(A1.includes("irregular")){
+      txt += "• Irregular holes → caterpillars. Remove manually + neem spray.\n";
+    } else {
+      txt += "• Circular holes → beetles. Use garlic–chilli spray.\n";
+    }
+
+    if(A2.includes("yes")){
+      txt += "• Visible insects → spray neem at night.\n";
+    }
+
+    return txt;
+  }
+
+  // --------------------------------------
+  //   SLOW GROWTH
+  // --------------------------------------
+  if(topic === "Slow Growth"){
+    let txt = "";
+
+    if(A1.includes("rare")){
+      txt += "• Fertilize every 2 weeks with vermicompost.\n";
+    }
+
+    if(A2.includes("no")){
+      txt += "• Provide 4–5 hours bright indirect sunlight.\n";
+    }
+
+    if(A3.includes("small")){
+      txt += "• Repot to a bigger pot.\n";
+    }
+
+    return txt;
+  }
+
+  // --------------------------------------
+  //   PEST ATTACK
+  // --------------------------------------
+  if(topic === "Pest Attack"){
+    let txt = "• Wash leaves with mild soap solution.\n";
+    txt += "• Apply neem oil every 3 days.\n";
+
+    if(A2.includes("sticky")){
+      txt += "• Sticky leaves = mealybugs → wipe with cotton dipped in alcohol.\n";
+    }
+
+    return txt;
+  }
+
+  // --------------------------------------
+  //   ROOT ROT
+  // --------------------------------------
+  if(topic === "Root Rot"){
+    let txt = "";
+
+    if(A1.includes("foul")){
+      txt += "• Remove rotting roots + repot in dry mix.\n";
+    }
+
+    if(!A2.includes("yes")){
+      txt += "• Improve drainage — add more holes.\n";
+    }
+
+    return txt || "• Reduce watering and improve soil drainage.";
+  }
+
+  return "• Follow general plant care: proper watering, balanced light, and pest control.";
+}
+</script>
+</script>
