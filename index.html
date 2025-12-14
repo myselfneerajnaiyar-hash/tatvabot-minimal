@@ -355,7 +355,7 @@ ${result.why}
 ✅ What to do now
 - ${result.do.join('\n- ')}`;
 
-if(result.dont.length){
+if (result.dont.length) {
   reply += `
 
 ❌ What NOT to do
@@ -369,8 +369,6 @@ If no improvement in 5–7 days, recheck with a new photo.`;
 
 addMessage(reply, 'bot');
 diagnosisState = null;
- 
- 
 // --- send flow (Formspree phone detection + normal chat) ---
 async function sendMessage(){
   const messageRaw = input.value.trim();
