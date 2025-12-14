@@ -503,11 +503,19 @@ shareLocBtn.addEventListener('click', ()=>{
     console.error('geo error', err); showStatus('Could not get location'); setTimeout(()=>showStatus(''),1500);
   }, { enableHighAccuracy:false, timeout:10000 });
 });
-setLocBtn.addEventListener('click', ()=>{
+setLocBtn.addEventListener('click', () => {
   const name = prompt('Enter your city or locality (e.g. "Bengaluru, India")');
-  if(name && name.trim()){ const loc = { name: name.trim(), timestamp: Date.now() }; saveLocation(loc); setLocationDisplay(loc); showStatus('Location saved'); setTimeout(()=>showStatus(''),1500); }
+  if (name && name.trim()) {
+    const loc = {
+      name: name.trim(),
+      timestamp: Date.now()
+    };
+    saveLocation(loc);
+    setLocationDisplay(loc);
+    showStatus('Location saved');
+    setTimeout(() => showStatus(''), 1500);
+  }
 });
-
 // initial
 setLocationDisplay(loadLocation());
 input.focus();
