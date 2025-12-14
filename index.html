@@ -310,11 +310,21 @@ function diagnoseFromAnswers(answers){
 // start diagnosis detection (simple keyword-based)
 function detectDiagnosisIntent(message){
   const m = message.toLowerCase();
-  if(m.includes('yellow') && m.includes('leaf')) return 'yellow_leaves';
-  if(m.includes('yellow leaves') || m.includes('leaves yellow')) return 'yellow_leaves';
+
+  if (
+    m.includes('yellow') ||
+    m.includes('droop') ||
+    m.includes('wilt') ||
+    m.includes('dry') ||
+    m.includes('spot') ||
+    m.includes('sticky') ||
+    m.includes('pest')
+  ) {
+    return 'yellow_leaves';
+  }
+
   return null;
 }
-
 async function startDiagnosis(flowKey){
   const flow = DIAG_FLOWS[flowKey];
   if(!flow) return;
