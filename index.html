@@ -343,24 +343,34 @@ async function handleDiagnosisAnswer(answerText){
     return;
   }
   // finished
-  const summary = flow.finishText(diagnosisState.answers, loadLocation());
-  addMessage('Thanks — I\'ve prepared a short summary and sent it to the Tatvabhoomi team for follow-up.', 'bot');
-  // show summary in chat
-  addMessage(summary, 'bot', null);
-  // send automatically to Formspree
-  try {
-    showStatus('Sending diagnosis to team...');
-    await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject: flow.title, message: summary, source: 'Tatvabot diagnosis' })
-    });
-    showStatus('Sent');
-    setTimeout(()=>showStatus(''), 1600);
-  } catch(err){ console.error('Formspree send error', err); showStatus('Sending failed'); setTimeout(()=>showStatus(''), 1600); }
-  diagnosisState = null;
+ // finished → run diagnosis logic
+const result = diagnoseFromAnswers(diagnosisState.answers);
+
+let reply = `🌿 Likely Issue
+${result.issue} (${result.confidence})
+
+🔍 Why this is likely
+${result.why}
+
+✅ What to do now
+- ${result.do.join('\n- ')}`;
+
+if(result.dont.length){
+  reply += `
+
+❌ What NOT to do
+- ${result.dont.join('\n- ')}`;
 }
 
+reply += `
+
+🔁 Recheck
+If no improvement in 5–7 days, recheck with a new photo.`;
+
+addMessage(reply, 'bot');
+diagnosisState = null;
+ 
+ 
 // --- send flow (Formspree phone detection + normal chat) ---
 async function sendMessage(){
   const messageRaw = input.value.trim();
