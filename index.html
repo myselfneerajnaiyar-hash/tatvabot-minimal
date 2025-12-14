@@ -430,21 +430,34 @@ async function sendMessage(){
   }
 
   // normal chat flow: detect diagnosis intent first
-  const intent = detectDiagnosisIntent(messageRaw);
-  if(intent){
-    // record user's initiating message
-    if(imageToSend && lastUploadedUrlShown === imageToSend){
-      addMessage(messageRaw || 'Image', 'user', null);
-    } else {
-      addMessage(messageRaw || 'Image', 'user', imageToSend);
-      lastUploadedUrlShown = imageToSend;
-    }
-    input.value = '';
-    // start multistep diagnosis
-    startDiagnosis(intent);
-    uploadedImageUrl = null;
-    return;
+ const intent = detectDiagnosisIntent(messageRaw);
+
+// allow manual restart
+if (
+  messageRaw.toLowerCase().includes('diagnose again') ||
+  messageRaw.toLowerCase().includes('new diagnosis') ||
+  messageRaw.toLowerCase().includes('check again')
+) {
+  diagnosisCompleted = false;
+  startDiagnosis(intent || 'yellow_leaves');
+  return;
+}
+
+// auto-start ONLY if no diagnosis has completed yet
+if (intent && !diagnosisState && !diagnosisCompleted) {
+
+  if(imageToSend && lastUploadedUrlShown === imageToSend){
+    addMessage(messageRaw || 'Image', 'user', null);
+  } else {
+    addMessage(messageRaw || 'Image', 'user', imageToSend);
+    lastUploadedUrlShown = imageToSend;
   }
+
+  input.value = '';
+  startDiagnosis(intent);
+  uploadedImageUrl = null;
+  return;
+}
 
   // else ordinary chat: show user message and hit /api/chat backend
   if(imageToSend && lastUploadedUrlShown === imageToSend){
