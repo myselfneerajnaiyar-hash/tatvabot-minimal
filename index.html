@@ -225,7 +225,88 @@ const DIAG_FLOWS = {
     }
   }
 };
+// --- rule-based diagnosis engine ---
+function diagnoseFromAnswers(answers){
+  const a = answers.join(' ').toLowerCase();
 
+  // 1. Overwatering
+  if(a.includes('daily') || a.includes('wet')){
+    return {
+      issue: 'Overwatering stress',
+      confidence: 'High (80%)',
+      why: 'Frequent watering or soil staying wet',
+      do: [
+        'Stop watering until topsoil dries',
+        'Ensure pot has drainage holes',
+        'Keep plant in bright indirect light'
+      ],
+      dont: [
+        'Do not add fertilizer',
+        'Do not repot immediately'
+      ]
+    };
+  }
+
+  // 2. Underwatering
+  if(a.includes('dry') || a.includes('rarely')){
+    return {
+      issue: 'Underwatering stress',
+      confidence: 'High (80%)',
+      why: 'Dry soil and infrequent watering',
+      do: [
+        'Water thoroughly until excess drains out',
+        'Check soil moisture every 2–3 days'
+      ],
+      dont: [
+        'Do not suddenly water daily'
+      ]
+    };
+  }
+
+  // 3. Pest attack
+  if(a.includes('sticky') || a.includes('ants') || a.includes('web')){
+    return {
+      issue: 'Pest attack',
+      confidence: 'High (85%)',
+      why: 'Sticky residue, ants, or webbing detected',
+      do: [
+        'Isolate the plant',
+        'Spray neem oil every 5–7 days'
+      ],
+      dont: [
+        'Do not use harsh pesticides immediately'
+      ]
+    };
+  }
+
+  // 4. Fungal disease
+  if(a.includes('powder') || a.includes('spots')){
+    return {
+      issue: 'Fungal disease',
+      confidence: 'Medium (70%)',
+      why: 'Spots or powdery growth with moisture',
+      do: [
+        'Avoid wetting leaves',
+        'Improve airflow around plant'
+      ],
+      dont: [
+        'Do not mist the plant'
+      ]
+    };
+  }
+
+  // fallback
+  return {
+    issue: 'Unclear cause',
+    confidence: 'Low (<60%)',
+    why: 'Symptoms overlap across multiple causes',
+    do: [
+      'Share a clear photo',
+      'Confirm watering frequency and soil condition'
+    ],
+    dont: []
+  };
+}
 // start diagnosis detection (simple keyword-based)
 function detectDiagnosisIntent(message){
   const m = message.toLowerCase();
