@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "Image URL missing" });
+      return res.status(400).json({ error: "imageUrl is required" });
     }
 
     const client = new OpenAI({
@@ -17,21 +17,19 @@ export default async function handler(req, res) {
     });
 
     const systemPrompt = `
-You are TatvaBot — an expert AI Plant Doctor 🌱.
-
+You are TatvaBot — an expert plant disease analyst.
 Rules:
-- Analyze ONLY visible symptoms in the image
-- If diagnosis is uncertain, say so clearly
-- Do NOT hallucinate diseases
-- Use simple, structured language
+- Do NOT guess confidently if unsure
+- If image is unclear, say so
+- Provide structured diagnosis
+- Focus only on what is visible in the image
 
-Response format:
-🌿 Diagnosis  
-🧠 Confidence Level (High / Medium / Low)  
-🔍 Visible Symptoms  
-🌱 Possible Causes  
-🧪 What to Check Next  
-💚 Immediate Care Steps
+Output format:
+🌿 Diagnosis
+🔍 Visual Observations
+🌱 Possible Causes
+🧪 What to Confirm
+💊 Treatment
 `;
 
     const response = await client.chat.completions.create({
