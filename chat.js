@@ -1,50 +1,55 @@
-import OpenAI from "openai";
-
 export default async function handler(req, res) {
   try {
     const userMessage =
-      req.query?.message ||
       req.body?.message ||
+      req.query?.message ||
       "Hello";
 
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY missing");
     }
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const systemPrompt = `
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: Bearer ${process.env.OPENAI_API_KEY},
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.4,
+          messages: [
+            {
+              role: "system",
+              content: `
 You are TatvaBot — India's most advanced AI Plant Doctor 🌱.
+Be accurate, practical, friendly, and structured.
+Never guess blindly.
+              `,
+            },
+            {
+              role: "user",
+              content: userMessage,
+            },
+          ],
+        }),
+      }
+    );
 
-Rules:
-- Be accurate and practical
-- Never guess blindly
-- Ask follow-up questions if unsure
-- Keep language simple and friendly
+    const data = await response.json();
 
-Format responses as:
-🌿 Diagnosis
-🌦 Likely Causes
-🌱 Treatment Steps
-🔁 Follow-Up Questions
-`;
-
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      temperature: 0.4,
-    });
+    if (!response.ok) {
+      console.error("OpenAI error:", data);
+      throw new Error("OpenAI request failed");
+    }
 
     return res.status(200).json({
-      reply: completion.choices[0].message.content,
+      reply: data.choices[0].message.content,
     });
   } catch (err) {
-    console.error("TatvaBot API crash:", err.message);
+    console.error("TatvaBot crash:", err.message);
     return res.status(500).json({
       reply: "TatvaBot backend error. Please try again.",
     });
