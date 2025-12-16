@@ -1,15 +1,28 @@
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
+
 export default async function handler(req, res) {
   try {
-    const userMessage =
-      req.body?.message ||
-      req.query?.message ||
-      "Hello";
-
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY missing");
+    if (req.method !== "POST") {
+      return res.status(405).json({ reply: "Method not allowed" });
     }
 
-    const response = await fetch(
+    console.log("Incoming body:", req.body);
+
+    const userMessage =
+      req.body?.message?.toString()?.trim() || "Hello";
+
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OPENAI_API_KEY");
+      return res.status(500).json({
+        reply: "Server misconfiguration",
+      });
+    }
+
+    const openaiResponse = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
@@ -25,8 +38,8 @@ export default async function handler(req, res) {
               role: "system",
               content: `
 You are TatvaBot — India's most advanced AI Plant Doctor 🌱.
-Be accurate, practical, friendly, and structured.
-Never guess blindly.
+Diagnose carefully. Never guess blindly.
+Use simple, structured, friendly explanations.
               `,
             },
             {
@@ -38,18 +51,18 @@ Never guess blindly.
       }
     );
 
-    const data = await response.json();
+    const data = await openaiResponse.json();
+    console.log("OpenAI response:", data);
 
-    if (!response.ok) {
-      console.error("OpenAI error:", data);
-      throw new Error("OpenAI request failed");
+    if (!openaiResponse.ok) {
+      throw new Error(data.error?.message || "OpenAI failed");
     }
 
     return res.status(200).json({
       reply: data.choices[0].message.content,
     });
   } catch (err) {
-    console.error("TatvaBot crash:", err.message);
+    console.error("TatvaBot backend crash:", err);
     return res.status(500).json({
       reply: "TatvaBot backend error. Please try again.",
     });
