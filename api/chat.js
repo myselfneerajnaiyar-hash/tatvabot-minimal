@@ -52,8 +52,7 @@ Response format:
 🔁 *Follow-Up Questions* (if needed)
 
 If user asks general plant-care questions, give clear guides.
-If user asks for photos → tell them 'Image upload coming soon.'
-`;
+
 
     // 3. Send request to OpenAI
     const completion = await client.chat.completions.create({
