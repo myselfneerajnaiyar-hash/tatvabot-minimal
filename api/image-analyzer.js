@@ -33,27 +33,31 @@ Response format:
 🔁 Follow-up Questions
 `;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
+    const response = await client.responses.create({
+  model: "gpt-4.1-mini",
+  input: [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: [
+        { type: "input_text", text: "Analyze this plant image and diagnose any visible issues." },
         {
-          role: "user",
-          content: [
-            { type: "text", text: "Analyze this plant image and diagnose issues." },
-            {
-              type: "image_url",
-              image_url: { url: imageUrl },
-            },
-          ],
+          type: "input_image",
+          image_url: imageUrl,
         },
       ],
-      temperature: 0.3,
-    });
+    },
+  ],
+});
 
-    const reply = response.choices[0].message.content;
+const reply =
+  response.output_text ||
+  "I could see the image, but need a clearer photo or more details.";
 
-    return res.status(200).json({ reply });
+return res.status(200).json({ reply });
   } catch (err) {
     console.error("Image Analyzer Error:", err);
     return res.status(500).json({
