@@ -1,63 +1,64 @@
 import OpenAI from "openai";
 
-export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
       return res.status(400).json({ error: "Image URL missing" });
     }
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     const systemPrompt = `
-You are TatvaBot — an expert AI Plant Doctor 🌱.
+You are TatvaBot — an expert AI Plant Doctor.
 
 Rules:
-- Analyze ONLY what is visible in the image
-- Do NOT guess if unsure
-- Clearly mention confidence level
-- Ask follow-up questions if needed
+- Carefully observe visible symptoms in the plant image
+- DO NOT guess if confidence is low
+- Mention uncertainty clearly
+- Focus on common Indian garden plants
+- Suggest organic, safe remedies
+- If unclear, ask for follow-up info
 
 Response format:
-🌿 Diagnosis
-📉 Confidence Level (High / Medium / Low)
-🧪 Visible Symptoms
-🌱 Recommended Actions
-🔁 Follow-up Questions
+🌿 Diagnosis (with confidence %)
+🔍 Visible Symptoms
+🌦 Possible Causes
+🌱 Immediate Actions
+❓ Follow-up Questions (if needed)
 `;
 
     const response = await client.responses.create({
-  model: "gpt-4.1-mini",
-  input: [
-    {
-      role: "system",
-      content: systemPrompt,
-    },
-    {
-      role: "user",
-      content: [
-        { type: "input_text", text: "Analyze this plant image and diagnose any visible issues." },
+      model: "gpt-4.1-mini",
+      input: [
         {
-          type: "input_image",
-          image_url: imageUrl,
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: "Analyze this plant image and diagnose the problem." },
+            { type: "input_image", image_url: imageUrl },
+          ],
         },
       ],
-    },
-  ],
-});
+      temperature: 0.3,
+    });
 
-const reply =
-  response.output_text ||
-  "I could see the image, but need a clearer photo or more details.";
+    const outputText =
+      response.output_text ||
+      response.output?.[0]?.content?.[0]?.text ||
+      "Unable to analyze image clearly.";
 
-return res.status(200).json({ reply });
+    return res.status(200).json({ reply: outputText });
   } catch (err) {
     console.error("Image Analyzer Error:", err);
     return res.status(500).json({
