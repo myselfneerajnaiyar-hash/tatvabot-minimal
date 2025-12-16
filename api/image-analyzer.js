@@ -16,27 +16,47 @@ export default async function handler(req, res) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
+    const systemPrompt = `
+You are TatvaBot — an expert AI Plant Doctor 🌱.
+
+Rules:
+- Analyze ONLY visible symptoms in the image
+- If diagnosis is uncertain, say so clearly
+- Do NOT hallucinate diseases
+- Use simple, structured language
+
+Response format:
+🌿 Diagnosis  
+🧠 Confidence Level (High / Medium / Low)  
+🔍 Visible Symptoms  
+🌱 Possible Causes  
+🧪 What to Check Next  
+💚 Immediate Care Steps
+`;
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: [
-            { type: "input_text", text: "Analyze this plant image. Identify visible symptoms, likely issues, and next steps. If unsure, ask follow-up questions." },
-            { type: "input_image", image_url: imageUrl }
-          ]
-        }
-      ]
+            { type: "text", text: "Analyze this plant image and diagnose the issue." },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
+      temperature: 0.3,
     });
 
-    const outputText =
-      response.output_text ||
-      "I can see the plant, but need more details to be certain.";
+    const reply = response.choices[0].message.content;
 
-    return res.status(200).json({ reply: outputText });
-
+    return res.status(200).json({ reply });
   } catch (err) {
-    console.error("IMAGE ANALYZER CRASH:", err);
+    console.error("Image Analyzer Error:", err);
     return res.status(500).json({
       error: "Image analysis failed",
       details: err.message,
