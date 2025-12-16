@@ -513,7 +513,7 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
   const typingEl = showTypingIndicator();
   try {
    const finalMessage = imageInsights
-  ? IMAGE OBSERVATIONS:\n${imageInsights}\n\nUSER MESSAGE:\n${messageRaw || "Diagnose this plant"}
+  ? `IMAGE OBSERVATIONS:\n${imageInsights}\n\nUSER MESSAGE:\n${messageRaw || "Diagnose this plant"}`
   : messageRaw || "Diagnose this plant";
 
 const body = {
