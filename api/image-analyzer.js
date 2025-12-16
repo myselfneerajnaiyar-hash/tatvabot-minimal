@@ -13,55 +13,51 @@ export default async function handler(req, res) {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "No image URL provided" });
+      return res.status(400).json({ error: "No imageUrl provided" });
     }
 
     const systemPrompt = `
-You are TatvaBot — an expert plant doctor 🌱.
-Analyze the plant image carefully.
+You are TatvaBot — an expert AI Plant Doctor 🌱.
 
 Rules:
-- Do NOT guess if uncertain
-- Mention visible symptoms only
-- Give probable causes with confidence level
-- Ask follow-up questions if required
-- Keep output structured and simple
+- Carefully analyze ONLY what is visible in the image
+- Do NOT guess if confidence is low
+- If unsure, ask follow-up questions
+- Keep response structured and simple
 
-Response format:
-🌿 Diagnosis
-👀 Visible Symptoms
-🧪 Probable Causes (with confidence)
-🌱 Immediate Actions
-🔁 Follow-up Questions
+Output format:
+🌿 Diagnosis  
+🔍 Visible Symptoms  
+🧠 Confidence Level (High / Medium / Low)  
+🌱 Immediate Care Steps  
+❓ Follow-up Questions (if needed)
 `;
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: [
-            { type: "input_text", text: "Analyze this plant image." },
+            { type: "text", text: "Analyze this plant image." },
             {
-              type: "input_image",
-              image_url: imageUrl,
+              type: "image_url",
+              image_url: { url: imageUrl },
             },
           ],
         },
       ],
+      temperature: 0.3,
     });
 
-    const reply =
-      response.output_text ||
-      "I could not confidently analyze this image. Please try another photo.";
+    const reply = response.choices[0].message.content;
 
     return res.status(200).json({ reply });
-  } catch (err) {
-    console.error("Image Analyzer Error:", err);
-    return res.status(500).json({ error: "Image analysis failed" });
+  } catch (error) {
+    console.error("Image Analyzer Error:", error);
+    return res.status(500).json({
+      error: "Image analysis failed",
+    });
   }
 }
