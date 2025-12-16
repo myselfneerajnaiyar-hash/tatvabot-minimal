@@ -1,5 +1,9 @@
 import OpenAI from "openai";
 
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -9,40 +13,43 @@ export default async function handler(req, res) {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "imageUrl is required" });
+      return res.status(400).json({ error: "imageUrl missing" });
     }
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     const systemPrompt = `
-You are TatvaBot — an expert plant disease analyst.
-Rules:
-- Do NOT guess confidently if unsure
-- If image is unclear, say so
-- Provide structured diagnosis
-- Focus only on what is visible in the image
+You are TatvaBot — an expert AI Plant Doctor 🌱.
 
-Output format:
+Rules:
+- Analyze ONLY what is visible in the image
+- If confidence < 70%, say "Uncertain diagnosis"
+- NEVER guess diseases
+- Ask follow-up questions when needed
+- Keep advice safe for home gardeners in India
+
+Response format:
 🌿 Diagnosis
-🔍 Visual Observations
-🌱 Possible Causes
-🧪 What to Confirm
-💊 Treatment
+📊 Confidence %
+🔍 Visual Symptoms Seen
+🌱 Likely Causes
+🧪 How to Confirm
+🛠 Immediate Care Steps
+🔁 Follow-up Questions
 `;
 
-    const response = await client.chat.completions.create({
+    const response = await client.responses.create({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
+      input: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this plant image and diagnose the issue." },
+            { type: "input_text", text: "Analyze this plant image" },
             {
-              type: "image_url",
-              image_url: { url: imageUrl },
+              type: "input_image",
+              image_url: imageUrl,
             },
           ],
         },
@@ -50,11 +57,22 @@ Output format:
       temperature: 0.3,
     });
 
-    const reply = response.choices[0].message.content;
+    const output =
+      response.output_text ||
+      "Image received, but explanation could not be generated.";
 
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply: output });
   } catch (err) {
-    console.error("Image Analyzer Error:", err);
+    console.error("IMAGE ANALYZER ERROR:", err);
+
+    // Graceful fallback (VERY IMPORTANT)
+    if (err.status === 429) {
+      return res.status(200).json({
+        reply:
+          "⚠️ Image received, but analysis is temporarily unavailable due to high usage.\n\nPlease describe the symptoms in text for now (yellowing, spots, pests, wilting).",
+      });
+    }
+
     return res.status(500).json({
       error: "Image analysis failed",
       details: err.message,
