@@ -13,26 +13,26 @@ export default async function handler(req, res) {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "Image URL missing" });
+      return res.status(400).json({ error: "No image URL provided" });
     }
 
     const systemPrompt = `
-You are TatvaBot — an expert AI Plant Doctor.
+You are TatvaBot — an expert plant doctor 🌱.
+Analyze the plant image carefully.
 
 Rules:
-- Carefully observe visible symptoms in the plant image
-- DO NOT guess if confidence is low
-- Mention uncertainty clearly
-- Focus on common Indian garden plants
-- Suggest organic, safe remedies
-- If unclear, ask for follow-up info
+- Do NOT guess if uncertain
+- Mention visible symptoms only
+- Give probable causes with confidence level
+- Ask follow-up questions if required
+- Keep output structured and simple
 
 Response format:
-🌿 Diagnosis (with confidence %)
-🔍 Visible Symptoms
-🌦 Possible Causes
+🌿 Diagnosis
+👀 Visible Symptoms
+🧪 Probable Causes (with confidence)
 🌱 Immediate Actions
-❓ Follow-up Questions (if needed)
+🔁 Follow-up Questions
 `;
 
     const response = await client.responses.create({
@@ -45,24 +45,23 @@ Response format:
         {
           role: "user",
           content: [
-            { type: "input_text", text: "Analyze this plant image and diagnose the problem." },
-            { type: "input_image", image_url: imageUrl },
+            { type: "input_text", text: "Analyze this plant image." },
+            {
+              type: "input_image",
+              image_url: imageUrl,
+            },
           ],
         },
       ],
-      temperature: 0.3,
     });
 
-    const outputText =
+    const reply =
       response.output_text ||
-      response.output?.[0]?.content?.[0]?.text ||
-      "Unable to analyze image clearly.";
+      "I could not confidently analyze this image. Please try another photo.";
 
-    return res.status(200).json({ reply: outputText });
+    return res.status(200).json({ reply });
   } catch (err) {
     console.error("Image Analyzer Error:", err);
-    return res.status(500).json({
-      error: "Image analysis failed",
-    });
+    return res.status(500).json({ error: "Image analysis failed" });
   }
 }
