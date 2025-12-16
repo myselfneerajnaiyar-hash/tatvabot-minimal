@@ -396,6 +396,17 @@ diagnosisState = null;
 async function sendMessage(){
   const messageRaw = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
+  let imageInsights = "";
+
+if (imageToSend) {
+  try {
+    showStatus("Analyzing plant image...");
+    imageInsights = await analyzePlantImage(imageToSend);
+  } catch (e) {
+    console.error("Image analysis failed", e);
+    imageInsights = "";
+  }
+}
   if(!messageRaw && !imageToSend) return;
 
   // phone capture
@@ -482,7 +493,15 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
   try {
-    const body = { message: messageRaw || '', image: imageToSend || null, location: loadLocation() || null };
+   const finalMessage = imageInsights
+  ? IMAGE OBSERVATIONS:\n${imageInsights}\n\nUSER MESSAGE:\n${messageRaw || "Diagnose this plant"}
+  : messageRaw || "Diagnose this plant";
+
+const body = {
+  message: finalMessage,
+  image: null, // image already analyzed
+  location: loadLocation() || null
+};
     const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(()=>null);
     await new Promise(r=>setTimeout(r,650));
