@@ -52,8 +52,7 @@ Response format:
 🔁 *Follow-Up Questions* (if needed)
 
 If user asks general plant-care questions, give clear guides.
-If user asks for photos → tell them 'Image upload coming soon.'
-`;
+If an image is provided, analyze visible plant symptoms carefully before concluding.
 
     // 3. Send request to OpenAI
     const completion = await client.chat.completions.create({
