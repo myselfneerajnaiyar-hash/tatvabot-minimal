@@ -2,38 +2,45 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "No image URL provided" });
+      return res.status(400).json({ error: "Image URL missing" });
     }
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
+    const systemPrompt = `
+You are TatvaBot — an expert AI Plant Doctor 🌱.
+
+Rules:
+- Analyze ONLY what is visible in the image
+- Do NOT guess if unsure
+- Clearly mention confidence level
+- Ask follow-up questions if needed
+
+Response format:
+🌿 Diagnosis
+📉 Confidence Level (High / Medium / Low)
+🧪 Visible Symptoms
+🌱 Recommended Actions
+🔁 Follow-up Questions
+`;
+
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content: `
-You are TatvaBot Vision — an expert plant disease detector.
-Rules:
-- Only describe what is visible
-- Do not guess if unclear
-- Mention confidence level
-Return format:
-🌿 Visible Symptoms
-🧠 Possible Issues
-📊 Confidence (%)
-❓ What to check next
-`,
-        },
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this plant image." },
+            { type: "text", text: "Analyze this plant image and diagnose issues." },
             {
               type: "image_url",
               image_url: { url: imageUrl },
@@ -41,13 +48,16 @@ Return format:
           ],
         },
       ],
+      temperature: 0.3,
     });
 
-    res.status(200).json({
-      analysis: response.choices[0].message.content,
-    });
+    const reply = response.choices[0].message.content;
+
+    return res.status(200).json({ reply });
   } catch (err) {
-    console.error("Image analyzer error:", err);
-    res.status(500).json({ error: "Image analysis failed" });
+    console.error("Image Analyzer Error:", err);
+    return res.status(500).json({
+      error: "Image analysis failed",
+    });
   }
 }
