@@ -1,9 +1,3 @@
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -13,37 +7,28 @@ export default async function handler(req, res) {
     const { imageUrl } = req.body;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: "No imageUrl provided" });
+      return res.status(400).json({ error: "No image URL provided" });
     }
 
-    const systemPrompt = `
-You are TatvaBot — an expert AI Plant Doctor 🌱.
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
-Rules:
-- Carefully analyze ONLY what is visible in the image
-- Do NOT guess if confidence is low
-- If unsure, ask follow-up questions
-- Keep response structured and simple
-
-Output format:
-🌿 Diagnosis  
-🔍 Visible Symptoms  
-🧠 Confidence Level (High / Medium / Low)  
-🌱 Immediate Care Steps  
-❓ Follow-up Questions (if needed)
-`;
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are TatvaBot, an expert AI plant doctor. Analyze plant images carefully. Do not guess. If confidence is low, ask follow-up questions.",
+        },
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this plant image." },
+            { type: "input_text", text: "Analyze this plant image and diagnose possible issues." },
             {
-              type: "image_url",
-              image_url: { url: imageUrl },
+              type: "input_image",
+              image_url: imageUrl,
             },
           ],
         },
@@ -51,11 +36,13 @@ Output format:
       temperature: 0.3,
     });
 
-    const reply = response.choices[0].message.content;
+    const output =
+      response.output_text ||
+      "I need more information to make a confident diagnosis.";
 
-    return res.status(200).json({ reply });
-  } catch (error) {
-    console.error("Image Analyzer Error:", error);
+    return res.status(200).json({ reply: output });
+  } catch (err) {
+    console.error("Image Analyzer Error:", err);
     return res.status(500).json({
       error: "Image analysis failed",
     });
