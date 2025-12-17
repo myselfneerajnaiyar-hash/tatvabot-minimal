@@ -478,17 +478,13 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
   try {
-  const body = {
-  message: messageRaw || "Diagnose this plant from the image",
+  const finalMessage = messageRaw || "Diagnose this plant from the image";
+
+const body = {
+  message: finalMessage,
   imageBase64: uploadedImageUrl || null,
   location: loadLocation() || null
 };
-
-const res = await fetch('/api/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(body)
-});
     const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(()=>null);
     await new Promise(r=>setTimeout(r,650));
