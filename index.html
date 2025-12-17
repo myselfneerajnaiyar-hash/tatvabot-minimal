@@ -197,16 +197,16 @@ function injectQuickRow(){
   row.id = 'quick-row';
   row.className = 'quick-row';
 
-  const items = [
-    { label: 'Yellow leaves', flow: 'yellow_leaves' },
-    { label: 'Brown spots', flow: 'brown_spots' },
-    { label: 'Wilting plant', flow: 'wilting' },
-    { label: 'Pest infestation', flow: 'pests' },
-    { label: 'Leaf drop', flow: 'leaf_drop' },
-    { label: 'Slow growth', flow: 'slow_growth' },
-    { label: 'Not flowering', flow: 'flowering_issues' },
-    { label: 'Buy vermicompost', primary: true }
-  ];
+ const items = [
+  { t:'🟡 Yellow leaves', flow:'yellow_leaves' },
+  { t:'🟤 Brown spots', flow:'brown_spots' },
+  { t:'🥀 Wilting plant', flow:'wilting' },
+  { t:'🐛 Pest infestation', flow:'pests' },
+  { t:'🍂 Leaf drop', flow:'leaf_drop' },
+  { t:'🌱 Slow growth', flow:'slow_growth' },
+  { t:'🌼 Not flowering', flow:'flowering_issues' },
+  { t:'🪱 Buy vermicompost', cls:'primary' }
+];
 
   items.forEach(item => {
     const btn = document.createElement('button');
