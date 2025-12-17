@@ -2,8 +2,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const userMessage = req.body?.message || "";
-    const imageUrl = req.body?.image || null;
+    const { message = "", imageBase64 = null } = req.body || {};
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -13,10 +12,10 @@ export default async function handler(req, res) {
 You are TatvaBot — an expert AI Plant Doctor 🌱.
 
 Rules:
-- Analyze plant images carefully
-- If unsure, ask follow-up questions
+- Do not guess blindly
+- Use image if provided
+- Ask follow-up questions if unsure
 - Give practical Indian gardening advice
-- Be concise and structured
 
 Format:
 🌿 Diagnosis
@@ -29,18 +28,21 @@ Format:
       { role: "system", content: systemPrompt }
     ];
 
-    if (imageUrl) {
+    if (imageBase64) {
       messages.push({
         role: "user",
         content: [
-          { type: "text", text: userMessage || "Diagnose this plant from the image" },
-          { type: "image_url", image_url: { url: imageUrl } }
+          { type: "text", text: message || "Diagnose this plant from the image" },
+          {
+            type: "image_url",
+            image_url: { url: imageBase64 }
+          }
         ]
       });
     } else {
       messages.push({
         role: "user",
-        content: userMessage
+        content: message
       });
     }
 
@@ -60,4 +62,3 @@ Format:
       reply: "TatvaBot had trouble replying. Please try again."
     });
   }
-}
