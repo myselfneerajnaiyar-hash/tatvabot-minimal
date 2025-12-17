@@ -25,9 +25,9 @@ Format:
 🔁 Follow-up Questions
 `;
 
-    // ✅ BUILD MESSAGES PROPERLY
+    // ✅ messages must be created OUTSIDE the API call
     const messages = [
-      { role: "system", content: systemPrompt }
+      { role: "system", content: systemPrompt },
     ];
 
     if (imageBase64) {
@@ -37,14 +37,14 @@ Format:
           { type: "text", text: userMessage || "Diagnose this plant issue" },
           {
             type: "image_url",
-            image_url: { url: imageBase64 }
-          }
-        ]
+            image_url: { url: imageBase64 },
+          },
+        ],
       });
     } else {
       messages.push({
         role: "user",
-        content: userMessage
+        content: userMessage,
       });
     }
 
@@ -59,7 +59,7 @@ Format:
     });
 
   } catch (error) {
-    console.error("TatvaBot Chat Error:", error);
+    console.error("TatvaBot error:", error);
     res.status(500).json({
       reply: "TatvaBot is thinking 🤔 Please try again.",
     });
