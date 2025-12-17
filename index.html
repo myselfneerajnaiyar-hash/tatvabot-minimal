@@ -213,8 +213,7 @@ const items = [
   items.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'quick-btn' + (item.primary ? ' primary' : '');
-    btn.textContent = item.label;
-
+   btn.textContent = ${item.icon || ''} ${item.t}
     if(item.flow){
       btn.dataset.flow = item.flow;
     }
