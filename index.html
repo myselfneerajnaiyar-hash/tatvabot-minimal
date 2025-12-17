@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{
+     --brown:#8b5a2b;
+     --brown-light:#f4ebe2;
+     --brown-border:#d6b89c;
     --green:#14532d;
     --muted:#f7f7f8;
     --bubble-bg:#f1f5f9;
@@ -51,26 +54,26 @@
 
 /* 🌱 Soil / brown themed quick tabs */
 .quick-btn{
-  background:#f7efe6;              /* light soil */
-  border:1px solid #c8a27c;        /* brown outline */
-  color:#6b3e1e;                   /* dark brown text */
+  background:var(--brown-light);
+  border:1px solid var(--brown-border);
+  color:#5b3a1e;
   padding:8px 14px;
   border-radius:999px;
   cursor:pointer;
   font-size:13px;
-  transition:all .2s ease;
+  display:flex;
+  align-items:center;
+  gap:6px;
 }
 
 .quick-btn:hover{
-  background:#ead7c2;
-  border-color:#a47148;
+  background:#ead8c4;
 }
 
-/* Primary CTA (Buy vermicompost) */
 .quick-btn.primary{
-  background:#14532d;
+  background:var(--brown);
   color:#fff;
-  border-color:#14532d;
+  border-color:var(--brown);
 }
   @media(max-width:640px){ .msg img{ max-width:220px; } }
 </style>
@@ -197,17 +200,16 @@ function injectQuickRow(){
   row.id = 'quick-row';
   row.className = 'quick-row';
 
- const items = [
-  { t:'🟡 Yellow leaves', flow:'yellow_leaves' },
-  { t:'🟤 Brown spots', flow:'brown_spots' },
-  { t:'🥀 Wilting plant', flow:'wilting' },
-  { t:'🐛 Pest infestation', flow:'pests' },
-  { t:'🍂 Leaf drop', flow:'leaf_drop' },
-  { t:'🌱 Slow growth', flow:'slow_growth' },
-  { t:'🌼 Not flowering', flow:'flowering_issues' },
-  { t:'🪱 Buy vermicompost', cls:'primary' }
+const items = [
+  { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
+  { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
+  { t:'Wilting plant', flow:'wilting', icon:'🥀' },
+  { t:'Pest infestation', flow:'pests', icon:'🐛' },
+  { t:'Leaf drop', flow:'leaf_drop', icon:'🍂' },
+  { t:'Slow growth', flow:'slow_growth', icon:'🐌' },
+  { t:'Not flowering', flow:'flowering_issues', icon:'🌸' },
+  { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
-
   items.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'quick-btn' + (item.primary ? ' primary' : '');
