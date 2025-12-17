@@ -2,10 +2,8 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const userMessage =
-      req.query.message ||
-      (req.body && req.body.message) ||
-      "Hello";
+   const userMessage = req.body?.message || "";
+const imageBase64 = req.body?.imageBase64 || null;
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
