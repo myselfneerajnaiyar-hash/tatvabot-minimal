@@ -37,7 +37,7 @@ Format:
           { type: "text", text: message || "Diagnose this plant" },
           {
             type: "image_url",
-            image_url: { url: imageBase64 }
+            image_url: { url: imageUrl }
           }
         ]
       });
