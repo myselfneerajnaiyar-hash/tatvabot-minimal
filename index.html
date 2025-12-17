@@ -479,10 +479,16 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
   const typingEl = showTypingIndicator();
   try {
   const body = {
-  message: finalMessage,
-  imageBase64: uploadedImageUrl,
+  message: messageRaw || "Diagnose this plant from the image",
+  imageBase64: uploadedImageUrl || null,
   location: loadLocation() || null
 };
+
+const res = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body)
+});
     const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(()=>null);
     await new Promise(r=>setTimeout(r,650));
