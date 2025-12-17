@@ -167,11 +167,34 @@ function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.remove
 function injectQuickRow(){
   if(document.getElementById('quick-row')) return;
   const row = document.createElement('div'); row.id = 'quick-row'; row.className = 'quick-row'; row.style.marginBottom = '14px';
-  const items = [ {t:'Why are leaves yellow?'}, {t:'Powdery mildew'}, {t:'Leaf holes / pests'}, {t:'Soil smell / drainage'}, {t:'Buy vermicompost', cls:'primary'} ];
-  items.forEach(it => { const b = document.createElement('button'); b.className = 'quick-btn ' + (it.cls || ''); b.setAttribute('data-q', it.t); b.textContent = it.t; row.appendChild(b); });
+  const items = [
+  { t: 'Yellow leaves', flow: 'yellow_leaves' },
+  { t: 'Brown spots', flow: 'brown_spots' },
+  { t: 'Wilting plant', flow: 'wilting' },
+  { t: 'Pest infestation', flow: 'pests' },
+  { t: 'Leaf drop', flow: 'leaf_drop' },
+  { t: 'Slow growth', flow: 'slow_growth' },
+  { t: 'Not flowering', flow: 'flowering_issues' },
+  { t: 'Buy vermicompost', cls:'primary' }
+];
+  items.forEach(it => { const b = document.createElement('button'); b.className = 'quick-btn ' + (it.cls || ''); if(it.flow) b.dataset.flow = it.flow; b.textContent = it.t; row.appendChild(b); });
   const firstChild = chatWindow.firstChild;
   if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling); else chatWindow.appendChild(row);
-  row.addEventListener('click', (ev) => { const btn = ev.target.closest('button[data-q]'); if(!btn) return; const q = btn.getAttribute('data-q'); if(q){ input.value = q; sendMessage(); } });
+  row.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button');
+  if(!btn) return;
+
+  const flow = btn.dataset.flow;
+
+  if(flow){
+    startDiagnosis(flow);
+    return;
+  }
+
+  // fallback (buy vermicompost)
+  input.value = btn.textContent;
+  sendMessage();
+});
 }
 
 // restore
