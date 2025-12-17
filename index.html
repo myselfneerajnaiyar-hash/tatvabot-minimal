@@ -203,7 +203,6 @@ fileInput.addEventListener('change', async () => {
   } catch(err){ console.error('Upload error', err); alert('Upload error: ' + (err.message || err)); showStatus('Upload error'); }
   finally { fileInput.value = ''; chooseFileBtn.disabled = false; sendBtn.disabled = false; setTimeout(()=>showStatus(''),1600); }
 });
-
 // --- diagnosis flows (config-driven) ---
 const DIAG_FLOWS = {
 
@@ -212,10 +211,10 @@ const DIAG_FLOWS = {
     questions: [
       'Is yellowing uniform (whole leaf) or just between veins?',
       'How often do you water this plant? (daily / weekly / rarely)',
-      'Is the plant in bright sun or shade?',
-      'Have you noticed pests or spots on the leaves? (yes / no)'
+      'Is the plant in bright sun or in shade?',
+      'Have you noticed any pests or unusual spots? (yes / no)'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -228,7 +227,7 @@ const DIAG_FLOWS = {
       'Has the plant been exposed to rain or overhead watering?',
       'Are the spots spreading quickly? (yes / no)'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -241,7 +240,7 @@ const DIAG_FLOWS = {
       'Is the pot well-drained? (yes / no)',
       'Has the plant been moved recently? (yes / no)'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -254,7 +253,7 @@ const DIAG_FLOWS = {
       'Are ants present near the plant?',
       'Is the infestation mild or heavy?'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -267,7 +266,7 @@ const DIAG_FLOWS = {
       'Has watering routine changed recently?',
       'Is the plant indoors or outdoors?'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -280,7 +279,7 @@ const DIAG_FLOWS = {
       'How much sunlight does it receive?',
       'When was it last fertilized?'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   },
@@ -293,26 +292,13 @@ const DIAG_FLOWS = {
       'Are you using high-nitrogen fertilizer?',
       'Is pruning done regularly?'
     ],
-    finishText(answers, location){
+    finishText(answers, location) {
       return buildSummary(this.title, this.questions, answers, location);
     }
   }
 
 };
-      // answers is array of responses in same order
-      let out = this.title + ' — summary\n\n';
-      for(let i=0;i<this.questions.length;i++){
-        out += (i+1) + '. ' + this.questions[i] + '\n   Answer: ' + (answers[i] || '—') + '\n';
-      }
-      if(location){
-        if(location.name) out += '\nLocation: ' + location.name + '\n';
-        else if(location.coords) out += '\nLocation: ' + location.coords.latitude.toFixed(4) + ',' + location.coords.longitude.toFixed(4) + '\n';
-      }
-      out += '\nTimestamp: ' + new Date().toLocaleString();
-      return out;
-    }
-  }
-};
+
 // --- rule-based diagnosis engine ---
 function diagnoseFromAnswers(answers){
   const a = answers.join(' ').toLowerCase();
