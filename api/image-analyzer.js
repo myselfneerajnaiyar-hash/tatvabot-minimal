@@ -1,53 +1,67 @@
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export const runtime = "nodejs";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const { imageBase64 } = req.body;
-
-    if (!imageBase64) {
-      return res.status(400).json({ error: "No image provided" });
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are TatvaBot, an expert gardening and plant disease diagnosis assistant. Analyze plant images and give probable issues, confidence level, and next steps.",
+    const { imageUrl } = req.body || {};
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "imageUrl missing" });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "OPENAI_API_KEY missing" });
+    }
+
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: Bearer ${process.env.OPENAI_API_KEY},
         },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Analyze this plant image and diagnose possible problems." },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.2,
+          messages: [
             {
-              type: "image_url",
-              image_url: {
-                url: imageBase64,
-              },
+              role: "system",
+              content:
+                "You are a plant disease expert. Analyze visible symptoms from the image description carefully. Do not guess if unsure.",
+            },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Analyze this plant image and list visible symptoms only." },
+                {
+                  type: "image_url",
+                  image_url: { url: imageUrl },
+                },
+              ],
             },
           ],
-        },
-      ],
-      temperature: 0.3,
-    });
+        }),
+      }
+    );
 
-    const reply = response.choices[0].message.content;
-    return res.status(200).json({ reply });
+    const data = await response.json();
 
-  } catch (error) {
-    console.error("Image Analyzer Error:", error);
-    return res.status(500).json({
-      error: "Image analysis failed",
-      details: error.message,
+    if (!response.ok) {
+      console.error("OpenAI error:", data);
+      return res.status(500).json({ error: "OpenAI image analysis failed" });
+    }
+
+    const analysis = data.choices[0].message.content;
+
+    return res.status(200).json({
+      raw: analysis,
     });
+  } catch (err) {
+    console.error("Image analyzer crash:", err);
+    return res.status(500).json({ error: "Image analyzer crashed" });
   }
 }
