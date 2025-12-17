@@ -42,9 +42,27 @@
   .mic-btn{ width:40px; height:40px; border-radius:999px; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff; }
   .mic-btn.recording{ box-shadow:0 0 0 6px rgba(197,48,48,0.08); border-color:var(--danger); }
   .status{ font-size:13px; color:#6b7280; padding:6px 18px 10px; min-height:20px; }
-  .quick-row{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
-  .quick-btn{ background:#fff; border:1px solid var(--muted-dark); padding:8px 12px; border-radius:999px; cursor:pointer; font-size:13px; }
-  .quick-btn.primary{ background:var(--green); color:#fff; border-color:var(--green); }
+  .quick-btn{
+  background:#f5efe6;           /* light soil / beige */
+  border:1px solid #8b5a2b;     /* brown border */
+  color:#5a3a1a;                /* dark brown text */
+  padding:8px 14px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:13px;
+  transition:all 0.2s ease;
+}
+
+.quick-btn:hover{
+  background:#e9ddcf;           /* hover soil shade */
+}
+
+/* Primary CTA stays green */
+.quick-btn.primary{
+  background:var(--green);
+  color:#fff;
+  border-color:var(--green);
+}
   @media(max-width:640px){ .msg img{ max-width:220px; } }
 </style>
 </head>
