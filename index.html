@@ -162,41 +162,61 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return
 // typing indicator
 function showTypingIndicator(){ const el = document.createElement('div'); el.className = 'msg msg-bot typing-wrap'; const span = document.createElement('span'); span.className = 'typing'; span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>'; el.appendChild(span); chatWindow.appendChild(el); chatWindow.scrollTop = chatWindow.scrollHeight; return el; }
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
-
-// quick row
+// quick row (DIAGNOSIS TABS)
 function injectQuickRow(){
   if(document.getElementById('quick-row')) return;
-  const row = document.createElement('div'); row.id = 'quick-row'; row.className = 'quick-row'; row.style.marginBottom = '14px';
+
+  const row = document.createElement('div');
+  row.id = 'quick-row';
+  row.className = 'quick-row';
+
   const items = [
-  { t: 'Yellow leaves', flow: 'yellow_leaves' },
-  { t: 'Brown spots', flow: 'brown_spots' },
-  { t: 'Wilting plant', flow: 'wilting' },
-  { t: 'Pest infestation', flow: 'pests' },
-  { t: 'Leaf drop', flow: 'leaf_drop' },
-  { t: 'Slow growth', flow: 'slow_growth' },
-  { t: 'Not flowering', flow: 'flowering_issues' },
-  { t: 'Buy vermicompost', cls:'primary' }
-];
-  items.forEach(it => { const b = document.createElement('button'); b.className = 'quick-btn ' + (it.cls || ''); if(it.flow) b.dataset.flow = it.flow; b.textContent = it.t; row.appendChild(b); });
-  const firstChild = chatWindow.firstChild;
-  if(firstChild) chatWindow.insertBefore(row, firstChild.nextSibling); else chatWindow.appendChild(row);
-  row.addEventListener('click', (ev) => {
-  const btn = ev.target.closest('button');
-  if(!btn) return;
+    { label: 'Yellow leaves', flow: 'yellow_leaves' },
+    { label: 'Brown spots', flow: 'brown_spots' },
+    { label: 'Wilting plant', flow: 'wilting' },
+    { label: 'Pest infestation', flow: 'pests' },
+    { label: 'Leaf drop', flow: 'leaf_drop' },
+    { label: 'Slow growth', flow: 'slow_growth' },
+    { label: 'Not flowering', flow: 'flowering_issues' },
+    { label: 'Buy vermicompost', primary: true }
+  ];
 
-  const flow = btn.dataset.flow;
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn' + (item.primary ? ' primary' : '');
+    btn.textContent = item.label;
 
-  if(flow){
-    startDiagnosis(flow);
-    return;
+    if(item.flow){
+      btn.dataset.flow = item.flow;
+    }
+
+    row.appendChild(btn);
+  });
+
+  // insert below first bot message
+  const first = chatWindow.firstChild;
+  if(first && first.nextSibling){
+    chatWindow.insertBefore(row, first.nextSibling);
+  } else {
+    chatWindow.appendChild(row);
   }
 
-  // fallback (buy vermicompost)
-  input.value = btn.textContent;
-  sendMessage();
-});
-}
+  row.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
 
+    const flow = btn.dataset.flow;
+
+    if(flow){
+      startDiagnosis(flow);
+      return;
+    }
+
+    // fallback: Buy vermicompost
+    input.value = btn.textContent;
+    sendMessage();
+  });
+}
 // restore
 function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
 
