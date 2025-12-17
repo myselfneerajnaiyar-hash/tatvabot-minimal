@@ -478,15 +478,9 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
   try {
-   const body = {
-  message: messageRaw || "Diagnose this plant",
-  imageUrl: uploadedImageUrl || null,
-  location: loadLocation() || null
-};
-
-const body = {
+  const body = {
   message: finalMessage,
-  imageUrl: uploadedImageUrl || null,
+  imageBase64: uploadedImageUrl,
   location: loadLocation() || null
 };
     const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
