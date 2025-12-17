@@ -2,8 +2,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const userMessage = req.body?.message || "";
-    const imageBase64 = req.body?.imageBase64 || null;
+    const { message, imageBase64 } = req.body;
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -13,8 +12,8 @@ export default async function handler(req, res) {
 You are TatvaBot — an expert AI Plant Doctor 🌱.
 
 Rules:
-- Do not guess diseases blindly
-- Ask follow-up questions if unsure
+- Never guess blindly
+- If unsure, ask follow-up questions
 - Give practical Indian gardening advice
 - Keep answers simple and structured
 
@@ -25,43 +24,42 @@ Format:
 🔁 Follow-up Questions
 `;
 
-    // ✅ messages must be created OUTSIDE the API call
     const messages = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: systemPrompt }
     ];
 
     if (imageBase64) {
       messages.push({
         role: "user",
         content: [
-          { type: "text", text: userMessage || "Diagnose this plant issue" },
+          { type: "text", text: message || "Please diagnose this plant issue" },
           {
             type: "image_url",
-            image_url: { url: imageBase64 },
-          },
-        ],
+            image_url: { url: imageBase64 }
+          }
+        ]
       });
     } else {
       messages.push({
         role: "user",
-        content: userMessage,
+        content: message || "Hello"
       });
     }
 
-    const completion = await client.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
       temperature: 0.4,
     });
 
     res.status(200).json({
-      reply: completion.choices[0].message.content,
+      reply: response.choices[0].message.content,
     });
 
   } catch (error) {
     console.error("TatvaBot error:", error);
     res.status(500).json({
-      reply: "TatvaBot is thinking 🤔 Please try again.",
+      reply: "TatvaBot hit an internal error. Please try again.",
     });
   }
 }
