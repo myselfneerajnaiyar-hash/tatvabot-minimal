@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message = "", imageBase64 = null } = req.body || {};
+    const { message, imageUrl } = req.body;
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -12,8 +12,8 @@ export default async function handler(req, res) {
 You are TatvaBot — an expert AI Plant Doctor 🌱.
 
 Rules:
-- Do not guess blindly
-- Use image if provided
+- Use the image if provided
+- Do not hallucinate diseases
 - Ask follow-up questions if unsure
 - Give practical Indian gardening advice
 
@@ -28,14 +28,14 @@ Format:
       { role: "system", content: systemPrompt }
     ];
 
-    if (imageBase64) {
+    if (imageUrl) {
       messages.push({
         role: "user",
         content: [
-          { type: "text", text: message || "Diagnose this plant from the image" },
+          { type: "text", text: message || "Diagnose this plant" },
           {
             type: "image_url",
-            image_url: { url: imageBase64 }
+            image_url: { url: imageUrl }
           }
         ]
       });
@@ -57,8 +57,9 @@ Format:
     });
 
   } catch (error) {
-    console.error("TatvaBot API error:", error);
+    console.error("TatvaBot error:", error);
     res.status(500).json({
-      reply: "TatvaBot had trouble replying. Please try again."
+      reply: "Image diagnosis failed. Please upload a clear photo and try again."
     });
   }
+}
