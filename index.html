@@ -485,7 +485,7 @@ if (intent && !diagnosisState && !diagnosisCompleted) {
 
 const body = {
   message: finalMessage,
-  image: null, // image already analyzed
+  imageUrl: uploadedImageUrl || null,
   location: loadLocation() || null
 };
     const res = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
