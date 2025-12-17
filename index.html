@@ -396,39 +396,13 @@ diagnosisState = null;
   diagnosisCompleted = true;
 }
 // --- send flow (Formspree phone detection + normal chat) ---
-async function analyzePlantImage(imageUrl) {
-  const res = await fetch("/api/image-analyzer", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      imageUrl: imageUrl
-    })
-  });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || "Image analysis failed");
-  }
-
-  return data.raw || "";
-}
   async function sendMessage(){
   const messageRaw = input.value.trim();
   const imageToSend = uploadedImageUrl || null;
   let imageInsights = "";
 
-if (imageToSend) {
-  try {
-    showStatus("Analyzing plant image...");
-    imageInsights = await analyzePlantImage(imageToSend);
-  } catch (e) {
-    console.error("Image analysis failed", e);
-    imageInsights = "";
-  }
-}
+
   if(!messageRaw && !imageToSend) return;
 
   // phone capture
