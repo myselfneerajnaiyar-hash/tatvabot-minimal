@@ -100,18 +100,8 @@ const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const fileInput = document.getElementById('file-input');
- async function analyzePlantImage(imageBase64) {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: "Diagnose this plant from the image",
-      imageBase64: imageBase64,
-    }),
-  });
-
-  const data = await res.json();
-  return data.reply;
+async function analyzePlantImage() {
+  return "Image received. I will ask a few questions to diagnose the issue.";
 }
 const chooseFileBtn = document.getElementById('choose-file-btn');
 const statusEl = document.getElementById('status');
