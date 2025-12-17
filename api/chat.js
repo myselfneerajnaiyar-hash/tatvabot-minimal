@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message, imageBase64 } = req.body;
+    const { message, imageUrl } = req.body;
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -30,7 +30,7 @@ Format:
       { role: "system", content: systemPrompt }
     ];
 
-    if (imageBase64) {
+    if (imageUrl) {
       messages.push({
         role: "user",
         content: [
