@@ -150,6 +150,30 @@ let isRecording = false;
 let diagnosisState = null; // {flow: 'yellow_leaves', qIndex:0, answers: []}
   let currentPlant = null;
 let diagnosisCompleted = false
+  /* =========================
+   🌿 PLANT KNOWLEDGE BASE
+========================= */
+const PLANT_KNOWLEDGE = {
+  tulsi: {
+    name: "Tulsi (Holy Basil)",
+    about: "Tulsi is a sacred medicinal plant widely grown in Indian homes. It has strong aromatic leaves and is used in Ayurveda.",
+    sunlight: "4–6 hours of direct sunlight daily. Prefers morning sun.",
+    watering: "Water when topsoil is dry. Avoid daily watering.",
+    soil: "Well-draining soil with compost. Avoid waterlogging.",
+    temperature: "Thrives in warm climates (20–35°C).",
+    pruning: "Regular pruning encourages bushy growth.",
+    commonMistakes: [
+      "Overwatering",
+      "Keeping in shade",
+      "No drainage holes"
+    ],
+    quickTips: [
+      "Pinch flower buds to promote leaf growth",
+      "Use vermicompost once a month",
+      "Move indoors during extreme cold"
+    ]
+  }
+};
   
 // phone regex
 const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
