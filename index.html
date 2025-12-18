@@ -394,80 +394,69 @@ const items = [
   }
 
   row.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-     if(!btn) return;
-   // 🌞 Daily Care Button
-if (btn && btn.dataset.action === 'daily_care') {
-  dailyCareMode = true;
-  selectedPlantsForCare.clear();
+  const btn = e.target.closest('button');
+  if (!btn) return;
 
-  addMessage(
-    "🌞 Today's Plant Care Mode\n\n" +
-    "Select all the plants you have.\n" +
-    "Tap plant buttons one by one.\n\n" +
-    "When done, type done.",
-    'bot'
-  );
-  return;
-// 🌱 Plant selection
-if (btn.dataset.plant) {
-
-  // 🌞 If Daily Care Mode is ON → collect plants only
-  if (dailyCareMode) {
-    selectedPlantsForCare.add(btn.dataset.plant);
+  // 🌞 Daily Care Button
+  if (btn.dataset.action === 'daily_care') {
+    dailyCareMode = true;
+    selectedPlantsForCare.clear();
 
     addMessage(
-      `✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care`,
+      "🌞 Today’s Plant Care Mode\n\n" +
+      "Select all the plants you have.\n" +
+      "Tap plant buttons one by one.\n" +
+      "When done, type done.",
       'bot'
     );
     return;
   }
 
-  // 🌿 Normal mode → show plant info
-  currentPlant = btn.dataset.plant;
-  const plant = PLANT_KNOWLEDGE[currentPlant];
+  // 🌱 Plant selection
+  if (btn.dataset.plant) {
 
-  addMessage(
-    `🌿 ${plant.name}
+    // ✅ If Daily Care Mode is ON → collect plants only
+    if (dailyCareMode) {
+      selectedPlantsForCare.add(btn.dataset.plant);
 
-📘 About:
-${plant.about}
-
-☀️ Sunlight: ${plant.sunlight}
-💧 Watering: ${plant.watering}
-🌱 Soil: ${plant.soil}
-🌡️ Temperature: ${plant.temperature}
-
-✂️ Pruning:
-${plant.pruning}
-
-⚠️ Common mistakes:
-- ${plant.commonMistakes.join('\n- ')}
-
-✅ Quick tips:
-- ${plant.quickTips.join('\n- ')}
-
-Now tell me the problem you are facing (e.g. yellow leaves, wilting, brown spots).`,
-    'bot'
-  );
-  return;
-}
-      
-
-
-    const flow = btn.dataset.flow;
-
-    if(flow){
-      startDiagnosis(flow);
+      addMessage(
+        `✅ Added *${PLANT_KNOWLEDGE[btn.dataset.plant].name}* for today’s care.`,
+        'bot'
+      );
       return;
     }
-  })
 
-    // fallback: Buy vermicompost
-    input.value = btn.textContent;
-    sendMessage();
-  };
-}
+    // 🟢 Normal mode → show plant info
+    currentPlant = btn.dataset.plant;
+    const plant = PLANT_KNOWLEDGE[currentPlant];
+
+    addMessage(
+      `🌿 *${plant.name}*\n\n` +
+      `📘 About:\n${plant.about}\n\n` +
+      `☀️ Sunlight: ${plant.sunlight}\n` +
+      `💧 Watering: ${plant.watering}\n` +
+      `🌱 Soil: ${plant.soil}\n` +
+      `🌡️ Temperature: ${plant.temperature}\n\n` +
+      `✂️ Pruning:\n${plant.pruning}\n\n` +
+      `⚠️ Common mistakes:\n- ${plant.commonMistakes.join('\n- ')}\n\n` +
+      `✅ Quick tips:\n- ${plant.quickTips.join('\n- ')}\n\n` +
+      `Now tell me the problem you are facing (e.g. yellow leaves, wilting).`,
+      'bot'
+    );
+    return;
+  }
+
+  // 🧪 Diagnosis flow
+  const flow = btn.dataset.flow;
+  if (flow) {
+    startDiagnosis(flow);
+    return;
+  }
+
+  // fallback
+  input.value = btn.textContent;
+  sendMessage();
+});
 // restore
 function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
 
