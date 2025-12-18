@@ -246,18 +246,20 @@ const PLANT_KNOWLEDGE = {
     ]
   },
 };
-  function startDailyCareFlow() {
-  if (!currentPlant) {
+ function startDailyCareFlow() {
+  if (!selectedPlantsForCare.size) {
     addMessage(
-      "🌞 Today’s Plant Care\n\nPlease select a plant first so I can guide you for today.",
+      "🌞 Today’s Plant Care\n\nPlease select at least one plant.",
       'bot'
     );
     return;
   }
 
-  const plant = PLANT_KNOWLEDGE[currentPlant];
+  selectedPlantsForCare.forEach(plantKey => {
+    const plant = PLANT_KNOWLEDGE[plantKey];
 
-  const todayCare = `🌞 Today’s Care for ${plant.name}
+    addMessage(
+`🌞 Today’s Care for ${plant.name}
 
 💧 Watering:
 ${plant.watering}
@@ -265,16 +267,19 @@ ${plant.watering}
 ☀️ Light:
 ${plant.sunlight}
 
-🌱 Care focus today:
+🌱 Focus today:
 - Check soil moisture
 - Remove dead leaves
-- Observe for pests
+- Look for pests
 
 📌 Tip:
-${plant.quickTips[0]}
-`;
+${plant.quickTips[0]}`,
+      'bot'
+    );
+  });
 
-  addMessage(todayCare, 'bot');
+  dailyCareMode = false;
+  selectedPlantsForCare.clear();
 }
   
 const chatWindow = document.getElementById('chat-window');
@@ -300,8 +305,11 @@ let isRecording = false;
 // diagnosis state container
 let diagnosisState = null; // {flow: 'yellow_leaves', qIndex:0, answers: []}
   let currentPlant = null;
-let diagnosisCompleted = false
-let dailyCareState = null; 
+let diagnosisCompleted = false;
+
+// 🌞 Daily care state
+let dailyCareMode = false;
+let selectedPlantsForCare = new Set();
 // { plants: [], awaitingSelection: false }
   
 // phone regex
@@ -398,19 +406,19 @@ const items = [
   if (!btn) return;
 
   // 🌞 Daily Care Button
-  if (btn.dataset.action === 'daily_care') {
-    dailyCareMode = true;
-    selectedPlantsForCare.clear();
+if (btn.dataset.action === 'daily_care') {
+  dailyCareMode = true;
+  selectedPlantsForCare.clear();
 
-    addMessage(
-      "🌞 Today’s Plant Care Mode\n\n" +
-      "Select all the plants you have.\n" +
-      "Tap plant buttons one by one.\n" +
-      "When done, type done.",
-      'bot'
-    );
-    return;
-  }
+  addMessage(
+    "🌞 Today’s Plant Care Mode\n\n" +
+    "Select all the plants you have.\n" +
+    "Tap plant buttons one by one.\n" +
+    "When done, type done.",
+    'bot'
+  );
+  return;
+}
 if (btn.dataset.action === "daily_care") {
   startDailyCareFlow();
   return;
