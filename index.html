@@ -187,6 +187,25 @@ const PLANT_KNOWLEDGE = {
     "Use vermicompost every 30–40 days"
   ]
 },
+   aloevera: {
+    name: "Aloe Vera",
+    about: "Aloe Vera is a succulent plant known for its medicinal gel. It is drought-tolerant and ideal for beginners.",
+    sunlight: "Bright indirect sunlight or mild direct morning sun.",
+    watering: "Water only when soil is completely dry. Overwatering causes root rot.",
+    soil: "Sandy, well-draining soil (cactus or succulent mix).",
+    temperature: "15–35°C. Sensitive to frost.",
+    pruning: "Remove damaged outer leaves from the base.",
+    commonMistakes: [
+      "Overwatering",
+      "Keeping in shade",
+      "Using heavy garden soil"
+    ],
+    quickTips: [
+      "Water once every 10–15 days",
+      "Use clay pots for better drainage",
+      "Harvest gel only from mature leaves"
+    ]
+  },
 };
   
 const chatWindow = document.getElementById('chat-window');
@@ -269,6 +288,7 @@ const items = [
   { t:'Tulsi (Holy Basil)', plant:'tulsi', icon:'🌿' },
   { t: 'Areca palm', plant: 'areca', icon: '🌴' },
   { t: 'Money plant', plant: 'moneyplant', icon: '💰' },
+  { t:'Aloe vera', plant:'aloevera', icon:'🌵' },
   { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
   { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
   { t:'Wilting plant', flow:'wilting', icon:'🥀' },
