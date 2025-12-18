@@ -379,21 +379,25 @@ const items = [
   { t:'Today’s plant care', action:'daily_care', icon:'☀️' },
   { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
-  items.forEach(item => {
-    const btn = document.createElement('button');
-   btn.className = 'quick-btn' + (item.cls === 'primary' ? ' primary' : '');
-   btn.textContent = `${item.icon || ''} ${item.t}`;
-    if(item.flow){
-      btn.dataset.flow = item.flow;
-    }
-    if(item.plant){
-      btn.dataset.plant = item.plant;
-    }
-    if(item.action){
-      btn.dataset.action = item.action;
-    }
-    row.appendChild(btn);
-  });
+ items.forEach(item => {
+  const btn = document.createElement('button');
+  btn.className = 'quick-btn' + (item.cls === 'primary' ? ' primary' : '');
+  btn.textContent = ${item.icon || ''} ${item.t};
+
+  if(item.flow){
+    btn.dataset.flow = item.flow;
+  }
+
+  if(item.plant){
+    btn.dataset.plant = item.plant;
+  }
+
+  if(item.action){
+    btn.dataset.action = item.action;
+  }
+
+  row.appendChild(btn);
+});
 
   // insert below first bot message
   const first = chatWindow.firstChild;
