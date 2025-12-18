@@ -241,11 +241,31 @@ const items = [
 if (btn.dataset.plant) {
   currentPlant = btn.dataset.plant;
 
-  addMessage(
-    `🌿 Selected plant: ${currentPlant}\nTell me the problem you are facing.`,
-    'bot'
-  );
+  const plant = PLANT_KNOWLEDGE[currentPlant];
 
+addMessage(
+`🌿 ${plant.name}
+
+📖 About:
+${plant.about}
+
+☀️ Sunlight: ${plant.sunlight}
+💧 Watering: ${plant.watering}
+🌱 Soil: ${plant.soil}
+🌡️ Temperature: ${plant.temperature}
+
+✂️ Pruning:
+${plant.pruning}
+
+⚠️ Common mistakes:
+- ${plant.commonMistakes.join('\n- ')}
+
+✅ Quick tips:
+- ${plant.quickTips.join('\n- ')}
+
+Now tell me the problem you are facing (e.g. yellow leaves, wilting, brown spots).`,
+'bot'
+);
   return; // ⛔ stop further flow handling
 }
 
