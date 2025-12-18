@@ -469,36 +469,7 @@ if (btn.dataset.action === "daily_care") {
   sendMessage();
 });
 // restore
-function startDailyCareFlow() {
-  if (!currentPlant) {
-    addMessage(
-      "🌞 Today’s Plant Care\n\nPlease select a plant first so I can guide you for today.",
-      'bot'
-    );
-    return;
-  }
 
-  const plant = PLANT_KNOWLEDGE[currentPlant];
-
-  addMessage(
-`🌞 Today’s Care for ${plant.name}
-
-💧 Watering:
-${plant.watering}
-
-☀️ Light:
-${plant.sunlight}
-
-🌱 Focus today:
-- Check soil moisture
-- Remove dead leaves
-- Look for pests
-
-📌 Tip:
-${plant.quickTips[0]}`,
-    'bot'
-  );
-}
   function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
 
 (function restore(){
