@@ -225,6 +225,26 @@ const PLANT_KNOWLEDGE = {
       "Perfect plant for beginners"
     ]
   },
+  rose: {
+    name: "Rose",
+    about: "Rose is a flowering plant grown for its beautiful and fragrant blooms. It needs good sunlight, nutrition, and regular care to flower well.",
+    sunlight: "5–6 hours of direct sunlight daily. Morning sun is best.",
+    watering: "Water deeply when topsoil is dry. Do not water daily.",
+    soil: "Rich, well-draining soil with compost and sand.",
+    temperature: "15–30°C. Protect from extreme heat and frost.",
+    pruning: "Prune lightly after flowering to encourage new buds.",
+    commonMistakes: [
+      "Less sunlight",
+      "Overwatering",
+      "No pruning",
+      "Skipping fertilizer"
+    ],
+    quickTips: [
+      "Use vermicompost every 20–30 days",
+      "Remove spent flowers regularly",
+      "Check underside of leaves for pests"
+    ]
+  },
 };
   
 const chatWindow = document.getElementById('chat-window');
@@ -308,6 +328,7 @@ const items = [
   { t: 'Areca palm', plant: 'areca', icon: '🌴' },
   { t: 'Money plant', plant: 'moneyplant', icon: '💰' },
   { t:'Aloe vera', plant:'aloevera', icon:'🌵' },
+  { t: 'Rose', plant: 'rose', icon: '🌹' },
   { t:'Snake plant', plant:'snakeplant', icon:'🐍' },
   { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
   { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
