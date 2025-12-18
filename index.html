@@ -396,45 +396,41 @@ const items = [
   row.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
      if(!btn) return;
-    // 🌞 Daily Care Button
-if (btn.dataset.action === 'daily_care') {
+   // 🌞 Daily Care Button
+if (btn && btn.dataset.action === 'daily_care') {
   dailyCareMode = true;
   selectedPlantsForCare.clear();
 
   addMessage(
-`🌞 *Today's Plant Care Mode*
-
-Select all the plants you have.
-Tap plant buttons one by one.
-When done, type *done*.`,
-'bot'
+    "🌞 Today's Plant Care Mode\n\n" +
+    "Select all the plants you have.\n" +
+    "Tap plant buttons one by one.\n\n" +
+    "When done, type done.",
+    'bot'
   );
   return;
-}
-   
-   
 // 🌱 Plant selection
 if (btn.dataset.plant) {
 
-  // 🟢 If Daily Care Mode is ON → select plant only
+  // 🌞 If Daily Care Mode is ON → collect plants only
   if (dailyCareMode) {
     selectedPlantsForCare.add(btn.dataset.plant);
 
     addMessage(
-      `✅ Added *${PLANT_KNOWLEDGE[btn.dataset.plant].name}* for today's care.`,
+      ✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care,
       'bot'
     );
     return;
   }
 
-  // 🔵 Normal mode → show plant info
+  // 🌿 Normal mode → show plant info
   currentPlant = btn.dataset.plant;
   const plant = PLANT_KNOWLEDGE[currentPlant];
 
   addMessage(
-`🌿 ${plant.name}
+    `🌿 ${plant.name}
 
-📖 About:
+📘 About:
 ${plant.about}
 
 ☀️ Sunlight: ${plant.sunlight}
@@ -451,12 +447,13 @@ ${plant.pruning}
 ✅ Quick tips:
 - ${plant.quickTips.join('\n- ')}
 
-Now tell me the problem you are facing.`,
-'bot'
+Now tell me the problem you are facing (e.g. yellow leaves, wilting, brown spots).`,
+    'bot'
   );
-
   return;
 }
+      
+
 
     const flow = btn.dataset.flow;
 
