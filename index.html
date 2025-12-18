@@ -472,16 +472,28 @@ function diagnoseFromAnswers(answers){
 function detectDiagnosisIntent(message){
   const m = message.toLowerCase();
 
-  if (
-    m.includes('yellow') ||
-    m.includes('droop') ||
-    m.includes('wilt') ||
-    m.includes('dry') ||
-    m.includes('spot') ||
-    m.includes('sticky') ||
-    m.includes('pest')
-  ) {
+  if (m.includes('yellow') || m.includes('chlorosis')) {
     return 'yellow_leaves';
+  }
+
+  if (m.includes('brown') || m.includes('spot')) {
+    return 'brown_spots';
+  }
+
+  if (m.includes('wilt') || m.includes('droop')) {
+    return 'wilting';
+  }
+
+  if (m.includes('pest') || m.includes('sticky') || m.includes('insect')) {
+    return 'pests';
+  }
+
+  if (m.includes('leaf drop') || m.includes('falling')) {
+    return 'leaf_drop';
+  }
+
+  if (m.includes('slow') || m.includes('not growing')) {
+    return 'slow_growth';
   }
 
   return null;
