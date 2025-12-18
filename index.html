@@ -795,6 +795,44 @@ diagnosisState = null;
 
   async function sendMessage(){
   const messageRaw = input.value.trim();
+    // 🌞 Finish Daily Care Mode
+if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
+
+  dailyCareMode = false;
+
+  if (selectedPlantsForCare.size === 0) {
+    addMessage("Please select at least one plant first 🌱", 'bot');
+    input.value = '';
+    return;
+  }
+
+  selectedPlantsForCare.forEach(plantKey => {
+    const plant = PLANT_KNOWLEDGE[plantKey];
+
+    addMessage(
+`🌞 Today’s Care for ${plant.name}
+
+💧 Watering:
+${plant.watering}
+
+☀️ Light:
+${plant.sunlight}
+
+🌱 Focus today:
+- Check soil moisture
+- Remove dead leaves
+- Look for pests
+
+📌 Tip:
+${plant.quickTips[0]}`,
+      'bot'
+    );
+  });
+
+  selectedPlantsForCare.clear();
+  input.value = '';
+  return;
+}
   const imageToSend = uploadedImageUrl || null;
  
 
