@@ -191,7 +191,26 @@ const PLANT_KNOWLEDGE = {
     "Rotate pot for even growth",
     "Use diluted vermicompost every 45 days"
   ]
-}
+},
+  moneyplant: {
+  name: "Money Plant (Pothos)",
+  about: "Money Plant is a hardy indoor climber known for air-purifying qualities and easy maintenance. It thrives even in low light and is ideal for beginners.",
+  sunlight: "Bright indirect light preferred, but tolerates low light.",
+  watering: "Water when top 1–2 inches of soil are dry. Overwatering causes root rot.",
+  soil: "Loose, well-draining soil. Can grow in water too.",
+  temperature: "18–30°C. Avoid cold drafts.",
+  pruning: "Trim long vines regularly to promote bushy growth.",
+  commonMistakes: [
+    "Overwatering",
+    "Keeping in complete darkness",
+    "No pruning"
+  ],
+  quickTips: [
+    "Grow in water with monthly water change",
+    "Wipe leaves to remove dust",
+    "Use vermicompost every 30–40 days"
+  ]
+},
 };
   
 // phone regex
@@ -247,6 +266,7 @@ function injectQuickRow(){
 const items = [
   { t:'Tulsi (Holy Basil)', plant:'tulsi', icon:'🌿' },
   { t: 'Areca palm', plant: 'areca', icon: '🌴' },
+  { t: 'Money plant', plant: 'moneyplant', icon: '💰' }
   { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
   { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
   { t:'Wilting plant', flow:'wilting', icon:'🥀' },
