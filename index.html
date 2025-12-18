@@ -148,6 +148,7 @@ let isRecording = false;
 
 // diagnosis state container
 let diagnosisState = null; // {flow: 'yellow_leaves', qIndex:0, answers: []}
+  let currentPlant = null;
 let diagnosisCompleted = false
   
 // phone regex
@@ -201,6 +202,7 @@ function injectQuickRow(){
   row.className = 'quick-row';
 
 const items = [
+  { t:'Tulsi (Holy Basil)', plant:'tulsi', icon:'🌿' },
   { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
   { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
   { t:'Wilting plant', flow:'wilting', icon:'🥀' },
@@ -217,6 +219,9 @@ const items = [
     if(item.flow){
       btn.dataset.flow = item.flow;
     }
+    if(item.plant){
+      btn.dataset.plant = item.plant;
+    }
 
     row.appendChild(btn);
   });
@@ -232,6 +237,17 @@ const items = [
   row.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if(!btn) return;
+    // 🌱 Plant selection
+if (btn.dataset.plant) {
+  currentPlant = btn.dataset.plant;
+
+  addMessage(
+    🌿 Selected plant: ${currentPlant}\nTell me the problem you are facing.,
+    'bot'
+  );
+
+  return; // ⛔ stop further flow handling
+}
 
     const flow = btn.dataset.flow;
 
