@@ -809,11 +809,11 @@ if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
   }
    if (weather) {
     addMessage(
-      🌦 Today’s Weather\n +
+      `🌦 Today’s Weather\n +
       📍 ${weather.name}\n +
       🌡 Temperature: ${weather.main.temp}°C\n +
       💧 Humidity: ${weather.main.humidity}%\n +
-      ☁️ Condition: ${weather.weather[0].description},
+      ☁️ Condition: ${weather.weather[0].description}`,
       'bot'
     );
   }
