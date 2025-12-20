@@ -357,14 +357,14 @@ async function getWeatherForUser() {
 
   let url = "";
 
-  // Case 1: GPS coordinates
+  // Case 1: GPS
   if (loc.coords) {
-    url = `${WEATHER_BASE_URL}?lat=${loc.coords.latitude}&lon=${loc.coords.longitude}&units=metric&appid=${WEATHER_API_KEY}`;
+    url = `${OPENWEATHER_BASE_URL}?lat=${loc.coords.latitude}&lon=${loc.coords.longitude}&units=metric&appid=${OPENWEATHER_API_KEY}`;
   }
 
   // Case 2: City name
   if (loc.name) {
-    url = `${WEATHER_BASE_URL}?q=${encodeURIComponent(loc.name)}&units=metric&appid=${WEATHER_API_KEY}`;
+    url = `${OPENWEATHER_BASE_URL}?q=${encodeURIComponent(loc.name)}&units=metric&appid=${OPENWEATHER_API_KEY}`;
   }
 
   try {
