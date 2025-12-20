@@ -807,9 +807,30 @@ if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
     input.value = '';
     return;
   }
+   if (weather) {
+    addMessage(
+      🌦 Today’s Weather\n +
+      📍 ${weather.name}\n +
+      🌡 Temperature: ${weather.main.temp}°C\n +
+      💧 Humidity: ${weather.main.humidity}%\n +
+      ☁️ Condition: ${weather.weather[0].description},
+      'bot'
+    );
+  }
 
   selectedPlantsForCare.forEach(plantKey => {
     const plant = PLANT_KNOWLEDGE[plantKey];
+
+     let weatherNote = '';
+    if (weather) {
+      if (weather.main.temp > 35) {
+        weatherNote = '⚠️ High heat today — avoid afternoon watering.';
+      } else if (weather.main.humidity > 75) {
+        weatherNote = '💧 High humidity — water only if soil is dry.';
+      } else if (weather.weather[0].main === 'Rain') {
+        weatherNote = '🌧 Rainy day — skip watering.';
+      }
+    }
 
     addMessage(
 `🌞 Today’s Care for ${plant.name}
@@ -824,6 +845,10 @@ ${plant.sunlight}
 - Check soil moisture
 - Remove dead leaves
 - Look for pests
+
+
+🌦 Weather note:
+${weatherNote || 'Normal care recommended'}
 
 📌 Tip:
 ${plant.quickTips[0]}`,
