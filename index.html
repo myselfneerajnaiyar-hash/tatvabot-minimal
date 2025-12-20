@@ -364,7 +364,7 @@ async function getWeatherForUser() {
 
   // Case 2: City name
   if (loc.name) {
-    url = ${WEATHER_BASE_URL}?q=${encodeURIComponent(loc.name)}&units=metric&appid=${WEATHER_API_KEY};
+    url = `${WEATHER_BASE_URL}?q=${encodeURIComponent(loc.name)}&units=metric&appid=${WEATHER_API_KEY}`;
   }
 
   try {
