@@ -797,6 +797,7 @@ diagnosisState = null;
 
   async function sendMessage(){
   const messageRaw = input.value.trim();
+    const weather = await getWeatherForUser();
     // 🌞 Finish Daily Care Mode
 if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
 
