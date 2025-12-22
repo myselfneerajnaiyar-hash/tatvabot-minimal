@@ -546,9 +546,23 @@ PROBLEMS.forEach(p => problemRow.appendChild(createBtn(p)));
 ACTIONS.forEach(a => actionRow.appendChild(createBtn(a)));
 
 /* ---------- INSERT INTO CHAT ---------- */
+  function addRowLabel(text) {
+  const label = document.createElement('div');
+  label.style.fontSize = '13px';
+  label.style.fontWeight = '600';
+  label.style.margin = '12px 0 4px';
+  label.style.color = '#555';
+  label.textContent = text;
+  return label;
+}
 const anchor = chatWindow.firstChild?.nextSibling || chatWindow.firstChild;
+chatWindow.insertBefore(addRowLabel('🌿 Your Plants'), anchor);
 chatWindow.insertBefore(plantRow, anchor);
+
+chatWindow.insertBefore(addRowLabel('🧪 Plant Problems'), plantRow.nextSibling);
 chatWindow.insertBefore(problemRow, plantRow.nextSibling);
+
+chatWindow.insertBefore(addRowLabel('☀️ Actions'), problemRow.nextSibling);
 chatWindow.insertBefore(actionRow, problemRow.nextSibling);
  
 // 🔘 Attach click handlers to each quick row
