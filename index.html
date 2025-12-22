@@ -573,12 +573,12 @@ const actionsLabel = addRowLabel('🟠 Actions');
 chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
 chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
 
-[plantRow, problemRow, actionRow]
-  .filter(Boolean)
-  .forEach(row => {
-    row.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
+[plantRow, problemRow, actionRow].forEach(row => {
+  if (!row) return;
+
+  row.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
 
       // ⬇️ EXISTING BUTTON LOGIC CONTINUES BELOW
       // 🌞 Daily Care Button
@@ -629,7 +629,6 @@ chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
         return;
       }
     });
-  });
 }
 // restore
 
@@ -640,7 +639,9 @@ chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
   if(!hist || !hist.length){ chatWindow.innerHTML = ''; ensureInitialMessage(); return; }
   chatWindow.innerHTML = '';
   hist.forEach(msg => { const el = createMessageElement(msg); chatWindow.appendChild(el); });
+ if (!document.querySelector('.quick-row')) {
   injectQuickRow();
+}
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
 
