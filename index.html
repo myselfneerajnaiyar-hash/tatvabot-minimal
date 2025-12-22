@@ -839,26 +839,7 @@ diagnosisState = null;
 }
 // --- send flow (Formspree phone detection + normal chat) ---
 
-  async function sendMessage(){
-  const messageRaw = input.value.trim();
-    if(!messageRaw) return
-
-    addUserMessage(messageRaw);
-    input.value = "";
-    
-    const weather = await getWeatherForUser();
-    const gardenerWeather = getGardenerWeatherSummary(weather)
-    async function generateDailyCareAdvice() {
-  const weather = await getWeatherForUser();
-  const gardenerWeather = getGardenerWeatherSummary(weather);
-
-  // 1️⃣ Show weather FIRST (once)
-  if (gardenerWeather) {
-    addMessage(
-      "🌦️ Today's Weather & Garden Insight\n\n" + gardenerWeather,
-      'bot'
-    );
-  }
+  
 
   // 2️⃣ Plant-wise care
   selectedPlantsForCare.forEach(plantKey => {
