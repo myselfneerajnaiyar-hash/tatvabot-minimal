@@ -823,48 +823,7 @@ diagnosisState = null;
 
   
 
-  // 2️⃣ Plant-wise care
-  selectedPlantsForCare.forEach(plantKey => {
-    const plant = PLANT_KNOWLEDGE[plantKey];
-
-    let weatherNote = '';
-    if (weather) {
-      if (weather.weather[0].main.toLowerCase().includes('rain')) {
-        weatherNote = '🌧 It has rained — skip watering today.';
-      } else if (weather.main.humidity > 75) {
-        weatherNote = '💧 High humidity — water only if soil is dry.';
-      } else if (weather.main.temp > 35) {
-        weatherNote = '🔥 Hot day — water early morning or evening.';
-      } else {
-        weatherNote = '✅ Normal watering rules apply.';
-      }
-    }
-
-    addMessage(
-`🌞 Today’s Care for ${plant.name}
-
-💧 Watering:
-${plant.watering}
-
-☀️ Light:
-${plant.sunlight}
-
-🌱 Focus today:
-- Check soil moisture
-- Remove dead leaves
-- Look for pests
-
-🌦 Weather-based advice:
-${weatherNote}
-
-📌 Tip:
-${plant.quickTips[0]}`,
-      'bot'
-    );
-  });
-
-  selectedPlantsForCare.clear();
-}
+ 
    
   const imageToSend = uploadedImageUrl || null;
  
