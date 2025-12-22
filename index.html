@@ -623,13 +623,13 @@ chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
         return;
       }
 
-      // 🩺 Diagnosis flow
-      if (btn.dataset.flow) {
+     // 🩺 Diagnosis flow
+    if (btn.dataset.flow) {
         startDiagnosis(btn.dataset.flow);
         return;
-      }
-    });
-});
+    }
+});   // closes row.addEventListener
+});   // closes forEach
 // restore
 
   function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
