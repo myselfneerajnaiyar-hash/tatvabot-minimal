@@ -636,13 +636,22 @@ if (btn.dataset.flow) {
   function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
 
 (function restore(){
-  const hist = loadHistory(); const loc = loadLocation(); setLocationDisplay(loc);
-  if(!hist || !hist.length){ chatWindow.innerHTML = ''; ensureInitialMessage(); return; }
+  const hist = loadHistory();
+  const loc = loadLocation();
+  setLocationDisplay(loc);
+
   chatWindow.innerHTML = '';
-  hist.forEach(msg => { const el = createMessageElement(msg); chatWindow.appendChild(el); });
- if (!document.querySelector('.quick-row')) {
-  injectQuickRow();
-}
+
+  if (!hist || !hist.length) {
+    ensureInitialMessage();
+  } else {
+    hist.forEach(msg => {
+      const el = createMessageElement(msg);
+      chatWindow.appendChild(el);
+    });
+  }
+
+  injectQuickRow(); // ✅ ALWAYS inject once
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
 
