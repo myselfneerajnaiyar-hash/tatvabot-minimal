@@ -392,12 +392,29 @@ function getGardenerWeatherSummary(weather) {
   // 🌞 Generate Daily Care Advice (GLOBAL)
 async function generateDailyCareAdvice() {
   const weather = await getWeatherForUser();
+
+  /* ---------- 1️⃣ RAW WEATHER FACTS ---------- */
+  if (weather && weather.main && weather.weather) {
+    const temp = weather.main.temp;
+    const humidity = weather.main.humidity;
+    const condition = weather.weather[0].description;
+    const city = weather.name || "your area";
+
+    addMessage(
+      🌍 Weather Details (${city})\n\n +
+      🌡️ Temperature: ${temp}°C\n +
+      💧 Humidity: ${humidity}%\n +
+      🌬️ Condition: ${condition},
+      'bot'
+    );
+  }
+
+  /* ---------- 2️⃣ GARDENER INTERPRETATION ---------- */
   const gardenerWeather = getGardenerWeatherSummary(weather);
 
-  // 1️⃣ Show weather first
   if (gardenerWeather) {
     addMessage(
-      "🌦️ Today's Weather & Garden Insight\n\n" + gardenerWeather,
+      "🧑‍🌾 Gardener’s Insight\n\n" + gardenerWeather,
       'bot'
     );
   }
