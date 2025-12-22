@@ -939,6 +939,71 @@ const body = {
 }
 
 // handlers
+  async function sendMessage() {
+  const messageRaw = input.value.trim();
+  const imageToSend = uploadedImageUrl || null;
+
+  // 🌞 Finish Daily Care Mode
+  if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
+
+    if (selectedPlantsForCare.size === 0) {
+      addMessage("🌱 Please select at least one plant first.", 'bot');
+      input.value = '';
+      return;
+    }
+
+    dailyCareMode = false;
+    input.value = '';
+    await generateDailyCareAdvice();
+    return;
+  }
+
+  if (!messageRaw && !imageToSend) return;
+
+  // show user message
+  addMessage(messageRaw || 'Image', 'user', imageToSend);
+  input.value = '';
+
+  // diagnosis flow
+  if (diagnosisState) {
+    await handleDiagnosisAnswer(messageRaw);
+    return;
+  }
+
+  // normal chat
+  showStatus('TatvaBot is thinking...');
+  sendBtn.disabled = true;
+  const typingEl = showTypingIndicator();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: messageRaw,
+        imageUrl: uploadedImageUrl || null,
+        location: loadLocation() || null
+      })
+    });
+
+    const data = await res.json();
+    removeTypingIndicator(typingEl);
+
+    if (data?.reply) {
+      addMessage(data.reply, 'bot');
+    } else {
+      addMessage('Sorry, I could not understand that.', 'bot');
+    }
+
+  } catch (err) {
+    removeTypingIndicator(typingEl);
+    addMessage('Network error. Please try again.', 'bot');
+  } finally {
+    uploadedImageUrl = null;
+    sendBtn.disabled = false;
+    showStatus('');
+  }
+}
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); }});
 clearBtn.addEventListener('click', ()=>{ if(confirm('Clear saved chat history? This cannot be undone.')) clearHistory(); });
