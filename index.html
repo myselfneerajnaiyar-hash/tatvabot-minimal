@@ -546,7 +546,7 @@ PROBLEMS.forEach(p => problemRow.appendChild(createBtn(p)));
 ACTIONS.forEach(a => actionRow.appendChild(createBtn(a)));
 
 /* ---------- INSERT INTO CHAT ---------- */
-  function addRowLabel(text) {
+function addRowLabel(text) {
   const label = document.createElement('div');
   label.style.fontSize = '13px';
   label.style.fontWeight = '600';
@@ -555,15 +555,23 @@ ACTIONS.forEach(a => actionRow.appendChild(createBtn(a)));
   label.textContent = text;
   return label;
 }
+
 const anchor = chatWindow.firstChild?.nextSibling || chatWindow.firstChild;
-chatWindow.insertBefore(addRowLabel('🌿 Your Plants'), anchor);
-chatWindow.insertBefore(plantRow, anchor);
 
-chatWindow.insertBefore(addRowLabel('🧪 Plant Problems'), plantRow.nextSibling);
-chatWindow.insertBefore(problemRow, plantRow.nextSibling);
+/* 🌿 Your Plants */
+const plantsLabel = addRowLabel('🌿 Your Plants');
+chatWindow.insertBefore(plantsLabel, anchor);
+chatWindow.insertBefore(plantRow, plantsLabel.nextSibling);
 
-chatWindow.insertBefore(addRowLabel('☀️ Actions'), problemRow.nextSibling);
-chatWindow.insertBefore(actionRow, problemRow.nextSibling);
+/* 🧪 Plant Problems */
+const problemsLabel = addRowLabel('🧪 Plant Problems');
+chatWindow.insertBefore(problemsLabel, plantRow.nextSibling);
+chatWindow.insertBefore(problemRow, problemsLabel.nextSibling);
+
+/* 🟠 Actions */
+const actionsLabel = addRowLabel('🟠 Actions');
+chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
+chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
  
 // 🔘 Attach click handlers to each quick row
 [plantRow, problemRow, actionRow].forEach(row => {
