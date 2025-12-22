@@ -600,7 +600,7 @@ rows.forEach(row => {
       if (dailyCareMode) {
         selectedPlantsForCare.add(btn.dataset.plant);
         addMessage(
-          ✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care.,
+          `✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care.`,
           'bot'
         );
         return;
