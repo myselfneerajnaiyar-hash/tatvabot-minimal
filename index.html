@@ -848,49 +848,32 @@ diagnosisState = null;
     
     const weather = await getWeatherForUser();
     const gardenerWeather = getGardenerWeatherSummary(weather)
-   
+    async function generateDailyCareAdvice() {
+  const weather = await getWeatherForUser();
+  const gardenerWeather = getGardenerWeatherSummary(weather);
 
-
-    
-    // 🌞 Finish Daily Care Mode
-if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
-if (gardenerWeather) {
-  addBotMessage(
-    "🌦️ *Today's Weather & Garden Insight*\n\n" + gardenerWeather
-  );
-}
-  dailyCareMode = false;
-
-  if (selectedPlantsForCare.size === 0) {
-    addBotMessage("Please select at least one plant first 🌱", 'bot');
-    input.value = '';
-    return;
-  }
-  generateDailyCareAdvice();//your existing plant advice logic
-  return;
-}
-   if (weather) {
+  // 1️⃣ Show weather FIRST (once)
+  if (gardenerWeather) {
     addMessage(
-      `🌦 Today’s Weather\n +
-      📍 ${weather.name}\n +
-      🌡 Temperature: ${weather.main.temp}°C\n +
-      💧 Humidity: ${weather.main.humidity}%\n +
-      ☁️ Condition: ${weather.weather[0].description}`,
+      "🌦️ Today's Weather & Garden Insight\n\n" + gardenerWeather,
       'bot'
     );
   }
 
+  // 2️⃣ Plant-wise care
   selectedPlantsForCare.forEach(plantKey => {
     const plant = PLANT_KNOWLEDGE[plantKey];
 
-     let weatherNote = '';
+    let weatherNote = '';
     if (weather) {
-      if (weather.main.temp > 35) {
-        weatherNote = '⚠️ High heat today — avoid afternoon watering.';
+      if (weather.weather[0].main.toLowerCase().includes('rain')) {
+        weatherNote = '🌧 It has rained — skip watering today.';
       } else if (weather.main.humidity > 75) {
         weatherNote = '💧 High humidity — water only if soil is dry.';
-      } else if (weather.weather[0].main === 'Rain') {
-        weatherNote = '🌧 Rainy day — skip watering.';
+      } else if (weather.main.temp > 35) {
+        weatherNote = '🔥 Hot day — water early morning or evening.';
+      } else {
+        weatherNote = '✅ Normal watering rules apply.';
       }
     }
 
@@ -908,15 +891,36 @@ ${plant.sunlight}
 - Remove dead leaves
 - Look for pests
 
-
-🌦 Weather note:
-${weatherNote || 'Normal care recommended'}
+🌦 Weather-based advice:
+${weatherNote}
 
 📌 Tip:
 ${plant.quickTips[0]}`,
       'bot'
     );
   });
+
+  selectedPlantsForCare.clear();
+}
+   
+
+
+    
+    // 🌞 Finish Daily Care Mode
+if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
+
+  if (selectedPlantsForCare.size === 0) {
+    addMessage("🌱 Please select at least one plant first.", 'bot');
+    return;
+  }
+
+  dailyCareMode = false;
+  await generateDailyCareAdvice();
+  return;
+}
+   
+
+ 
 
   selectedPlantsForCare.clear();
   input.value = '';
