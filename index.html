@@ -401,10 +401,10 @@ async function generateDailyCareAdvice() {
     const city = weather.name || "your area";
 
     addMessage(
-      🌍 Weather Details (${city})\n\n +
-      🌡️ Temperature: ${temp}°C\n +
-      💧 Humidity: ${humidity}%\n +
-      🌬️ Condition: ${condition},
+      `🌍 Weather Details (${city})\n\n` +
+      `🌡️ Temperature: ${temp}°C\n` +
+      `💧 Humidity: ${humidity}%\n` +
+      `🌬️ Condition: ${condition}`,
       'bot'
     );
   }
