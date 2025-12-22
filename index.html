@@ -866,22 +866,6 @@ ${plant.quickTips[0]}`,
   selectedPlantsForCare.clear();
 }
    
-
-
-    
-    // 🌞 Finish Daily Care Mode
-if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
-
-  if (selectedPlantsForCare.size === 0) {
-    addMessage("🌱 Please select at least one plant first.", 'bot');
-    return;
-  }
-
-  dailyCareMode = false;
-  input.value = '';
-  await generateDailyCareAdvice();
-  return;
-}
   const imageToSend = uploadedImageUrl || null;
  
 
