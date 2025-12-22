@@ -318,7 +318,8 @@ function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.
 
 function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
 function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } }
-function setLocationDisplay(loc){ if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); } else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); } else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
+ function setLocationDisplay(loc){ if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); } else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); } else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } }
 async function getWeatherForUser() {
   const loc = loadLocation();
   if (!loc) return null;
@@ -402,8 +403,7 @@ async function generateDailyCareAdvice() {
   }
 
  
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
-
+  
 // typing indicator
 function showTypingIndicator(){ const el = document.createElement('div'); el.className = 'msg msg-bot typing-wrap'; const span = document.createElement('span'); span.className = 'typing'; span.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>'; el.appendChild(span); chatWindow.appendChild(el); chatWindow.scrollTop = chatWindow.scrollHeight; return el; }
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
