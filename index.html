@@ -461,55 +461,65 @@ function showTypingIndicator(){ const el = document.createElement('div'); el.cla
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
 // quick row (DIAGNOSIS TABS)
 function injectQuickRow(){
-  if(document.getElementById('quick-row')) return;
+ if (document.getElementById('quick-plants')) return;
 
-  const row = document.createElement('div');
-  row.id = 'quick-row';
-  row.className = 'quick-row';
+/* ---------- ROW CONTAINERS ---------- */
+const plantRow = document.createElement('div');
+plantRow.id = 'quick-plants';
+plantRow.className = 'quick-row plants-row';
 
-const items = [
-  { t:'Tulsi (Holy Basil)', plant:'tulsi', icon:'🌿' },
-  { t: 'Areca palm', plant: 'areca', icon: '🌴' },
-  { t: 'Money plant', plant: 'moneyplant', icon: '💰' },
-  { t:'Aloe vera', plant:'aloevera', icon:'🌵' },
-  { t: 'Rose', plant: 'rose', icon: '🌹' },
-  { t:'Snake plant', plant:'snakeplant', icon:'🐍' },
+const problemRow = document.createElement('div');
+problemRow.id = 'quick-problems';
+problemRow.className = 'quick-row problems-row';
+
+const actionRow = document.createElement('div');
+actionRow.id = 'quick-actions';
+actionRow.className = 'quick-row actions-row';
+
+/* ---------- BUTTON DATA ---------- */
+const PLANTS = [
+  { t:'Tulsi', plant:'tulsi', icon:'🌿' },
+  { t:'Areca', plant:'areca', icon:'🌴' },
+  { t:'Money Plant', plant:'moneyplant', icon:'💰' },
+  { t:'Aloe Vera', plant:'aloevera', icon:'🌵' },
+  { t:'Rose', plant:'rose', icon:'🌹' },
+  { t:'Snake Plant', plant:'snakeplant', icon:'🐍' }
+];
+
+const PROBLEMS = [
   { t:'Yellow leaves', flow:'yellow_leaves', icon:'🟡' },
   { t:'Brown spots', flow:'brown_spots', icon:'🟤' },
-  { t:'Wilting plant', flow:'wilting', icon:'🥀' },
-  { t:'Pest infestation', flow:'pests', icon:'🐛' },
+  { t:'Wilting', flow:'wilting', icon:'🥀' },
+  { t:'Pests', flow:'pests', icon:'🐛' },
   { t:'Leaf drop', flow:'leaf_drop', icon:'🍂' },
-  { t:'Slow growth', flow:'slow_growth', icon:'🐌' },
-  { t:'Not flowering', flow:'flowering_issues', icon:'🌸' },
+  { t:'Slow growth', flow:'slow_growth', icon:'🐌' }
+];
+
+const ACTIONS = [
   { t:'Today’s plant care', action:'daily_care', icon:'☀️' },
   { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
- items.forEach(item => {
+
+/* ---------- CREATE BUTTONS ---------- */
+function createBtn(item){
   const btn = document.createElement('button');
-  btn.className = 'quick-btn' + (item.cls === 'primary' ? ' primary' : '');
-  btn.textContent = `${item.icon || ''} ${item.t}`;
+  btn.className = 'quick-btn' + (item.cls ? ' primary' : '');
+  btn.textContent = ${item.icon} ${item.t};
+  if(item.plant) btn.dataset.plant = item.plant;
+  if(item.flow) btn.dataset.flow = item.flow;
+  if(item.action) btn.dataset.action = item.action;
+  return btn;
+}
 
-  if(item.flow){
-    btn.dataset.flow = item.flow;
-  }
+PLANTS.forEach(p => plantRow.appendChild(createBtn(p)));
+PROBLEMS.forEach(p => problemRow.appendChild(createBtn(p)));
+ACTIONS.forEach(a => actionRow.appendChild(createBtn(a)));
 
-  if(item.plant){
-    btn.dataset.plant = item.plant;
-  }
-
-  if(item.action){
-    btn.dataset.action = item.action;
-  }
-
-  row.appendChild(btn);
-});
-
-  // insert below first bot message
-  const first = chatWindow.firstChild;
-  if(first && first.nextSibling){
-    chatWindow.insertBefore(row, first.nextSibling);
-  } else {
-    chatWindow.appendChild(row);
+/* ---------- INSERT INTO CHAT ---------- */
+const anchor = chatWindow.firstChild?.nextSibling || chatWindow.firstChild;
+chatWindow.insertBefore(plantRow, anchor);
+chatWindow.insertBefore(problemRow, plantRow.nextSibling);
+chatWindow.insertBefore(actionRow, problemRow.nextSibling);
   }
 
   row.addEventListener('click', (e) => {
