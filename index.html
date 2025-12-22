@@ -551,7 +551,7 @@ chatWindow.insertBefore(plantRow, anchor);
 chatWindow.insertBefore(problemRow, plantRow.nextSibling);
 chatWindow.insertBefore(actionRow, problemRow.nextSibling);
   [plantRow, problemRow, actionRow].forEach(row => {
-  row.addEventListener('click', (e) => {
+  
     const btn = e.target.closest('button');
     if (!btn) return;
 
