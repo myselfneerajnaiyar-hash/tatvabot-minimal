@@ -248,14 +248,7 @@ const PLANT_KNOWLEDGE = {
     ]
   },
 };
- function startDailyCareFlow() {
-  if (!selectedPlantsForCare.size) {
-    addMessage(
-      "🌞 Today’s Plant Care\n\nPlease select at least one plant.",
-      'bot'
-    );
-    return;
-  }
+
 
   selectedPlantsForCare.forEach(plantKey => {
     const plant = PLANT_KNOWLEDGE[plantKey];
