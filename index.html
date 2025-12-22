@@ -573,66 +573,64 @@ const actionsLabel = addRowLabel('🟠 Actions');
 chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
 chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
 
-  [plantRow, problemRow, actionRow]
-  .filter(Boolean)
-  .forEach(row => {
+// Attach click handlers safely
+function attachRowHandlers() {
+  [plantRow, problemRow, actionRow].forEach(row => {
+    if (!row) return;
+
     row.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
 
-    // 🌞 Daily Care Button
-    if (btn.dataset.action === 'daily_care') {
-      dailyCareMode = true;
-      selectedPlantsForCare.clear();
-
-      addMessage(
-        "🌞 Today’s Plant Care Mode\n\n" +
-        "Select all the plants you have.\n" +
-        "Tap plant buttons one by one.\n" +
-        "When done, type done.",
-        'bot'
-      );
-      return;
-    }
-
-    // 🌱 Plant selection
-    if (btn.dataset.plant) {
-
-      // ✅ Daily care mode → only collect plants
-      if (dailyCareMode) {
-        selectedPlantsForCare.add(btn.dataset.plant);
+      // 🌞 Daily Care Button
+      if (btn.dataset.action === 'daily_care') {
+        dailyCareMode = true;
+        selectedPlantsForCare.clear();
 
         addMessage(
-          `✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today’s care.`,
+          "🌞 Today's Plant Care Mode\n\n" +
+          "Select all the plants you have.\n" +
+          "Tap plant buttons one by one.\n" +
+          "When done, type done.",
           'bot'
         );
         return;
       }
 
-      // ℹ️ Normal plant info mode
-      currentPlant = btn.dataset.plant;
-      const plant = PLANT_KNOWLEDGE[currentPlant];
+      // 🌱 Plant selection
+      if (btn.dataset.plant) {
+        if (dailyCareMode) {
+          selectedPlantsForCare.add(btn.dataset.plant);
+          addMessage(
+            `✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care.`,
+            'bot'
+          );
+          return;
+        }
 
-      addMessage(
-        `🌿 ${plant.name}\n\n` +
-        `📘 About:\n${plant.about}\n\n` +
-        `☀️ Sunlight: ${plant.sunlight}\n` +
-        `💧 Watering: ${plant.watering}\n` +
-        `🌱 Soil: ${plant.soil}\n` +
-        `🌡️ Temperature: ${plant.temperature}\n\n` +
-        `Now tell me the problem you are facing.`,
-        'bot'
-      );
-      return;
-    }
+        currentPlant = btn.dataset.plant;
+        const plant = PLANT_KNOWLEDGE[currentPlant];
 
-    // 🧪 Diagnosis flow
-    if (btn.dataset.flow) {
-      startDiagnosis(btn.dataset.flow);
-      return;
-    }
+        addMessage(
+          `🌿 ${plant.name}\n\n` +
+          `📘 About:\n${plant.about}\n\n` +
+          `☀️ Sunlight: ${plant.sunlight}\n` +
+          `💧 Watering: ${plant.watering}\n` +
+          `🌱 Soil: ${plant.soil}\n` +
+          `🌡️ Temperature: ${plant.temperature}\n\n` +
+          `Now tell me the problem you are facing.`,
+          'bot'
+        );
+        return;
+      }
+
+      // 🩺 Diagnosis flow
+      if (btn.dataset.flow) {
+        startDiagnosis(btn.dataset.flow);
+        return;
+      }
+    });
   });
-});
 }
 // restore
 
