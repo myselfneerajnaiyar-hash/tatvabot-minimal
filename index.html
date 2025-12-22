@@ -250,32 +250,7 @@ const PLANT_KNOWLEDGE = {
 };
 
 
-  selectedPlantsForCare.forEach(plantKey => {
-    const plant = PLANT_KNOWLEDGE[plantKey];
-
-    addMessage(
-`🌞 Today’s Care for ${plant.name}
-
-💧 Watering:
-${plant.watering}
-
-☀️ Light:
-${plant.sunlight}
-
-🌱 Focus today:
-- Check soil moisture
-- Remove dead leaves
-- Look for pests
-
-📌 Tip:
-${plant.quickTips[0]}`,
-      'bot'
-    );
-  });
-
-  dailyCareMode = false;
-  selectedPlantsForCare.clear();
-}
+  
   
 const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('user-input');
