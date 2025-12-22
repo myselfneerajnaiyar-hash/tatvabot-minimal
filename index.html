@@ -413,6 +413,60 @@ function getGardenerWeatherSummary(weather) {
 
   return summary;
 }
+  // 🌞 Generate Daily Care Advice (GLOBAL)
+async function generateDailyCareAdvice() {
+  const weather = await getWeatherForUser();
+  const gardenerWeather = getGardenerWeatherSummary(weather);
+
+  // 1️⃣ Show weather first
+  if (gardenerWeather) {
+    addMessage(
+      "🌦️ Today's Weather & Garden Insight\n\n" + gardenerWeather,
+      'bot'
+    );
+  }
+
+  // 2️⃣ Plant-wise advice
+  selectedPlantsForCare.forEach(plantKey => {
+    const plant = PLANT_KNOWLEDGE[plantKey];
+
+    let weatherNote = '✅ Normal watering rules apply.';
+    if (weather) {
+      const condition = weather.weather[0].main.toLowerCase();
+      if (condition.includes('rain')) {
+        weatherNote = '🌧 It rained recently — skip watering today.';
+      } else if (weather.main.humidity > 75) {
+        weatherNote = '💧 High humidity — water only if soil is dry.';
+      } else if (weather.main.temp > 35) {
+        weatherNote = '🔥 Very hot — water early morning or evening.';
+      }
+    }
+
+    addMessage(
+`🌞 Today’s Care for ${plant.name}
+
+💧 Watering:
+${plant.watering}
+
+☀️ Light:
+${plant.sunlight}
+
+🌱 Focus today:
+- Check soil moisture
+- Remove dead leaves
+- Look for pests
+
+🌦 Weather-based advice:
+${weatherNote}
+
+📌 Tip:
+${plant.quickTips[0]}`,
+      'bot'
+    );
+  });
+
+  selectedPlantsForCare.clear();
+}
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
 
 // typing indicator
