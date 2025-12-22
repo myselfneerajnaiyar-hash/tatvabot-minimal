@@ -891,11 +891,6 @@ if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
   dailyCareMode = false;
   await generateDailyCareAdvice();
   return;
-
-   
-  selectedPlantsForCare.clear();
-  input.value = '';
-  return;
 }
   const imageToSend = uploadedImageUrl || null;
  
