@@ -534,7 +534,7 @@ const ACTIONS = [
 function createBtn(item){
   const btn = document.createElement('button');
   btn.className = 'quick-btn' + (item.cls ? ' primary' : '');
-  btn.textContent = ${item.icon} ${item.t};
+  btn.textContent = `${item.icon} ${item.t}`;
   if(item.plant) btn.dataset.plant = item.plant;
   if(item.flow) btn.dataset.flow = item.flow;
   if(item.action) btn.dataset.action = item.action;
