@@ -572,12 +572,13 @@ chatWindow.insertBefore(problemRow, problemsLabel.nextSibling);
 const actionsLabel = addRowLabel('🟠 Actions');
 chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
 chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
- 
-// 🔘 Attach click handlers to each quick row
-[plantRow, problemRow, actionRow].forEach(row => {
-  row.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
+
+  [plantRow, problemRow, actionRow]
+  .filter(Boolean)
+  .forEach(row => {
+    row.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
 
     // 🌞 Daily Care Button
     if (btn.dataset.action === 'daily_care') {
