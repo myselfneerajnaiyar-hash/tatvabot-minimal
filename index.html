@@ -573,15 +573,14 @@ const actionsLabel = addRowLabel('🟠 Actions');
 chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
 chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
 
-// Attach click handlers safely
-function attachRowHandlers() {
-  [plantRow, problemRow, actionRow].forEach(row => {
-    if (!row) return;
-
+[plantRow, problemRow, actionRow]
+  .filter(Boolean)
+  .forEach(row => {
     row.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
 
+      // ⬇️ EXISTING BUTTON LOGIC CONTINUES BELOW
       // 🌞 Daily Care Button
       if (btn.dataset.action === 'daily_care') {
         dailyCareMode = true;
