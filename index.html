@@ -376,6 +376,50 @@ async function getWeatherForUser() {
     return null;
   }
 }
+  // 🌦️ Convert raw weather into gardener-style summary
+function getGardenerWeatherSummary(weather) {
+  if (!weather || !weather.main || !weather.weather) return null;
+
+  const temp = weather.main.temp;
+  const humidity = weather.main.humidity;
+  const condition = weather.weather[0].main.toLowerCase();
+  const city = weather.name || "your area";
+
+  let summary = `🌦️ Today in ${city}: `;
+
+  // Temperature logic
+  if (temp <= 15) {
+    summary += "It’s quite cool. ";
+  } else if (temp <= 25) {
+    summary += "The weather is pleasant. ";
+  } else if (temp <= 35) {
+    summary += "It’s warm today. ";
+  } else {
+    summary += "It’s very hot today. ";
+  }
+
+  // Rain / fog / clouds
+  if (condition.includes("rain")) {
+    summary += "It has rained recently or may rain. Soil will stay moist longer. ";
+  } else if (condition.includes("fog")) {
+    summary += "There is fog and low evaporation. ";
+  } else if (condition.includes("cloud")) {
+    summary += "It’s cloudy with limited sunlight. ";
+  } else {
+    summary += "Plenty of sunlight is available. ";
+  }
+
+  // Humidity logic
+  if (humidity >= 80) {
+    summary += "Humidity is high, so avoid watering unless soil is dry.";
+  } else if (humidity >= 50) {
+    summary += "Humidity is moderate. Normal watering rules apply.";
+  } else {
+    summary += "Air is dry, plants may need closer moisture checks.";
+  }
+
+  return summary;
+}
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
 
 // typing indicator
@@ -797,17 +841,34 @@ diagnosisState = null;
 
   async function sendMessage(){
   const messageRaw = input.value.trim();
+    if(!messageRaw) return
+
+    addUserMessage(messageRaw);
+    input.value = "";
+    
     const weather = await getWeatherForUser();
+    const gardenerWeather = getGardenerWeatherSummary(weather)
+   
+
+
+    
     // 🌞 Finish Daily Care Mode
 if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
-
+if (gardenerWeather) {
+  addBotMessage(
+    "🌦️ *Today's Weather & Garden Insight*\n\n" + gardenerWeather
+  );
+}
   dailyCareMode = false;
 
   if (selectedPlantsForCare.size === 0) {
-    addMessage("Please select at least one plant first 🌱", 'bot');
+    addBotMessage("Please select at least one plant first 🌱", 'bot');
     input.value = '';
     return;
   }
+  generateDailyCareAdvice();//your existing plant advice logic
+  return;
+}
    if (weather) {
     addMessage(
       `🌦 Today’s Weather\n +
