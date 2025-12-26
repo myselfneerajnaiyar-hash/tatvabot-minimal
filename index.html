@@ -595,14 +595,18 @@ rows.forEach(row => {
       );
       return;
     }
-    // 🌱 Plant Suggestions (What should I grow?)
+ // 🌱 Plant Suggestions (What should I grow?)
 if (btn.dataset.action === 'plant_suggestions') {
-  addMessage(
-    "🌱 Suggest plants to grow based on my location and weather.",
-    'user'
-  );
 
-  // trigger normal chat flow
+  const msg = "Suggest plants to grow based on my location and weather.";
+
+  // 1️⃣ Put message into input (this is the missing link)
+  input.value = msg;
+
+  // 2️⃣ Show it in chat as user message
+  addMessage(msg, 'user');
+
+  // 3️⃣ Trigger normal send flow
   setTimeout(() => {
     sendMessage();
   }, 0);
