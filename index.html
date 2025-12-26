@@ -785,15 +785,31 @@ function classifyWeather(weather) {
   const weatherType = classifyWeather(weather)
 
   const matches = PLANT_SUGGESTIONS
-    .filter(p => p.weather.includes(weatherType))
-    .slice(0, 6);
-      let finalMatches = matches;
+  .filter(p => p.weather.includes(weatherType))
+  .slice(0, 6);
 
-// ❄️ Indian winter fallback
-if (finalMatches.length === 0 && weatherType === 'cold') {
-  finalMatches = PLANT_SUGGESTIONS
-    .filter(p => p.weather.includes('moderate'))
-    .slice(0, 6);
+// ❄️ TRUE cold-climate handling (Shimla, Manali, etc.)
+if (weatherType === 'cold') {
+  const coldMsg = createMessageElement({
+    text:
+`❄️ Cold Weather Advisory
+
+Your area is experiencing true cold conditions.
+Most tropical Indian plants struggle in this weather.
+
+🌱 What you CAN do right now:
+* Grow hardy indoor plants (Snake Plant, ZZ Plant, Peace Lily)
+* Start seeds indoors near sunlight
+* Protect existing plants with covers or move them inside
+* Focus on soil prep, composting & pruning
+
+🌸 Outdoor planting is best resumed when temperatures rise above 12–15°C.`,
+    from: 'bot'
+  });
+
+  chatWindow.appendChild(coldMsg);
+  setTimeout(() => scrollToElementTop(coldMsg), 0);
+  return; // 🚨 IMPORTANT: stop here
 }
 
   // 🔒 Create ONE anchor message
