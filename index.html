@@ -494,14 +494,17 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
 
-  // ✅ FIX: bot messages scroll to TOP, user messages scroll to bottom
-  if (from === 'bot') {
-    requestAnimationFrame(() => {
-      chatWindow.scrollTop = el.offsetTop - 10;
-    });
-  } else {
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-  }
+  // 🔒 HARD FIX: wait for DOM + images + layout to fully settle
+  setTimeout(() => {
+    if (from === 'bot') {
+      chatWindow.scrollTop = el.getBoundingClientRect().top 
+        - chatWindow.getBoundingClientRect().top
+        + chatWindow.scrollTop
+        - 12;
+    } else {
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+  }, 0);
 
   if (save) appendHistoryItem({ text, from, imageUrl, ts });
 }
