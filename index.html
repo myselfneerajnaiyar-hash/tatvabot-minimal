@@ -527,6 +527,7 @@ const PROBLEMS = [
 
 const ACTIONS = [
   { t:'Today’s plant care', action:'daily_care', icon:'☀️' },
+  { t:'What should I grow?', action:'plant_suggestions', icon:'🌱' },
   { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
 
@@ -594,6 +595,20 @@ rows.forEach(row => {
       );
       return;
     }
+    // 🌱 Plant Suggestions (What should I grow?)
+if (btn.dataset.action === 'plant_suggestions') {
+  addMessage(
+    "🌱 Suggest plants to grow based on my location and weather.",
+    'user'
+  );
+
+  // trigger normal chat flow
+  setTimeout(() => {
+    sendMessage();
+  }, 0);
+
+  return;
+}
 
     // 🌱 Plant selection
     if (btn.dataset.plant) {
