@@ -634,16 +634,24 @@ if (btn.dataset.action === 'plant_suggestions') {
       currentPlant = btn.dataset.plant;
       const plant = PLANT_KNOWLEDGE[currentPlant];
 
-      addMessage(
-        `🌿 ${plant.name}\n\n` +
-        `📘 About:\n${plant.about}\n\n` +
-        `☀️ Sunlight: ${plant.sunlight}\n` +
-        `💧 Watering: ${plant.watering}\n` +
-        `🌱 Soil: ${plant.soil}\n` +
-        `🌡️ Temperature: ${plant.temperature}\n\n` +
-        `Now tell me the problem you are facing.`,
-        'bot'
-      );
+     addMessage(
+  `🌿 <strong>${plant.name}</strong><br><br>
+
+<img src="${plant.image}" 
+     alt="${plant.name}" 
+     style="max-width:220px;border-radius:10px;margin:8px 0;" /><br>
+
+📘 <strong>About</strong><br>
+${plant.about}<br><br>
+
+☀️ <strong>Sunlight:</strong> ${plant.sunlight}<br>
+💧 <strong>Watering:</strong> ${plant.watering}<br>
+🌱 <strong>Soil:</strong> ${plant.soil}<br>
+🌡️ <strong>Temperature:</strong> ${plant.temperature}<br><br>
+
+👉 Now tell me the problem you are facing.`,
+  'bot'
+);
       return;
     }
 
