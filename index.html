@@ -580,28 +580,26 @@ async function generateDailyCareAdvice() {
     );
   }
 
-  async function suggestPlantsToGrow() {
+ async function suggestPlantsToGrow() {
   const weather = await getWeatherForUser();
   const weatherType = classifyWeather(weather);
 
-  const matches = PLANT_SUGGESTIONS.filter(p =>
-    p.weather.includes(weatherType)
-  ).slice(0, 8);
+  const matches = PLANT_SUGGESTIONS
+    .filter(p => p.weather.includes(weatherType))
+    .slice(0, 8);
 
   addMessage(
     `🌱 Best Plants to Grow Right Now\n\nBased on current ${weatherType} weather in your area:`,
     'bot'
   );
 
- matches.forEach((p, index) => {
-  addMessage(
-`${index + 1}. ${p.name}
-
-* ${p.reason}`,
-    'bot',
-    p.image
-  );
-});
+  matches.forEach(p => {
+    addMessage(
+      🌿 ${p.name}\n\n${p.reason},
+      'bot',
+      p.image
+    );
+  });
 }
   /* ---------- 2️⃣ GARDENER INTERPRETATION ---------- */
   const gardenerWeather = getGardenerWeatherSummary(weather);
