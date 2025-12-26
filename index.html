@@ -635,22 +635,19 @@ if (btn.dataset.action === 'plant_suggestions') {
       const plant = PLANT_KNOWLEDGE[currentPlant];
 
      addMessage(
-  `🌿 <strong>${plant.name}</strong><br><br>
+  `🌿 ${plant.name}
 
-<img src="${plant.image}" 
-     alt="${plant.name}" 
-     style="max-width:220px;border-radius:10px;margin:8px 0;" /><br>
+📘 About:
+${plant.about}
 
-📘 <strong>About</strong><br>
-${plant.about}<br><br>
-
-☀️ <strong>Sunlight:</strong> ${plant.sunlight}<br>
-💧 <strong>Watering:</strong> ${plant.watering}<br>
-🌱 <strong>Soil:</strong> ${plant.soil}<br>
-🌡️ <strong>Temperature:</strong> ${plant.temperature}<br><br>
+☀️ Sunlight: ${plant.sunlight}
+💧 Watering: ${plant.watering}
+🌱 Soil: ${plant.soil}
+🌡️ Temperature: ${plant.temperature}
 
 👉 Now tell me the problem you are facing.`,
-  'bot'
+  'bot',
+  plant.image
 );
       return;
     }
