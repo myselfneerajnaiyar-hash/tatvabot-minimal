@@ -737,7 +737,19 @@ rows.forEach(row => {
       );
       return;
     }
+// 🌦️ Classify weather into gardener-friendly types
+function classifyWeather(weather) {
+  if (!weather || !weather.main) return 'moderate';
 
+  const temp = weather.main.temp;
+  const humidity = weather.main.humidity;
+
+  if (temp >= 35 && humidity < 50) return 'hot';
+  if (humidity >= 70) return 'humid';
+  if (temp <= 15) return 'cold';
+
+  return 'moderate';
+}
      async function suggestPlantsToGrow() {
   const weather = await getWeatherForUser();
   const weatherType = classifyWeather(weather);
