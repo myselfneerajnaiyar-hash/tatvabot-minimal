@@ -769,11 +769,15 @@ function classifyWeather(weather) {
   const temp = weather.main.temp;
   const humidity = weather.main.humidity;
 
-  if (temp >= 35 && humidity < 50) return 'hot';
-  if (humidity >= 70) return 'humid';
-  if (temp <= 15) return 'cold';
+  // 🌡 Indian gardening–friendly logic
+  if (temp >= 35) return 'hot';
+  if (temp >= 20 && temp < 35) return 'moderate';
 
-  return 'moderate';
+  // Delhi winter should NOT be extreme cold
+  if (temp >= 10 && temp < 20) return 'moderate';
+
+  // Only real cold (hill stations)
+  return 'cold';
 }
     async function suggestPlantsToGrow() {
   const weather = await getWeatherForUser();
