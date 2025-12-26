@@ -779,26 +779,37 @@ function classifyWeather(weather) {
 
   return 'moderate';
 }
-     async function suggestPlantsToGrow() {
+    async function suggestPlantsToGrow() {
   const weather = await getWeatherForUser();
-  const weatherType = classifyWeather(weather);
+
+  let weatherType = 'moderate';
+  if (weather?.main?.temp <= 15) weatherType = 'cold';
+  else if (weather?.main?.temp >= 32) weatherType = 'hot';
 
   const matches = PLANT_SUGGESTIONS
     .filter(p => p.weather.includes(weatherType))
-    .slice(0, 8);
+    .slice(0, 6);
 
-  addMessage(
-    `🌱 Best Plants to Grow Right Now\n\nBased on current ${weatherType} weather in your area:`,
-    'bot'
-  );
-
-  matches.forEach(p => {
-    addMessage(
-      `🌿 ${p.name}\n\n${p.reason}`,
-      'bot',
-      p.image
-    );
+  // 🔒 Create ONE anchor message
+  const anchor = createMessageElement({
+    text: `🌱 Best Plants to Grow Right Now\n\nBased on current ${weatherType} weather in your area:`,
+    from: 'bot'
   });
+
+  chatWindow.appendChild(anchor);
+
+  // 🌿 Render plants
+  matches.forEach(p => {
+    const plantMsg = createMessageElement({
+      text: `🌿 ${p.name}\n${p.reason}`,
+      from: 'bot',
+      imageUrl: p.image
+    });
+    chatWindow.appendChild(plantMsg);
+  });
+
+  // 🧭 ONE FINAL SCROLL (this is the magic)
+  setTimeout(() => scrollToElementTop(anchor), 0);
 }
  // 🌱 Plant Suggestions (What should I grow?)
 if (btn.dataset.action === 'plant_suggestions') {
