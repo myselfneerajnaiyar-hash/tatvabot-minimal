@@ -502,15 +502,11 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
 
   // 🔒 HARD FIX: wait for DOM + images + layout to fully settle
   setTimeout(() => {
-    if (from === 'bot') {
-      chatWindow.scrollTop = el.getBoundingClientRect().top 
-        - chatWindow.getBoundingClientRect().top
-        + chatWindow.scrollTop
-        - 12;
-    } else {
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-  }, 0);
+  if (from === 'user') {
+    // user messages → always go bottom
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+}, 0);
 
   if (save) appendHistoryItem({ text, from, imageUrl, ts });
 }
