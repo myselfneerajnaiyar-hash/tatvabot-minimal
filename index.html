@@ -1027,11 +1027,20 @@ diagnosisState = null;
     const data = await res.json();
     removeTypingIndicator(typingEl);
 
-    if (data?.reply) {
-      addMessage(data.reply, 'bot');
-    } else {
-      addMessage('Sorry, I could not understand that.', 'bot');
+   if (data?.reply) {
+  let reply = data.reply;
+
+  // Attach images for suggested plants (What should I grow?)
+  Object.keys(SUGGESTED_PLANT_IMAGES).forEach(name => {
+    if (reply.toLowerCase().includes(name)) {
+      reply += \n\n<img src="${SUGGESTED_PLANT_IMAGES[name]}" style="max-width:220px;border-radius:10px;margin-top:8px;" />;
     }
+  });
+
+  addMessage(reply, 'bot');
+} else {
+  addMessage('Sorry, I could not understand that.', 'bot');
+}
 
   } catch (err) {
     removeTypingIndicator(typingEl);
