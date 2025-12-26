@@ -469,6 +469,9 @@ function createMessageElement({ text, from='bot', imageUrl=null, ts }){
   if(imageUrl){
     const img = document.createElement('img'); img.src = imageUrl; img.alt = 'image'; img.loading = 'lazy'; wrapper.appendChild(img);
   }
+  img.onload = () => {
+  wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
   const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = formatTime(ts);
   wrapper.appendChild(meta);
   return wrapper;
