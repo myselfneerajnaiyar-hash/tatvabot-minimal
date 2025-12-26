@@ -481,10 +481,15 @@ function appendHistoryItem(item){ const h = loadHistory() || []; h.push(item); s
 function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  // ✅ Scroll so TOP of new message is visible
+  el.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+
   if(save) appendHistoryItem({ text, from, imageUrl, ts });
 }
-
 function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn(e); } }
 
 function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
