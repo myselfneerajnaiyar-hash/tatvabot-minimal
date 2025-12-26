@@ -593,15 +593,15 @@ async function generateDailyCareAdvice() {
     'bot'
   );
 
-  matches.forEach(p => {
-    addMessage(
-`${p.name}
+ matches.forEach((p, index) => {
+  addMessage(
+`${index + 1}. ${p.name}
 
-${p.reason}`,
-      'bot',
-      p.image
-    );
-  });
+* ${p.reason}`,
+    'bot',
+    p.image
+  );
+});
 }
   /* ---------- 2️⃣ GARDENER INTERPRETATION ---------- */
   const gardenerWeather = getGardenerWeatherSummary(weather);
