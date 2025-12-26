@@ -460,20 +460,35 @@ const PHONE_REGEX = /(\+?\d[\d\-\s]{8,15}\d)/;
 function showStatus(text){ statusEl.textContent = text || ''; }
 
 function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
-function createMessageElement({ text, from='bot', imageUrl=null, ts }){
+function createMessageElement({ text, from = 'bot', imageUrl = null, ts }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (from === 'user' ? 'msg-user' : 'msg-bot');
+
   const span = document.createElement('span');
-  span.innerHTML = (text || '').replace(/\n/g,'<br>');
+  span.innerHTML = (text || '').replace(/\n/g, '<br>');
   wrapper.appendChild(span);
-  if(imageUrl){
-    const img = document.createElement('img'); img.src = imageUrl; img.alt = 'image'; img.loading = 'lazy'; wrapper.appendChild(img);
+
+  if (imageUrl) {
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = 'image';
+    img.loading = 'lazy';
+
+    img.onload = () => {
+      wrapper.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    };
+
+    wrapper.appendChild(img);
   }
-  img.onload = () => {
-  wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = formatTime(ts);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = formatTime(ts);
   wrapper.appendChild(meta);
+
   return wrapper;
 }
 
