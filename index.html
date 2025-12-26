@@ -500,13 +500,16 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
 
-  // ✅ Scroll so TOP of new message is visible
-  el.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
+  // ✅ FIX: bot messages scroll to TOP, user messages scroll to bottom
+  if (from === 'bot') {
+    requestAnimationFrame(() => {
+      chatWindow.scrollTop = el.offsetTop - 10;
+    });
+  } else {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
 
-  if(save) appendHistoryItem({ text, from, imageUrl, ts });
+  if (save) appendHistoryItem({ text, from, imageUrl, ts });
 }
 function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn(e); } }
 
