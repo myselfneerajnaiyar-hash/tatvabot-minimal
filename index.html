@@ -489,7 +489,13 @@ function createMessageElement({ text, from = 'bot', imageUrl = null, ts }) {
 function loadHistory(){ try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ console.warn(e); return null; } }
 function saveHistory(msgs){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs)); } catch(e){ console.warn(e); } }
 function appendHistoryItem(item){ const h = loadHistory() || []; h.push(item); saveHistory(h); }
+function scrollToElementTop(el) {
+  const containerTop = chatWindow.getBoundingClientRect().top;
+  const elementTop = el.getBoundingClientRect().top;
 
+  chatWindow.scrollTop += elementTop - containerTop - 12;
+}
+  
 function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
