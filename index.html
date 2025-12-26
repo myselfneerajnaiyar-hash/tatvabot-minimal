@@ -595,7 +595,7 @@ async function generateDailyCareAdvice() {
 
   matches.forEach(p => {
     addMessage(
-      🌿 ${p.name}\n\n${p.reason},
+      `🌿 ${p.name}\n\n${p.reason}`,
       'bot',
       p.image
     );
