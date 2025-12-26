@@ -759,22 +759,9 @@ rows.forEach(row => {
     }
  // 🌱 Plant Suggestions (What should I grow?)
 if (btn.dataset.action === 'plant_suggestions') {
-
-  const msg = "Suggest plants to grow based on my location and weather.";
-
-  // 1️⃣ Put message into input (this is the missing link)
-  input.value = msg;
-
-  // 2️⃣ Show it in chat as user message
- 
-  // 3️⃣ Trigger normal send flow
-  setTimeout(() => {
-    sendMessage();
-  }, 0);
-
+  suggestPlantsToGrow();   // ✅ DIRECT CALL
   return;
 }
-
     // 🌱 Plant selection
     if (btn.dataset.plant) {
       if (dailyCareMode) {
