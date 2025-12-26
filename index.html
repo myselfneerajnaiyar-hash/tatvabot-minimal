@@ -782,13 +782,19 @@ function classifyWeather(weather) {
     async function suggestPlantsToGrow() {
   const weather = await getWeatherForUser();
 
-  let weatherType = 'moderate';
-  if (weather?.main?.temp <= 15) weatherType = 'cold';
-  else if (weather?.main?.temp >= 32) weatherType = 'hot';
+  const weatherType = classifyWeather(weather)
 
   const matches = PLANT_SUGGESTIONS
     .filter(p => p.weather.includes(weatherType))
     .slice(0, 6);
+      let finalMatches = matches;
+
+// ❄️ Indian winter fallback
+if (finalMatches.length === 0 && weatherType === 'cold') {
+  finalMatches = PLANT_SUGGESTIONS
+    .filter(p => p.weather.includes('moderate'))
+    .slice(0, 6);
+}
 
   // 🔒 Create ONE anchor message
   const anchor = createMessageElement({
