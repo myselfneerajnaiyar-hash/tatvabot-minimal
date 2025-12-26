@@ -474,13 +474,7 @@ function createMessageElement({ text, from = 'bot', imageUrl = null, ts }) {
     img.alt = 'image';
     img.loading = 'lazy';
 
-    img.onload = () => {
-      wrapper.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    };
-
+   
     wrapper.appendChild(img);
   }
 
