@@ -137,9 +137,7 @@
         <button id="set-location" class="btn-ghost" title="Set location manually">Set location</button>
         <div style="font-size:12px;opacity:.95">v1</div>
         <button id="clear-btn" class="btn-clear" title="Clear chat history">Clear chat</button>
-      <button id="installBtn" class="btn-ghost">
-  📲 Install App
-</button>
+      <button id="installBtn">Install App</button>
       </div>
     </div>
 
@@ -1340,28 +1338,23 @@ console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:'
     });
   }
 </script>
- <script>
+<script>
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) {
+    alert("Use this app for a while. Chrome will enable install soon.");
+    return;
+  }
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+});
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-});
-
-installBtn.addEventListener("click", async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-  } else {
-    alert(
-      "To install TatvaBot:\n\n" +
-      "• Tap the 3 dots (⋮) in Chrome\n" +
-      "• Tap 'Add to Home Screen'\n" +
-      "• Confirm install"
-    );
-  }
 });
 </script>
 </body>
