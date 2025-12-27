@@ -1351,19 +1351,7 @@ diagnosisState = null;
   const imageToSend = uploadedImageUrl || null;
 
   // 🌞 Finish Daily Care Mode
-  if (dailyCareMode && messageRaw.toLowerCase() === 'done') {
-
-    if (selectedPlantsForCare.size === 0) {
-      addMessage("🌱 Please select at least one plant first.", 'bot');
-      input.value = '';
-      return;
-    }
-
-    dailyCareMode = false;
-    input.value = '';
-    await generateDailyCareAdvice();
-    return;
-  }
+ 
 
   if (!messageRaw && !imageToSend) return;
 
