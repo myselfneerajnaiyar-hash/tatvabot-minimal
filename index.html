@@ -678,6 +678,14 @@ function renderActionPanel({ title, items, onSelect, onDone }) {
   heading.style.fontWeight = '600';
   heading.style.marginBottom = '10px';
   panel.appendChild(heading);
+  // 🔹 Helper instruction text
+const helperText = document.createElement('div');
+helperText.textContent = 'Please select at least one plant to get today’s care instructions.';
+helperText.style.fontSize = '13px';
+helperText.style.color = '#555';
+helperText.style.marginBottom = '10px';
+
+panel.appendChild(helperText);
 
   const buttonsWrap = document.createElement('div');
   buttonsWrap.style.display = 'flex';
@@ -720,10 +728,10 @@ function renderActionPanel({ title, items, onSelect, onDone }) {
   doneBtn.style.display = 'none';
 
   doneBtn.onclick = () => {
-    onDone([...selected]);
-    destroyActionPanel();
-  };
-
+  helperText.remove(); // 🧹 remove instruction text
+  onDone([...selected]);
+  destroyActionPanel();
+};
   panel.appendChild(doneBtn);
 
   chatWindow.appendChild(panel);
