@@ -1387,32 +1387,35 @@ console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:'
   }
 </script>
 <script>
-let deferredPrompt = null;
+let deferredPrompt;
 
-// Listen for install event
+// Capture install event
 window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('PWA install event fired');
-  e.preventDefault(); // stop Chrome auto banner
+  console.log('beforeinstallprompt fired');
+  e.preventDefault();
   deferredPrompt = e;
 
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) {
-    installBtn.style.display = 'inline-block';
-  }
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'inline-block';
 });
 
-// Install button click
-document.getElementById('installBtn')?.addEventListener('click', async () => {
-  if (!deferredPrompt) {
-    alert("Install not available yet. Please use Chrome and try again.");
-    return;
-  }
+// Install on button click
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('installBtn');
+  if (!btn) return;
 
-  deferredPrompt.prompt();
-  const result = await deferredPrompt.userChoice;
-  console.log('Install choice:', result.outcome);
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      alert("Install not available yet. Please wait a few seconds.");
+      return;
+    }
 
-  deferredPrompt = null;
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    console.log('User choice:', choice.outcome);
+    deferredPrompt = null;
+    btn.style.display = 'none';
+  });
 });
 </script>
 </body>
