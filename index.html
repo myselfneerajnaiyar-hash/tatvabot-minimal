@@ -861,13 +861,11 @@ const ACTIONS = [
   { t:'What should I grow?', action:'plant_suggestions', icon:'🌱' },
   { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
-stickyWrap.appendChild(plantsLabel);
+
 stickyWrap.appendChild(plantRow);
 
-stickyWrap.appendChild(problemsLabel);
 stickyWrap.appendChild(problemRow);
 
-stickyWrap.appendChild(actionsLabel);
 stickyWrap.appendChild(actionRow);
   chatWindow.insertBefore(stickyWrap, chatWindow.firstChild);
   
