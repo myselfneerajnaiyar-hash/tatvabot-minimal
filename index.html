@@ -651,6 +651,88 @@ function getGardenerWeatherSummary(weather) {
 
   return summary;
 }
+  /* =========================
+   🔘 ACTION PANEL SYSTEM
+========================= */
+
+function destroyActionPanel() {
+  if (activeActionPanel) {
+    activeActionPanel.remove();
+    activeActionPanel = null;
+    activeActionType = null;
+  }
+}
+
+function renderActionPanel({ title, items, onSelect, onDone }) {
+  destroyActionPanel();
+
+  const panel = document.createElement('div');
+  panel.style.margin = '12px 0';
+  panel.style.padding = '12px';
+  panel.style.border = '1px solid #ddd';
+  panel.style.borderRadius = '12px';
+  panel.style.background = '#ffffff';
+
+  const heading = document.createElement('div');
+  heading.textContent = title;
+  heading.style.fontWeight = '600';
+  heading.style.marginBottom = '10px';
+  panel.appendChild(heading);
+
+  const buttonsWrap = document.createElement('div');
+  buttonsWrap.style.display = 'flex';
+  buttonsWrap.style.flexWrap = 'wrap';
+  buttonsWrap.style.gap = '8px';
+
+  const selected = new Set();
+
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.textContent = item.label;
+    btn.style.padding = '8px 14px';
+    btn.style.borderRadius = '999px';
+    btn.style.border = '1px solid #ccc';
+    btn.style.background = '#f7f7f7';
+    btn.style.cursor = 'pointer';
+
+    btn.onclick = () => {
+      if (selected.has(item.key)) {
+        selected.delete(item.key);
+        btn.style.background = '#f7f7f7';
+      } else {
+        selected.add(item.key);
+        btn.style.background = '#d1fae5';
+      }
+
+      onSelect([...selected]);
+      doneBtn.style.display = selected.size ? 'block' : 'none';
+    };
+
+    buttonsWrap.appendChild(btn);
+  });
+
+  panel.appendChild(buttonsWrap);
+
+  const doneBtn = document.createElement('button');
+  doneBtn.textContent = '✅ Get Today’s Care';
+  doneBtn.className = 'send';
+  doneBtn.style.marginTop = '12px';
+  doneBtn.style.display = 'none';
+
+  doneBtn.onclick = () => {
+    onDone([...selected]);
+    destroyActionPanel();
+  };
+
+  panel.appendChild(doneBtn);
+
+  chatWindow.appendChild(panel);
+  activeActionPanel = panel;
+
+  setTimeout(() => {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }, 0);
+}
   // 🌞 Generate Daily Care Advice (GLOBAL)
 async function generateDailyCareAdvice() {
   const weather = await getWeatherForUser();
