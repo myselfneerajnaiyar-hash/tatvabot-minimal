@@ -119,7 +119,55 @@
   background: var(--brown);
   color: #fff;
 }
-  @media(max-width:640px){ .msg img{ max-width:220px; } }
+  @media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  .chat-header {
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .chat-header-left {
+    width: 100%;
+  }
+
+  .header-controls {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .header-controls button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .quick-row {
+    gap: 6px;
+  }
+
+  .quick-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  #installBtn {
+    width: 100%;
+    text-align: center;
+    margin-top: 6px;
+  }
+}
+
+/* keep your existing rule */
+@media (max-width:640px){
+  .msg img { max-width:220px; }
+}
 </style>
 </head>
 <body>
