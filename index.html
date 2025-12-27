@@ -897,19 +897,29 @@ rows.forEach(row => {
     if (!btn) return;
 
     // 🌞 Daily Care
-    if (btn.dataset.action === 'daily_care') {
-      dailyCareMode = true;
-      selectedPlantsForCare.clear();
+   if (btn.dataset.action === 'daily_care') {
+  activeActionType = 'daily_care';
 
-      addMessage(
-        "🌞 Today's Plant Care Mode\n\n" +
-        "Select all the plants you have.\n" +
-        "Tap plant buttons one by one.\n" +
-        "When done, type done.",
-        'bot'
-      );
-      return;
+  addMessage(
+    "🌞 Daily Plant Care\n\nSelect the plants you have. You can choose more than one.",
+    'bot'
+  );
+
+  renderActionPanel({
+    title: 'Your Plants',
+    items: Object.keys(PLANT_KNOWLEDGE).map(key => ({
+      key,
+      label: PLANT_KNOWLEDGE[key].name
+    })),
+    onSelect: () => {},
+    onDone: async (selected) => {
+      selectedPlantsForCare = new Set(selected);
+      await generateDailyCareAdvice();
     }
+  });
+
+  return;
+}
 // 🌦️ Classify weather into gardener-friendly types
 function classifyWeather(weather) {
   if (!weather || !weather.main) return 'moderate';
