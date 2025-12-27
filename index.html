@@ -897,9 +897,10 @@ rows.forEach(row => {
     if (!btn) return;
 
     // 🌞 Daily Care
-   if (btn.dataset.action === 'daily_care') {
+  if (btn.dataset.action === 'daily_care') {
   activeActionType = 'daily_care';
-  dailyCareMode = true
+  dailyCareMode = true; // ✅ THIS WAS MISSING
+
   addMessage(
     "🌞 Daily Plant Care\n\nSelect the plants you have. You can choose more than one.",
     'bot'
@@ -914,6 +915,7 @@ rows.forEach(row => {
     onSelect: () => {},
     onDone: async (selected) => {
       selectedPlantsForCare = new Set(selected);
+      dailyCareMode = false; // ✅ CLOSE MODE
       await generateDailyCareAdvice();
     }
   });
