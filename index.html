@@ -825,6 +825,7 @@ stickyWrap.style.background = '#fff';
 stickyWrap.style.zIndex = '50';
 stickyWrap.style.paddingBottom = '8px';
   stickyWrap.style.borderBottom = '1px solid #e5e7eb';
+  stickyWrap.style.borderBottom = '1px solid #e5e7eb';
   stickyWrap.style.marginBottom = '12px'
 stickyWrap.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)'
 const plantRow = document.createElement('div');
@@ -870,6 +871,9 @@ stickyWrap.appendChild(problemRow);
 
 stickyWrap.appendChild(actionRow);
   chatWindow.insertBefore(stickyWrap, chatWindow.firstChild);
+  // push content down so sticky hides overlap
+const stickyHeight = stickyWrap.offsetHeight;
+chatWindow.style.paddingTop = stickyHeight + 'px';
   
 /* ---------- CREATE BUTTONS ---------- */
 function createBtn(item){
