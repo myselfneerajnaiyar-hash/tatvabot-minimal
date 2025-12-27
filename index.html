@@ -997,14 +997,7 @@ if (btn.dataset.action === 'plant_suggestions') {
 }
     // 🌱 Plant selection
     if (btn.dataset.plant) {
-      if (dailyCareMode) {
-        selectedPlantsForCare.add(btn.dataset.plant);
-        addMessage(
-          `✅ Added ${PLANT_KNOWLEDGE[btn.dataset.plant].name} for today's care.`,
-          'bot'
-        );
-        return;
-      }
+     
 
       currentPlant = btn.dataset.plant;
       const plant = PLANT_KNOWLEDGE[currentPlant];
