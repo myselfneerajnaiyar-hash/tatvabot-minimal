@@ -1388,21 +1388,31 @@ console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:'
 </script>
 <script>
 let deferredPrompt = null;
-const installBtn = document.getElementById("installBtn");
 
-installBtn.addEventListener("click", async () => {
-  if (!deferredPrompt) {
-    alert("Use this app for a while. Chrome will enable install soon.");
-    return;
+// Listen for install event
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('PWA install event fired');
+  e.preventDefault(); // stop Chrome auto banner
+  deferredPrompt = e;
+
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) {
+    installBtn.style.display = 'inline-block';
   }
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
 });
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+// Install button click
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if (!deferredPrompt) {
+    alert("Install not available yet. Please use Chrome and try again.");
+    return;
+  }
+
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  console.log('Install choice:', result.outcome);
+
+  deferredPrompt = null;
 });
 </script>
 </body>
