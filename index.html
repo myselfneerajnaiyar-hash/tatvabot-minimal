@@ -1341,28 +1341,27 @@ console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:'
   }
 </script>
   <script>
-  let deferredPrompt;
-  const installBtn = document.getElementById("installBtn");
+ let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
 
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "inline-block";
+});
 
-    // Show install button
-    installBtn.style.display = "inline-block";
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  installBtn.style.display = "none";
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+});
 
-    installBtn.addEventListener("click", async () => {
-      installBtn.style.display = "none";
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    });
-  });
-
-  window.addEventListener("appinstalled", () => {
-    installBtn.style.display = "none";
-    console.log("TatvaBot installed");
-  });
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+  console.log("TatvaBot installed");
+});
 </script>
 </body>
 </html>
