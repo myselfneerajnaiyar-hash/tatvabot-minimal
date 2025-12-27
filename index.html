@@ -814,9 +814,17 @@ function showTypingIndicator(){ const el = document.createElement('div'); el.cla
 function removeTypingIndicator(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
 // quick row (DIAGNOSIS TABS)
 function injectQuickRow(){
- if (document.getElementById('quick-plants')) return;
+ if (document.getElementById('sticky-quick')) return;
 
 /* ---------- ROW CONTAINERS ---------- */
+  const stickyWrap = document.createElement('div');
+stickyWrap.id = 'sticky-quick-wrap';
+stickyWrap.style.position = 'sticky';
+stickyWrap.style.top = '0';
+stickyWrap.style.background = '#fff';
+stickyWrap.style.zIndex = '50';
+stickyWrap.style.paddingBottom = '8px';
+stickyWrap.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)'
 const plantRow = document.createElement('div');
 plantRow.id = 'quick-plants';
 plantRow.className = 'quick-row plants';
@@ -853,7 +861,16 @@ const ACTIONS = [
   { t:'What should I grow?', action:'plant_suggestions', icon:'🌱' },
   { t:'Buy vermicompost', cls:'primary', icon:'🪱' }
 ];
+stickyWrap.appendChild(plantsLabel);
+stickyWrap.appendChild(plantRow);
 
+stickyWrap.appendChild(problemsLabel);
+stickyWrap.appendChild(problemRow);
+
+stickyWrap.appendChild(actionsLabel);
+stickyWrap.appendChild(actionRow);
+  chatWindow.insertBefore(stickyWrap, chatWindow.firstChild);
+  
 /* ---------- CREATE BUTTONS ---------- */
 function createBtn(item){
   const btn = document.createElement('button');
@@ -880,22 +897,7 @@ function addRowLabel(text) {
   return label;
 }
 
-const anchor = chatWindow.firstChild?.nextSibling || chatWindow.firstChild;
 
-/* 🌿 Your Plants */
-const plantsLabel = addRowLabel('🌿 Your Plants');
-chatWindow.insertBefore(plantsLabel, anchor);
-chatWindow.insertBefore(plantRow, plantsLabel.nextSibling);
-
-/* 🧪 Plant Problems */
-const problemsLabel = addRowLabel('🧪 Plant Problems');
-chatWindow.insertBefore(problemsLabel, plantRow.nextSibling);
-chatWindow.insertBefore(problemRow, problemsLabel.nextSibling);
-
-/* 🟠 Actions */
-const actionsLabel = addRowLabel('🟠 Actions');
-chatWindow.insertBefore(actionsLabel, problemRow.nextSibling);
-chatWindow.insertBefore(actionRow, actionsLabel.nextSibling)
 
  const rows = [plantRow, problemRow, actionRow].filter(Boolean);
 
