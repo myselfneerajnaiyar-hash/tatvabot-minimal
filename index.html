@@ -1388,34 +1388,29 @@ console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:'
 </script>
 <script>
 let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
 
-// Capture install event
-window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('beforeinstallprompt fired');
+// Hide button initially
+installBtn.style.display = "none";
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  console.log("beforeinstallprompt fired");
   e.preventDefault();
   deferredPrompt = e;
 
-  const btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'inline-block';
+  // Show install button
+  installBtn.style.display = "block";
 });
 
-// Install on button click
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('installBtn');
-  if (!btn) return;
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
 
-  btn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-      alert("Install not available yet. Please wait a few seconds.");
-      return;
-    }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log("Install choice:", outcome);
 
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    console.log('User choice:', choice.outcome);
-    deferredPrompt = null;
-    btn.style.display = 'none';
-  });
+  deferredPrompt = null;
+  installBtn.style.display = "none";
 });
 </script>
 </body>
