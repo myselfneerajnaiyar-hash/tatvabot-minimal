@@ -939,7 +939,7 @@ ${plant.about}
 }
 // restore
 
-  function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true); injectQuickRow(); }
+  function ensureInitialMessage(){ addMessage("👋 Namaste! I’m TatvaBot. How can I help with your plants today?", 'bot', null, Date.now(), true);  }
 
 (function restore(){
   const hist = loadHistory();
@@ -958,7 +958,7 @@ ${plant.about}
   }
 
   // 🔥 ALWAYS inject fresh buttons AFTER messages
-  injectQuickRow();
+
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
