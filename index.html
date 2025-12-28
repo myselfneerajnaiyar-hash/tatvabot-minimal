@@ -681,18 +681,27 @@ function destroyActionPanel() {
   function showBackButton() {
   const quickBar = document.getElementById('quick-bar');
 
-  quickBar.innerHTML = `
-    <div class="quick-row actions">
-      <button class="quick-btn primary" id="back-to-main">
-        ⬅ Back
-      </button>
-    </div>
-  `;
+  // do not add twice
+  if (document.getElementById('back-to-main')) return;
 
-  document.getElementById('back-to-main').onclick = () => {
-    quickBar.innerHTML = mainQuickBarHTML;
+  const row = document.createElement('div');
+  row.className = 'quick-row back-row';
+
+  const btn = document.createElement('button');
+  btn.className = 'quick-btn primary';
+  btn.id = 'back-to-main';
+  btn.textContent = '← Back';
+
+  btn.onclick = () => {
+    destroyActionPanel();
     activeActionType = null;
+    renderMainQuickBar();
   };
+
+  row.appendChild(btn);
+
+  // IMPORTANT: prepend, do NOT replace
+  quickBar.prepend(row);
 }
 /* =========================
    🧭 TOP QUICK BAR SYSTEM
