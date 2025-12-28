@@ -678,6 +678,22 @@ function destroyActionPanel() {
     activeActionType = null;
   }
 }
+  function showBackButton() {
+  const quickBar = document.getElementById('quick-bar');
+
+  quickBar.innerHTML = `
+    <div class="quick-row actions">
+      <button class="quick-btn primary" id="back-to-main">
+        ⬅ Back
+      </button>
+    </div>
+  `;
+
+  document.getElementById('back-to-main').onclick = () => {
+    quickBar.innerHTML = mainQuickBarHTML;
+    activeActionType = null;
+  };
+}
 /* =========================
    🧭 TOP QUICK BAR SYSTEM
 ========================= */
