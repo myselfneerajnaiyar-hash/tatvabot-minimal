@@ -676,7 +676,140 @@ function destroyActionPanel() {
     activeActionType = null;
   }
 }
+/* =========================
+   🧭 TOP QUICK BAR SYSTEM
+========================= */
 
+const quickBar = document.getElementById('quick-bar');
+
+function renderMainQuickBar() {
+  quickBar.innerHTML = '';
+
+  const buttons = [
+    { label: "🌞 Today’s Plant Care", action: "daily_care" },
+    { label: "🩺 Diagnosis", action: "diagnosis" },
+    { label: "🌿 Plant Info", action: "plant_info" },
+    { label: "🌱 What should I grow", action: "plant_suggestions" },
+    { label: "🧪 Plant Growth Supplements", action: "supplements" }
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = b.label;
+    btn.dataset.action = b.action;
+
+    btn.onclick = () => handleMainAction(b.action);
+    row.appendChild(btn);
+  });
+
+  quickBar.appendChild(row);
+}
+
+function handleMainAction(action) {
+  if (action === 'daily_care') {
+    renderDailyCareSelection();
+    return;
+  }
+
+  if (action === 'diagnosis') {
+    renderDiagnosisOptions();
+    return;
+  }
+
+  if (action === 'plant_info') {
+    renderPlantInfoOptions();
+    return;
+  }
+
+  if (action === 'plant_suggestions') {
+    suggestPlantsToGrow();
+    return;
+  }
+
+  if (action === 'supplements') {
+    addMessage(
+      "🧪 Plant Growth Supplements\n\n" +
+      "• Vermicompost\n" +
+      "• Liquid seaweed\n" +
+      "• Neem cake\n" +
+      "• Bone meal\n\n" +
+      "Tell me your plant name to get exact dosage.",
+      'bot'
+    );
+  }
+}
+  function renderDiagnosisOptions() {
+  quickBar.innerHTML = '';
+
+  const problems = [
+    { label: "Yellow Leaves", flow: "yellow_leaves" },
+    { label: "Brown Spots", flow: "brown_spots" },
+    { label: "Wilting", flow: "wilting" },
+    { label: "Pests", flow: "pests" },
+    { label: "Leaf Drop", flow: "leaf_drop" }
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'quick-row problems';
+
+  problems.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = p.label;
+    btn.dataset.flow = p.flow;
+    row.appendChild(btn);
+  });
+
+  quickBar.appendChild(row);
+}
+
+function renderPlantInfoOptions() {
+  quickBar.innerHTML = '';
+
+  const plants = [
+    { label: "Tulsi", plant: "tulsi" },
+    { label: "Money Plant", plant: "moneyplant" },
+    { label: "Rose", plant: "rose" },
+    { label: "Aloe Vera", plant: "aloevera" },
+    { label: "Snake Plant", plant: "snakeplant" }
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'quick-row plants';
+
+  plants.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = p.label;
+    btn.dataset.plant = p.plant;
+    row.appendChild(btn);
+  });
+
+  quickBar.appendChild(row);
+}
+
+function renderDailyCareSelection() {
+  const items = Object.keys(PLANT_KNOWLEDGE).map(k => ({
+    key: k,
+    label: PLANT_KNOWLEDGE[k].name
+  }));
+
+  renderActionPanel({
+    title: "🌞 Select plants for today’s care",
+    items,
+    onSelect: (selected) => {
+      selectedPlantsForCare = new Set(selected);
+    },
+    onDone: () => {
+      generateDailyCareAdvice();
+      renderMainQuickBar();
+    }
+  });
+}
 function renderActionPanel({ title, items, onSelect, onDone }) {
   destroyActionPanel();
 
@@ -1366,6 +1499,7 @@ setLocBtn.addEventListener('click', () => {
 setLocationDisplay(loadLocation());
 input.focus();
 console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:', LOCATION_KEY);
+  renderMainQuickBar()
 </script>
   
 <script>
