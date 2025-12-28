@@ -899,7 +899,49 @@ Most tropical Indian plants struggle in this weather.
   // 🧭 ONE FINAL SCROLL (this is the magic)
   setTimeout(() => scrollToElementTop(anchor), 0);
 }
+/* =========================
+   🔘 GLOBAL BUTTON CLICK HANDLER
+   ========================= */
 
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  /* 🌱 What should I grow */
+  if (btn.dataset.action === 'plant_suggestions') {
+    suggestPlantsToGrow();
+    return;
+  }
+
+  /* 🌿 Plant Info */
+  if (btn.dataset.plant) {
+    currentPlant = btn.dataset.plant;
+    const plant = PLANT_KNOWLEDGE[currentPlant];
+
+    addMessage(
+`🌿 ${plant.name}
+
+📘 About:
+${plant.about}
+
+☀️ Sunlight: ${plant.sunlight}
+💧 Watering: ${plant.watering}
+🌱 Soil: ${plant.soil}
+🌡️ Temperature: ${plant.temperature}
+
+👉 Now tell me the problem you are facing.`,
+      'bot',
+      plant.image
+    );
+    return;
+  }
+
+  /* 🩺 Diagnosis */
+  if (btn.dataset.flow) {
+    startDiagnosis(btn.dataset.flow);
+    return;
+  }
+});
 
 // restore
 
