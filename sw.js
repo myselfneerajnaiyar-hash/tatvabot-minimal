@@ -1,44 +1,21 @@
-const CACHE_NAME = "tatvabot-v2";
+const SW_VERSION = "tatvabot-sw-v5"; // 🔥 CHANGE THIS EVERY DEPLOY
 
-const ASSETS_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/assets/icon-192.png",
-  "/assets/icon-512.png"
-];
-
-/* INSTALL */
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
+  console.log("SW installing:", SW_VERSION);
   self.skipWaiting();
 });
 
-/* ACTIVATE — THIS PART WAS CRITICAL */
 self.addEventListener("activate", (event) => {
+  console.log("SW activating:", SW_VERSION);
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => caches.delete(k)))
     )
   );
-
-  // 🔥 THIS IS REQUIRED FOR ANDROID INSTALLABILITY
   self.clients.claim();
 });
 
-/* FETCH */
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  // 🔥 NETWORK FIRST — NO CACHE
+  event.respondWith(fetch(event.request));
 });
