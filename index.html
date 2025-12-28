@@ -71,13 +71,15 @@
    ========================= */
 #quick-bar {
   position: sticky;
-  top: 72px;/*height of green header */
-  z-index: 999;
+  top: 0;                 /* 🔥 key change */
+  z-index: 900;
   background: #ffffff;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid #e5e7eb;
-  width: 100%;
-  box-sizing: border-box
+}
+  #quick-bar .quick-row {
+  max-width: 960px;
+  margin: 0 auto;
 }
 /* 🌱 Soil / brown themed quick tabs */
 .quick-btn{
