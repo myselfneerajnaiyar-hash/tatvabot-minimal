@@ -1467,15 +1467,7 @@ setLocationDisplay(loadLocation());
 input.focus();
 console.info('TatvaBot UI loaded — storage key:', STORAGE_KEY, 'location key:', LOCATION_KEY);
 </script>
-  <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js")
-        .then(() => console.log("Service Worker registered"))
-        .catch(err => console.error("SW registration failed", err));
-    });
-  }
-</script>
+  
 <script>
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
@@ -1502,6 +1494,19 @@ installBtn.addEventListener("click", async () => {
   deferredPrompt = null;
   installBtn.style.display = "none";
 });
+</script>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(reg => {
+      reg.unregister();
+    });
+  });
+
+  caches.keys().then(keys => {
+    keys.forEach(key => caches.delete(key));
+  });
+}
 </script>
 </body>
 </html>
