@@ -858,6 +858,27 @@ function handleMainAction(action) {
   );
 
   }
+  renderActionPanel({
+  title: "Show Cocopeat Products?",
+  items: [
+    { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
+    { key: "no_cocopeat_products", label: "❌ No, maybe later" }
+  ],
+  onSelect: (selected) => {
+    window.cocopeatDecision = selected[0];
+  },
+  onDone: () => {
+    if (window.cocopeatDecision === "yes_cocopeat_products") {
+      showCocopeatProducts();
+    } else {
+      addMessage(
+        "👍 No problem. You can explore other plant supplements anytime.",
+        "bot"
+      );
+      renderMainQuickBar();
+    }
+  }
+});
     function showCocopeatProducts() {
   quickBar.innerHTML = '';
 
