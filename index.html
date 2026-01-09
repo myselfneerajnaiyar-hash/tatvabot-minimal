@@ -758,26 +758,36 @@ function handleMainAction(action) {
   }
 
   if (action === 'supplements') {
-  destroyActionPanel();
+  const quickBar = document.getElementById('quick-bar');
+  quickBar.innerHTML = '';
 
-  renderActionPanel({
-    title: "🧪 Plant Growth Supplements",
-    items: [
-      { key: 'soil', label: '🪱 Soil & Growing Media' },
-      { key: 'nutrition', label: '🧴 Nutrition & Boosters' },
-      { key: 'pest', label: '🐛 Pest Control' },
-      { key: 'disease', label: '🦠 Disease Control' }
-    ],
-    onSelect: (selected) => {
-      window.selectedSupplementCategory = selected[0];
-    },
-    onDone: () => {
-      if (window.selectedSupplementCategory === 'soil') {
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  const categories = [
+    { key: 'soil', label: '🪱 Soil & Growing Media' },
+    { key: 'nutrition', label: '🧴 Nutrition & Boosters' },
+    { key: 'pest', label: '🐛 Pest Control' },
+    { key: 'disease', label: '🦠 Disease Control' }
+  ];
+
+  categories.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = c.label;
+
+    btn.onclick = () => {
+      window.selectedSupplementCategory = c.key;
+      if (c.key === 'soil') {
         showSoilProducts();
       }
-    }
+    };
+
+    row.appendChild(btn);
   });
 
+  quickBar.appendChild(row);
+  showBackButton();
   activeActionType = 'supplements';
   return;
 }
