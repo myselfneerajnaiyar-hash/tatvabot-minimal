@@ -779,10 +779,10 @@ function handleMainAction(action) {
     btn.onclick = () => {
   window.selectedSupplementCategory = c.key;
 
-  addMessage(
-    🧪 ${c.label}\n\nThis category flow will be activated next.,
-    'bot'
-  );
+ addMessage(
+  `🧪 ${c.label}\n\nThis category flow will be activated next.`,
+  'bot'
+);
 };
 
     row.appendChild(btn);
