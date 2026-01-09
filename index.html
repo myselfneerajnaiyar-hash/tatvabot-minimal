@@ -809,7 +809,7 @@ function handleMainAction(action) {
     onDone: () => {
       if (window.selectedSoilProduct) {
         addMessage(
-          🌱 You selected ${window.selectedSoilProduct.replace('_', ' ')}.\n\nEducation flow will start next.,
+          `🌱 You selected ${window.selectedSoilProduct.replace('_', ' ')}.\n\nEducation flow will start next.`,
           'bot'
         );
       }
