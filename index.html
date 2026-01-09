@@ -804,9 +804,11 @@ function handleMainAction(action) {
  function showSoilProducts() {
   destroyActionPanel();
 
-  function showSoilProducts() {
+ function showSoilProducts() {
   destroyActionPanel();
   quickBar.innerHTML = '';
+
+  activeActionType = 'soil_products';
 
   const row = document.createElement('div');
   row.className = 'quick-row actions';
@@ -822,14 +824,19 @@ function handleMainAction(action) {
     btn.textContent = p.label;
 
     btn.onclick = () => {
-      addMessage(`🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}.`, 'bot');
+      window.selectedSoilProduct = p.key;
+
+      addMessage(`🌱 You selected ${p.label.replace(/^[^ ]+ /, '')}`., 'bot');
 
       if (p.key === 'cocopeat') {
         showCocopeatEducation();
       }
 
       if (p.key === 'vermicompost') {
-        addMessage("🪱 Vermicompost education flow will be added next.", 'bot');
+        addMessage(
+          "🪱 Vermicompost education flow will be added next.",
+          'bot'
+        );
       }
     };
 
@@ -859,25 +866,29 @@ function handleMainAction(action) {
     "bot"
   );
 
-  renderActionPanel({
-    title: "Show Cocopeat Products?",
-    items: [
-      { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
-      { key: "no_cocopeat_products", label: "❌ No, maybe later" }
-    ],
-    onSelect: (selected) => {
-      window.cocopeatDecision = selected[0];
-    },
- onDone: () => {
-  if (!window.selectedSoilProduct) return;
-
-  const product = window.selectedSoilProduct;
-
-  addMessage(
-    `🌱 You selected ${product.replace('_', ' ')}.`,
-    'bot'
-  );
-
+renderActionPanel({
+  title: "Show Cocopeat Products?",
+  items: [
+    { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
+    { key: "no_cocopeat_products", label: "❌ No, maybe later" }
+  ],
+  onSelect: (selected) => {
+    window.cocopeatDecision = selected[0];
+  },
+  onDone: () => {
+    if (window.cocopeatDecision === 'yes_cocopeat_products') {
+      addMessage(
+        "🛒 Cocopeat products will be listed here from the nursery dashboard.",
+        'bot'
+      );
+    } else {
+      addMessage(
+        "👍 No problem. You can explore other supplements anytime.",
+        'bot'
+      );
+    }
+  }
+});
   // 👉 START EDUCATION FLOW IMMEDIATELY
   if (product === 'cocopeat') {
     showCocopeatEducation();
