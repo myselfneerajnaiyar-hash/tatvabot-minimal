@@ -667,10 +667,183 @@ function getGardenerWeatherSummary(weather) {
 
   return summary;
 }
+  const PRODUCT_EDUCATION = {
+
+  liquid_fertilizer: {
+    title: "🧴 Liquid Fertilizer",
+    body:
+      "Liquid fertilizers provide fast-acting nutrients that are quickly absorbed by plants.\n\n" +
+      "✅ Benefits:\n" +
+      "• Immediate nutrient availability\n" +
+      "• Revives weak plants\n" +
+      "• Supports rapid growth\n\n" +
+      "🪴 How to use:\n" +
+      "• Always dilute before use\n" +
+      "• Can be applied to soil or leaves\n\n" +
+      "📏 Dosage:\n" +
+      "• 2–5 ml per litre water\n" +
+      "• Use once every 10–15 days"
+  },
+
+  neem_oil: {
+    title: "🐛 Neem Oil",
+    body:
+      "Neem oil is a natural organic pesticide effective against most garden pests.\n\n" +
+      "✅ Benefits:\n" +
+      "• Controls aphids, mites, whiteflies\n" +
+      "• Prevents fungal infections\n\n" +
+      "🪴 How to use:\n" +
+      "• Mix with water + mild soap\n" +
+      "• Spray both sides of leaves\n\n" +
+      "📏 Dosage:\n" +
+      "• 3–5 ml per litre water\n" +
+      "• Spray every 5–7 days"
+  },
+
+  root_growth_promoter: {
+    title: "🌱 Root Growth Promoter",
+    body:
+      "Helps plants develop strong and healthy root systems.\n\n" +
+      "✅ Benefits:\n" +
+      "• Better nutrient absorption\n" +
+      "• Faster establishment after transplant\n\n" +
+      "🪴 How to use:\n" +
+      "• Apply during transplanting\n\n" +
+      "📏 Dosage:\n" +
+      "• 2–3 ml per litre water\n" +
+      "• Once every 15 days"
+  },
+
+  leaf_growth_booster: {
+    title: "🍃 Leaf Growth Booster",
+    body:
+      "Promotes lush green foliage and vegetative growth.\n\n" +
+      "✅ Benefits:\n" +
+      "• Larger, greener leaves\n" +
+      "• Improved photosynthesis\n\n" +
+      "🪴 How to use:\n" +
+      "• Best during growth phase\n\n" +
+      "📏 Dosage:\n" +
+      "• 2 ml per litre water\n" +
+      "• Spray every 10–15 days"
+  },
+
+  flower_booster: {
+    title: "🌸 Flower Booster",
+    body:
+      "Encourages bud formation and improves flowering quality.\n\n" +
+      "✅ Benefits:\n" +
+      "• More flowers\n" +
+      "• Longer blooming period\n\n" +
+      "🪴 How to use:\n" +
+      "• Apply before flowering starts\n\n" +
+      "📏 Dosage:\n" +
+      "• 2–3 ml per litre water\n" +
+      "• Every 15 days"
+  },
+
+  organic_fertilizer: {
+    title: "🌿 Organic Fertilizer",
+    body:
+      "Improves soil fertility and plant health naturally.\n\n" +
+      "✅ Benefits:\n" +
+      "• Improves soil structure\n" +
+      "• Long-term nutrition\n\n" +
+      "🪴 How to use:\n" +
+      "• Mix with topsoil\n\n" +
+      "📏 Dosage:\n" +
+      "• 1–2 handfuls per pot\n" +
+      "• Once a month"
+  },
+
+  potting_mix: {
+    title: "🪴 Potting Mix",
+    body:
+      "Ready-to-use soil mix for pots and grow bags.\n\n" +
+      "✅ Benefits:\n" +
+      "• Good drainage\n" +
+      "• Balanced nutrients\n\n" +
+      "🪴 How to use:\n" +
+      "• Use directly for planting\n\n" +
+      "📏 Usage:\n" +
+      "• Fill pots completely\n" +
+      "• Replace soil every 6–12 months"
+  },
+
+  micronutrient_mix: {
+    title: "🧪 Micronutrient Mix",
+    body:
+      "Supplies essential trace elements required by plants.\n\n" +
+      "✅ Benefits:\n" +
+      "• Prevents deficiency symptoms\n\n" +
+      "🪴 How to use:\n" +
+      "• Apply as foliar spray\n\n" +
+      "📏 Dosage:\n" +
+      "• 1–2 g per litre water\n" +
+      "• Once a month"
+  },
+
+  soil_conditioner: {
+    title: "🌱 Soil Conditioner",
+    body:
+      "Improves soil texture and water-holding capacity.\n\n" +
+      "✅ Benefits:\n" +
+      "• Better aeration\n\n" +
+      "🪴 How to use:\n" +
+      "• Mix with soil before planting\n\n" +
+      "📏 Usage:\n" +
+      "• 10–20% of soil volume"
+  },
+
+  fungicide: {
+    title: "🦠 Organic Fungicide",
+    body:
+      "Controls fungal diseases in plants.\n\n" +
+      "✅ Benefits:\n" +
+      "• Prevents leaf spots & rot\n\n" +
+      "🪴 How to use:\n" +
+      "• Spray affected areas\n\n" +
+      "📏 Dosage:\n" +
+      "• As per label instructions"
+  },
+
+  seed_germination: {
+    title: "🌱 Seed Germination Aid",
+    body:
+      "Improves seed sprouting success.\n\n" +
+      "✅ Benefits:\n" +
+      "• Faster germination\n\n" +
+      "🪴 How to use:\n" +
+      "• Soak seeds before sowing\n\n" +
+      "📏 Usage:\n" +
+      "• As directed"
+  },
+
+  plant_tonic: {
+    title: "🍵 Plant Tonic",
+    body:
+      "General health booster for stressed plants.\n\n" +
+      "✅ Benefits:\n" +
+      "• Improves immunity\n\n" +
+      "🪴 How to use:\n" +
+      "• Apply during stress periods\n\n" +
+      "📏 Dosage:\n" +
+      "• Every 15 days"
+  }
+
+};
   /* =========================
    🔘 ACTION PANEL SYSTEM
 ========================= */
+function showProductEducation(key) {
+  const p = PRODUCT_EDUCATION[key];
+  if (!p) return;
 
+  addMessage(
+    `${p.title}\n\n${p.body}\n\nWould you like to see products available at this nursery?`,
+    "bot"
+  );
+}
 function destroyActionPanel() {
   if (activeActionPanel) {
     activeActionPanel.remove();
