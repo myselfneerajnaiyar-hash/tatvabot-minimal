@@ -1030,7 +1030,10 @@ panel.appendChild(helperText);
   panel.appendChild(buttonsWrap);
 
   const doneBtn = document.createElement('button');
-  doneBtn.textContent = '✅ Get Today’s Care';
+ doneBtn.textContent =
+  activeActionType === 'soil_products'
+    ? 'Continue'
+    : '✅ Get Today’s Care';
   doneBtn.className = 'send';
   doneBtn.style.marginTop = '12px';
   doneBtn.style.display = 'none';
