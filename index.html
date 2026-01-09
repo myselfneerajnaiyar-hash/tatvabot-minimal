@@ -857,29 +857,6 @@ function handleMainAction(action) {
     "bot"
   );
 
-// --- Cocopeat confirmation buttons (simple quick buttons, NOT action panel)
-  quickBar.innerHTML = '';
-
-  const row = document.createElement('div');
-  row.className = 'quick-row actions';
-
-  const yesBtn = document.createElement('button');
-  yesBtn.className = 'quick-btn primary';
-  yesBtn.textContent = '✅ Yes, show products';
-  yesBtn.onclick = () => {
-    showCocopeatProducts();
-  };
-
-  const noBtn = document.createElement('button');
-  noBtn.className = 'quick-btn';
-  noBtn.textContent = '❌ No, maybe later';
-  noBtn.onclick = () => {
-    renderMainQuickBar();
-  };
-
-  row.appendChild(yesBtn);
-  row.appendChild(noBtn);
-  quickBar.appendChild(row);
   }
     function showCocopeatProducts() {
   quickBar.innerHTML = '';
