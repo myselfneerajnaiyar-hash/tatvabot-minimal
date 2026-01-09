@@ -758,52 +758,45 @@ function handleMainAction(action) {
   }
 
   if (action === 'supplements') {
-  const quickBar = document.getElementById('quick-bar');
-  quickBar.innerHTML = '';
+    quickBar.innerHTML = '';
 
-  const row = document.createElement('div');
-  row.className = 'quick-row actions';
+    const row = document.createElement('div');
+    row.className = 'quick-row actions';
 
-  const categories = [
-    { key: 'soil', label: '🪱 Soil & Growing Media' },
-    { key: 'nutrition', label: '🧴 Nutrition & Boosters' },
-    { key: 'pest', label: '🐛 Pest Control' },
-    { key: 'disease', label: '🦠 Disease Control' }
-  ];
+    const categories = [
+      { key: 'soil', label: '🪱 Soil & Growing Media' },
+      { key: 'nutrition', label: '🧴 Nutrition & Boosters' },
+      { key: 'pest', label: '🐛 Pest Control' },
+      { key: 'disease', label: '🦠 Disease Control' }
+    ];
 
-  categories.forEach(c => {
-    const btn = document.createElement('button');
-    btn.className = 'quick-btn';
-    btn.textContent = c.label;
+    categories.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-btn';
+      btn.textContent = c.label;
 
-  btn.onclick = () => {
-  window.selectedSupplementCategory = c.key;
+      btn.onclick = () => {
+        destroyActionPanel();
 
-  destroyActionPanel();
+        if (c.key === 'soil') {
+          showSoilProducts();
+          return;
+        }
 
- if (c.key === 'soil') {
-  activeActionType = 'soil_products';
-  showSoilProducts();
-  return;
+        addMessage(
+          `🌱 ${c.label}\n\nThis category will be enabled soon.`,
+          'bot'
+        );
+      };
+
+      row.appendChild(btn);
+    });
+
+    quickBar.appendChild(row);
+    showBackButton();
+    activeActionType = 'supplements';
+  }
 }
-  addMessage(
-    `🌱 ${c.label}\n\nThis category will be enabled soon.`,
-    'bot'
-  );
-};
-
-    row.appendChild(btn);
-  });
-
-  quickBar.appendChild(row);
-  showBackButton();
-  activeActionType = 'supplements';
-  return;
-}
-}
- function showSoilProducts() {
-  destroyActionPanel();
-
  function showSoilProducts() {
   destroyActionPanel();
   quickBar.innerHTML = '';
@@ -822,7 +815,10 @@ function handleMainAction(action) {
     btn.textContent = p.label;
 
     btn.onclick = () => {
-      addMessage(`🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}.`, 'bot');
+      addMessage(
+        🌱 You selected ${p.label.replace(/^[^ ]+ /,'')}.,
+        'bot'
+      );
 
       if (p.key === 'cocopeat') {
         showCocopeatEducation();
