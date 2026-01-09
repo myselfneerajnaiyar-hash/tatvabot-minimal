@@ -881,7 +881,21 @@ function handleMainAction(action) {
   row.appendChild(noBtn);
   quickBar.appendChild(row);
   }
-    
+    function showCocopeatProducts() {
+  quickBar.innerHTML = '';
+
+  addMessage(
+    "🛒 Cocopeat products available at this nursery\n\n" +
+    "This will show:\n" +
+    "• Product image\n" +
+    "• Price\n" +
+    "• Pack size (e.g. 1kg, 5kg)\n\n" +
+    "Demo nursery data will be used for now.",
+    "bot"
+  );
+
+  showBackButton();
+}
   function renderDiagnosisOptions() {
   quickBar.innerHTML = '';
 
