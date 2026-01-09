@@ -782,7 +782,20 @@ function handleMainAction(action) {
           showSoilProducts();
           return;
         }
+if (c.key === 'nutrition') {
+  showSupplementProducts('nutrition');
+  return;
+}
 
+if (c.key === 'pest') {
+  showSupplementProducts('pest');
+  return;
+}
+
+if (c.key === 'disease') {
+  showSupplementProducts('disease');
+  return;
+}
         addMessage(
           `🌱 ${c.label}\n\nThis category will be enabled soon.`,
           'bot'
