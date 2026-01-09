@@ -841,64 +841,55 @@ function handleMainAction(action) {
 }
   function showCocopeatEducation() {
   addMessage(
-    "🥥 *Cocopeat (Coconut Coir)*\n\n" +
+    "🥥 Cocopeat (Coconut Coir)\n\n" +
     "Cocopeat is a natural growing medium made from coconut husk.\n\n" +
-    "✅ *Benefits:*\n" +
+    "✅ Benefits:\n" +
     "• Improves soil aeration\n" +
     "• Retains moisture\n" +
     "• Encourages healthy root growth\n\n" +
-    "🪴 *How to use:*\n" +
+    "🪴 How to use:\n" +
     "• Mix with garden soil (30–50%)\n" +
     "• Can be used in pots, grow bags, and seed trays\n\n" +
-    "📏 *General dosage:*\n" +
+    "📏 General dosage:\n" +
     "• Small pots: 1–2 handfuls\n" +
     "• Grow bags: 20–30% of mix\n\n" +
-    "Would you like to see *cocopeat products available at this nursery?*",
+    "Would you like to see cocopeat products available at this nursery?",
     "bot"
   );
-renderActionPanel({
-  title: "Show Cocopeat Products?",
-  items: [
-    { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
-    { key: "no_cocopeat_products", label: "❌ No, maybe later" }
-  ],
-  onSelect: (selected) => {
-    window.cocopeatDecision = selected[0];
-  },
-  onDone: () => {
-    if (window.cocopeatDecision === "yes_cocopeat_products") {
-      showCocopeatProducts();
-    } else {
-      addMessage(
-        "👍 No problem. You can explore other plant supplements anytime.",
-        "bot"
-      );
-      renderMainQuickBar();
-    }
+
+  // ✅ SIMPLE YES / NO BUTTONS (NO ACTION PANEL)
+  quickBar.innerHTML = '';
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'quick-btn primary';
+  yesBtn.textContent = '✅ Yes, show products';
+  yesBtn.onclick = () => {
+    showCocopeatProducts();
+  };
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'quick-btn';
+  noBtn.textContent = '❌ No, maybe later';
+  noBtn.onclick = () => {
+    addMessage(
+      "👍 No problem. You can explore other plant supplements anytime.",
+      "bot"
+    );
+   activeActionType = null;
+destroyActionPanel();
+renderMainQuickBar()
+  };
+
+  row.appendChild(yesBtn);
+  row.appendChild(noBtn);
+  quickBar.appendChild(row);
+}
+
   }
-});
-  }
-  renderActionPanel({
-  title: "Show Cocopeat Products?",
-  items: [
-    { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
-    { key: "no_cocopeat_products", label: "❌ No, maybe later" }
-  ],
-  onSelect: (selected) => {
-    window.cocopeatDecision = selected[0];
-  },
-  onDone: () => {
-    if (window.cocopeatDecision === "yes_cocopeat_products") {
-      showCocopeatProducts();
-    } else {
-      addMessage(
-        "👍 No problem. You can explore other plant supplements anytime.",
-        "bot"
-      );
-      renderMainQuickBar();
-    }
-  }
-});
+  
     function showCocopeatProducts() {
   quickBar.innerHTML = '';
 
