@@ -758,16 +758,28 @@ function handleMainAction(action) {
   }
 
   if (action === 'supplements') {
-    addMessage(
-      "🧪 Plant Growth Supplements\n\n" +
-      "• Vermicompost\n" +
-      "• Liquid seaweed\n" +
-      "• Neem cake\n" +
-      "• Bone meal\n\n" +
-      "Tell me your plant name to get exact dosage.",
-      'bot'
-    );
-  }
+  destroyActionPanel();
+
+  renderActionPanel({
+    title: "🧪 Plant Growth Supplements",
+    items: [
+      { key: 'soil', label: '🪱 Soil & Growing Media' },
+      { key: 'nutrition', label: '🧴 Nutrition & Boosters' },
+      { key: 'pest', label: '🐛 Pest Control' },
+      { key: 'disease', label: '🦠 Disease Control' }
+    ],
+    onSelect: (selected) => {
+      window.selectedSupplementCategory = selected[0];
+    },
+    onDone: () => {
+      if (window.selectedSupplementCategory === 'soil') {
+        showSoilProducts();
+      }
+    }
+  });
+
+  activeActionType = 'supplements';
+  return;
 }
   function renderDiagnosisOptions() {
   quickBar.innerHTML = '';
