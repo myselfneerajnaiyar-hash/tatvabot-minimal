@@ -1002,20 +1002,22 @@ products.forEach(p => {
   btn.className = 'quick-btn';
   btn.textContent = p.label;
 
-  btn.onclick = () => {
-    addMessage(
-      `🌱 You selected ${p.label.replace(/^[^ ]+ /,'')}.`,
-      'bot'
-    );
+ btn.onclick = () => {
 
-    if (p.key === 'cocopeat') {
-      showCocopeatEducation();
-    }
+  // existing special cases (DO NOT TOUCH)
+  if (p.key === 'cocopeat') {
+    showCocopeatEducation();
+    return;
+  }
 
-    if (p.key === 'vermicompost') {
-      showVermicompostEducation();
-    }
-  };
+  if (p.key === 'vermicompost') {
+    showVermicompostEducation();
+    return;
+  }
+
+  // 🔥 ALL OTHER PRODUCTS USE STANDARD EDUCATION
+  showProductEducation(p.key);
+};
 
   row.appendChild(btn);
 });
