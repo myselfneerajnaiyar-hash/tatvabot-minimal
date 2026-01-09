@@ -804,25 +804,41 @@ function handleMainAction(action) {
  function showSoilProducts() {
   destroyActionPanel();
 
-  renderActionPanel({
-    title: "🌱 Soil & Growing Media",
-    items: [
-      { key: 'vermicompost', label: '🪱 Vermicompost' },
-      { key: 'cocopeat', label: '🥥 Cocopeat' }
-    ],
-    onSelect: (selected) => {
-      window.selectedSoilProduct = selected[0];
-    },
-    onDone: () => {
-      if (window.selectedSoilProduct) {
-        addMessage(
-          `🌱 You selected ${window.selectedSoilProduct.replace('_', ' ')}.\n\nEducation flow will start next.`,
-          'bot'
-        );
+  function showSoilProducts() {
+  destroyActionPanel();
+  quickBar.innerHTML = '';
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  const products = [
+    { key: 'vermicompost', label: '🪱 Vermicompost' },
+    { key: 'cocopeat', label: '🥥 Cocopeat' }
+  ];
+
+  products.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = p.label;
+
+    btn.onclick = () => {
+      addMessage(`🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}.`, 'bot');
+
+      if (p.key === 'cocopeat') {
+        showCocopeatEducation();
       }
-    }
+
+      if (p.key === 'vermicompost') {
+        addMessage("🪱 Vermicompost education flow will be added next.", 'bot');
+      }
+    };
+
+    row.appendChild(btn);
   });
 
+  quickBar.appendChild(row);
+  showBackButton();
+}
   activeActionType = 'soil_products';
 }
   function showCocopeatEducation() {
