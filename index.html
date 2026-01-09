@@ -809,28 +809,28 @@ function handleMainAction(action) {
     { key: 'cocopeat', label: '🥥 Cocopeat' }
   ];
 
-  products.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'quick-btn';
-    btn.textContent = p.label;
+products.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'quick-btn';
+  btn.textContent = p.label;
 
-    btn.onclick = () => {
-      addMessage(
-        `🌱 You selected ${p.label.replace(/^[^ ]+ /,'')}.`,
-        'bot'
-      );
+  btn.onclick = () => {
+    addMessage(
+      🌱 You selected ${p.label.replace(/^[^ ]+ /,'')}.,
+      'bot'
+    );
 
-      if (p.key === 'cocopeat') {
-        showCocopeatEducation();
-      }
+    if (p.key === 'cocopeat') {
+      showCocopeatEducation();
+    }
 
-     if (p.key === 'vermicompost') {
-  showVermicompostEducation();
-}
-   
+    if (p.key === 'vermicompost') {
+      showVermicompostEducation();
+    }
+  };
 
-    row.appendChild(btn);
-    };
+  row.appendChild(btn);
+});
 
   quickBar.appendChild(row);
   showBackButton();
