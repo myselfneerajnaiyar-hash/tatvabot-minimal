@@ -781,11 +781,11 @@ function handleMainAction(action) {
 
   destroyActionPanel();
 
-  if (c.key === 'soil') {
-    showSoilProducts();
-    return;
-  }
-
+ if (c.key === 'soil') {
+  activeActionType = 'soil_products';
+  showSoilProducts();
+  return;
+}
   addMessage(
     `🌱 ${c.label}\n\nThis category will be enabled soon.`,
     'bot'
