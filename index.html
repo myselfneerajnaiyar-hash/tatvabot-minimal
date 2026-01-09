@@ -852,17 +852,23 @@ function handleMainAction(action) {
     onSelect: (selected) => {
       window.cocopeatDecision = selected[0];
     },
-  onDone: () => {
-  if (window.cocopeatDecision === "yes_cocopeat_products") {
-    addMessage(
-      "🛒 Cocopeat products will be shown here (linked to nursery dashboard).",
-      "bot"
-    );
-  } else {
-    addMessage(
-      "👍 No problem. You can explore other supplements anytime.",
-      "bot"
-    );
+ onDone: () => {
+  if (!window.selectedSoilProduct) return;
+
+  const product = window.selectedSoilProduct;
+
+  addMessage(
+    `🌱 You selected ${product.replace('_', ' ')}.`,
+    'bot'
+  );
+
+  // 👉 START EDUCATION FLOW IMMEDIATELY
+  if (product === 'cocopeat') {
+    showCocopeatEducation();
+  }
+
+  if (product === 'vermicompost') {
+    // later we will add showVermicompostEducation()
   }
 }
   });
