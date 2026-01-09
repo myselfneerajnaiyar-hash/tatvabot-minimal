@@ -2050,7 +2050,7 @@ function showSupplementProducts(categoryKey) {
     btn.textContent = item.name;
 
    btn.onclick = () => {
-  showSupplementEducation(categoryKey, item);
+  showProductEducation(item.key);
 };
 
     row.appendChild(btn);
