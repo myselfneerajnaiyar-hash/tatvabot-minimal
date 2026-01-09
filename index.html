@@ -824,11 +824,9 @@ function handleMainAction(action) {
         showCocopeatEducation();
       }
 
-      if (p.key === 'vermicompost') {
-        addMessage(
-          "🪱 Vermicompost improves soil fertility.\n\nEducation flow will be added next.",
-          'bot'
-        );
+     if (p.key === 'vermicompost') {
+  showVermicompostEducation();
+}
       }
     };
 
@@ -887,7 +885,52 @@ renderMainQuickBar()
   row.appendChild(noBtn);
   quickBar.appendChild(row);
 }
+function showVermicompostEducation() {
+  addMessage(
+    "🪱 Vermicompost\n\n" +
+    "Vermicompost is an organic manure made using earthworms. It improves soil fertility naturally.\n\n" +
+    "✅ Benefits:\n" +
+    "• Improves soil structure\n" +
+    "• Increases beneficial microbes\n" +
+    "• Promotes healthy plant growth\n\n" +
+    "🪴 How to use:\n" +
+    "• Mix with topsoil\n" +
+    "• Can be added to pots, grow bags, and garden beds\n\n" +
+    "📏 General dosage:\n" +
+    "• Small pots: 1–2 handfuls\n" +
+    "• Large pots: 3–4 handfuls\n" +
+    "• Garden beds: 1–2 kg per 10 sq ft\n\n" +
+    "Would you like to see vermicompost products available at this nursery?",
+    "bot"
+  );
 
+  quickBar.innerHTML = '';
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'quick-btn primary';
+  yesBtn.textContent = '✅ Yes, show products';
+  yesBtn.onclick = () => {
+    showVermicompostProducts();
+  };
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'quick-btn';
+  noBtn.textContent = '❌ No, maybe later';
+  noBtn.onclick = () => {
+    addMessage(
+      "👍 No problem. You can explore other plant supplements anytime.",
+      "bot"
+    );
+    renderMainQuickBar();
+  };
+
+  row.appendChild(yesBtn);
+  row.appendChild(noBtn);
+  quickBar.appendChild(row);
+}
   
   
     function showCocopeatProducts() {
@@ -895,6 +938,21 @@ renderMainQuickBar()
 
   addMessage(
     "🛒 Cocopeat products available at this nursery\n\n" +
+    "This will show:\n" +
+    "• Product image\n" +
+    "• Price\n" +
+    "• Pack size (e.g. 1kg, 5kg)\n\n" +
+    "Demo nursery data will be used for now.",
+    "bot"
+  );
+
+  showBackButton();
+}
+ function showVermicompostProducts() {
+  quickBar.innerHTML = '';
+
+  addMessage(
+    "🛒 Vermicompost products available at this nursery\n\n" +
     "This will show:\n" +
     "• Product image\n" +
     "• Price\n" +
