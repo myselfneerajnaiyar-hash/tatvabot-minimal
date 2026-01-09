@@ -817,10 +817,12 @@ if (c.key === 'disease') {
   const row = document.createElement('div');
   row.className = 'quick-row actions';
 
-  const products = [
-    { key: 'vermicompost', label: '🪱 Vermicompost' },
-    { key: 'cocopeat', label: '🥥 Cocopeat' }
-  ];
+ const products = [
+  { key: 'vermicompost', label: '🪱 Vermicompost' },
+  { key: 'cocopeat', label: '🥥 Cocopeat' },
+  { key: 'potting_mix', label: '🪴 Potting Mix (Ready Mix Soil)' },
+  { key: 'soil_conditioner', label: '🌱 Soil Conditioner' }
+];
 
 products.forEach(p => {
   const btn = document.createElement('button');
