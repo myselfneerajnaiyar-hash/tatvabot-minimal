@@ -825,6 +825,46 @@ function handleMainAction(action) {
 
   activeActionType = 'soil_products';
 }
+  function showCocopeatEducation() {
+  addMessage(
+    "🥥 *Cocopeat (Coconut Coir)*\n\n" +
+    "Cocopeat is a natural growing medium made from coconut husk.\n\n" +
+    "✅ *Benefits:*\n" +
+    "• Improves soil aeration\n" +
+    "• Retains moisture\n" +
+    "• Encourages healthy root growth\n\n" +
+    "🪴 *How to use:*\n" +
+    "• Mix with garden soil (30–50%)\n" +
+    "• Can be used in pots, grow bags, and seed trays\n\n" +
+    "📏 *General dosage:*\n" +
+    "• Small pots: 1–2 handfuls\n" +
+    "• Grow bags: 20–30% of mix\n\n" +
+    "Would you like to see *cocopeat products available at this nursery?*",
+    "bot"
+  );
+
+  renderActionPanel({
+    title: "Show Cocopeat Products?",
+    items: [
+      { key: "yes_cocopeat_products", label: "✅ Yes, show products" },
+      { key: "no_cocopeat_products", label: "❌ No, maybe later" }
+    ],
+    onSelect: (selected) => {
+      window.cocopeatDecision = selected[0];
+    },
+  onDone: () => {
+  if (window.cocopeatDecision === "yes_cocopeat_products") {
+    addMessage(
+      "🛒 Cocopeat products will be shown here (linked to nursery dashboard).",
+      "bot"
+    );
+  } else {
+    addMessage(
+      "👍 No problem. You can explore other supplements anytime.",
+      "bot"
+    );
+  }
+}
   function renderDiagnosisOptions() {
   quickBar.innerHTML = '';
 
