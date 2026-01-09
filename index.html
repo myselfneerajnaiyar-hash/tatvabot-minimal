@@ -826,7 +826,7 @@ function handleMainAction(action) {
     btn.onclick = () => {
       window.selectedSoilProduct = p.key;
 
-      addMessage(`🌱 You selected ${p.label.replace(/^[^ ]+ /, '')}`., 'bot');
+      addMessage(`🌱 You selected ${p.label.replace(/^[^ ]+ /, '')}.`, 'bot');
 
       if (p.key === 'cocopeat') {
         showCocopeatEducation();
