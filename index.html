@@ -808,8 +808,6 @@ function handleMainAction(action) {
   destroyActionPanel();
   quickBar.innerHTML = '';
 
-  activeActionType = 'soil_products';
-
   const row = document.createElement('div');
   row.className = 'quick-row actions';
 
@@ -824,9 +822,7 @@ function handleMainAction(action) {
     btn.textContent = p.label;
 
     btn.onclick = () => {
-      window.selectedSoilProduct = p.key;
-
-      addMessage(`🌱 You selected ${p.label.replace(/^[^ ]+ /, '')}.`, 'bot');
+      addMessage(🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}., 'bot');
 
       if (p.key === 'cocopeat') {
         showCocopeatEducation();
@@ -834,7 +830,7 @@ function handleMainAction(action) {
 
       if (p.key === 'vermicompost') {
         addMessage(
-          "🪱 Vermicompost education flow will be added next.",
+          "🪱 Vermicompost improves soil fertility.\n\nEducation flow will be added next.",
           'bot'
         );
       }
@@ -845,7 +841,6 @@ function handleMainAction(action) {
 
   quickBar.appendChild(row);
   showBackButton();
-}
   activeActionType = 'soil_products';
 }
   function showCocopeatEducation() {
