@@ -777,11 +777,13 @@ function handleMainAction(action) {
     btn.textContent = c.label;
 
     btn.onclick = () => {
-      window.selectedSupplementCategory = c.key;
-      if (c.key === 'soil') {
-        showSoilProducts();
-      }
-    };
+  window.selectedSupplementCategory = c.key;
+
+  addMessage(
+    🧪 ${c.label}\n\nThis category flow will be activated next.,
+    'bot'
+  );
+};
 
     row.appendChild(btn);
   });
