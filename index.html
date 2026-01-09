@@ -822,7 +822,7 @@ function handleMainAction(action) {
     btn.textContent = p.label;
 
     btn.onclick = () => {
-      addMessage(🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}., 'bot');
+      addMessage(`🌱 You selected ${p.label.replace('🪱 ','').replace('🥥 ','')}.`, 'bot');
 
       if (p.key === 'cocopeat') {
         showCocopeatEducation();
