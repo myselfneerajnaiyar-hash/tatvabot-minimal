@@ -794,6 +794,30 @@ function handleMainAction(action) {
   return;
 }
 }
+ function showSoilProducts() {
+  destroyActionPanel();
+
+  renderActionPanel({
+    title: "🌱 Soil & Growing Media",
+    items: [
+      { key: 'vermicompost', label: '🪱 Vermicompost' },
+      { key: 'cocopeat', label: '🥥 Cocopeat' }
+    ],
+    onSelect: (selected) => {
+      window.selectedSoilProduct = selected[0];
+    },
+    onDone: () => {
+      if (window.selectedSoilProduct) {
+        addMessage(
+          🌱 You selected ${window.selectedSoilProduct.replace('_', ' ')}.\n\nEducation flow will start next.,
+          'bot'
+        );
+      }
+    }
+  });
+
+  activeActionType = 'soil_products';
+}
   function renderDiagnosisOptions() {
   quickBar.innerHTML = '';
 
