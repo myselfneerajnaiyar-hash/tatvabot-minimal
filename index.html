@@ -776,13 +776,20 @@ function handleMainAction(action) {
     btn.className = 'quick-btn';
     btn.textContent = c.label;
 
-    btn.onclick = () => {
+  btn.onclick = () => {
   window.selectedSupplementCategory = c.key;
 
- addMessage(
-  `🧪 ${c.label}\n\nThis category flow will be activated next.`,
-  'bot'
-);
+  destroyActionPanel();
+
+  if (c.key === 'soil') {
+    showSoilProducts();
+    return;
+  }
+
+  addMessage(
+    🌱 ${c.label}\n\nThis category will be enabled soon.,
+    'bot'
+  );
 };
 
     row.appendChild(btn);
