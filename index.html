@@ -2092,7 +2092,7 @@ function showSupplementProductList(key) {
     "bot"
   );
 
-  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}`)
+  fetch(`https://tatvasutra.in/wp-json/tatva/v1/products?product_type_id=${typeId}`)
     .then(res => res.json())
     .then(products => {
       if (!products.length) {
