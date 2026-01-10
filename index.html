@@ -594,7 +594,24 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
 }
 function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn(e); } }
 
-function saveLocation(loc){ try { localStorage.setItem(LOCATION_KEY, JSON.stringify(loc)); } catch(e){ console.warn(e); } }
+function saveLocation(loc){
+  try {
+    // Attach nursery_id when name is known
+    if (loc && loc.name) {
+      const NURSERY_MAP = {
+        "demo_nursery": 6863
+      };
+
+      if (NURSERY_MAP[loc.name]) {
+        loc.nursery_id = NURSERY_MAP[loc.name];
+      }
+    }
+
+    localStorage.setItem(LOCATION_KEY, JSON.stringify(loc));
+  } catch(e){
+    console.warn(e);
+  }
+}
 function loadLocation(){ try { const raw = localStorage.getItem(LOCATION_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]; }); }
  function setLocationDisplay(loc){ if(!loc) { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } else if(loc.name){ locationDisplay.innerHTML = 'Location — ' + escapeHtml(loc.name); } else if(loc.coords){ const c = loc.coords; locationDisplay.innerHTML = 'Location — ' + c.latitude.toFixed(3) + ',' + c.longitude.toFixed(3); } else { locationDisplay.innerHTML = 'Location — <em>not set</em>'; } }
