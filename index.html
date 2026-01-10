@@ -2077,81 +2077,22 @@ function showSupplementProducts(categoryKey) {
   showBackButton();
 }
 
-/*function showSupplementEducation(categoryKey, item) {
-  addMessage(
-    `🌱 ${item.name}\n\n${item.education}\n\nWould you like to see ${item.name.toLowerCase()} products available at this nursery?`,
-    'bot'
-  );
-
+function showSupplementProductList(key) {
+  console.log("🔥 NEW FUNCTION HIT:", key);
   quickBar.innerHTML = '';
 
-  const row = document.createElement('div');
-  row.className = 'quick-row actions';
-
-  const yesBtn = document.createElement('button');
-  yesBtn.className = 'quick-btn primary';
-  yesBtn.textContent = '✅ Yes, show products';
-  yesBtn.onclick = () => {
-   yesBtn.onclick = () => {
-  const typeId = PRODUCT_TYPE_MAP[item.name];
-
-  if (!typeId) {
-    addMessage("Sorry, this product type is not mapped yet.", "bot");
-    return;
-  }
-
-  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}&nursery=${currentNursery}`)
-    .then(res => res.json())
-    .then(products => {
-      if (!products.length) {
-        addMessage("No products found for this category in this nursery.", "bot");
-        return;
-      }
-
-      products.forEach(p => {
-        addMessage(
-          `🪴 ${p.name}\n₹${p.price}\nStock: ${p.stock}`,
-          "bot"
-        );
-      });
-
-      showBackButton();
-    })
-    .catch(() => {
-      addMessage("Failed to load products. Please try again.", "bot");
-    });
-};
-  };
-
-  const noBtn = document.createElement('button');
-  noBtn.className = 'quick-btn';
-  noBtn.textContent = '❌ No, maybe later';
-  noBtn.onclick = () => {
-    renderMainQuickBar();
-  };
-
-  row.appendChild(yesBtn);
-  row.appendChild(noBtn);
-  quickBar.appendChild(row);
-}
-
-function showSupplementProductList(name) {
- function showSupplementProductList(name) {
-  console.log("🔥 NEW FUNCTION HIT:", name);
-  quickBar.innerHTML = '';
-
-  const typeId = PRODUCT_TYPE_MAP[name];
+  const typeId = PRODUCT_TYPE_MAP[key];
   if (!typeId) {
     addMessage("Unknown product type.", "bot");
     return;
   }
 
   addMessage(
-    `🛒 Showing ${name} products available at this nursery…`,
+    `🛒 Showing ${key.replace(/_/g, ' ')} products available at this nursery…`,
     "bot"
   );
 
-  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}&nursery=${CURRENT_NURSERY}`)
+  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}`)
     .then(res => res.json())
     .then(products => {
       if (!products.length) {
@@ -2179,7 +2120,7 @@ function showSupplementProductList(name) {
       );
       showBackButton();
     });
-}*/
+}
 </script>
   
 <script>
