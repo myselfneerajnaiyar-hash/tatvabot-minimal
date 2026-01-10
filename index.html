@@ -2136,19 +2136,48 @@ function showSupplementProducts(categoryKey) {
 }
 
 function showSupplementProductList(name) {
+ function showSupplementProductList(name) {
   quickBar.innerHTML = '';
 
+  const typeId = PRODUCT_TYPE_MAP[name];
+  if (!typeId) {
+    addMessage("Unknown product type.", "bot");
+    return;
+  }
+
   addMessage(
-    `🛒 ${name} products available at this nursery\n\n` +
-    "This will show:\n" +
-    "• Product image\n" +
-    "• Price\n" +
-    "• Pack size (e.g. 1kg, 5kg)\n\n" +
-    "Demo nursery data will be used for now.",
-    'bot'
+    `🛒 Showing ${name} products available at this nursery…`,
+    "bot"
   );
 
-  showBackButton();
+  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}&nursery=${CURRENT_NURSERY}`)
+    .then(res => res.json())
+    .then(products => {
+      if (!products.length) {
+        addMessage(
+          "No products found for this category in this nursery.",
+          "bot"
+        );
+        showBackButton();
+        return;
+      }
+
+      products.forEach(p => {
+        addMessage(
+          `🪴 ${p.name}\n₹${p.price}\nStock: ${p.stock}`,
+          "bot"
+        );
+      });
+
+      showBackButton();
+    })
+    .catch(() => {
+      addMessage(
+        "Failed to load products. Please try again.",
+        "bot"
+      );
+      showBackButton();
+    });
 }*/
 </script>
   
