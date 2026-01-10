@@ -2092,7 +2092,35 @@ function showSupplementProducts(categoryKey) {
   yesBtn.className = 'quick-btn primary';
   yesBtn.textContent = '✅ Yes, show products';
   yesBtn.onclick = () => {
-    showSupplementProductList(item.name);
+   yesBtn.onclick = () => {
+  const typeId = PRODUCT_TYPE_MAP[item.name];
+
+  if (!typeId) {
+    addMessage("Sorry, this product type is not mapped yet.", "bot");
+    return;
+  }
+
+  fetch(`/wp-json/tatva/v1/products?product_type_id=${typeId}&nursery=${currentNursery}`)
+    .then(res => res.json())
+    .then(products => {
+      if (!products.length) {
+        addMessage("No products found for this category in this nursery.", "bot");
+        return;
+      }
+
+      products.forEach(p => {
+        addMessage(
+          `🪴 ${p.name}\n₹${p.price}\nStock: ${p.stock}`,
+          "bot"
+        );
+      });
+
+      showBackButton();
+    })
+    .catch(() => {
+      addMessage("Failed to load products. Please try again.", "bot");
+    });
+};
   };
 
   const noBtn = document.createElement('button');
