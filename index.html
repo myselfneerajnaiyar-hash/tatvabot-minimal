@@ -2170,44 +2170,43 @@ if (!nurseryId) {
   return;
 }
 
-fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${typeId}&nursery_id=${nurseryId}`)
-    .then(res => res.json())
-    .then(products => {
-      if (!products.length) {
-        addMessage(
-          "No products found for this category in this nursery.",
-          "bot"
-        );
-        showBackButton();
-        return;
-      }
+<script>
+fetch(https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${typeId}&nursery_id=${nurseryId})
+  .then(res => res.json())
+  .then(products => {
+    if (!products.length) {
+      addMessage(
+        "No products found for this category in this nursery.",
+        "bot"
+      );
+      showBackButton();
+      return;
+    }
 
-  products.forEach(p => {
-    const img = p.image || "https://via.placeholder.com/300x200?text=Product";
+    products.forEach(p => {
+      const img = p.image || "https://via.placeholder.com/300x200?text=Product";
 
-    const html =
-      '<div style="border:1px solid #ccc;padding:8px;margin:6px;border-radius:6px;">' +
-        '<img src="' + img + '" style="width:100%;max-width:200px;border-radius:4px;" />' +
-        '<div><b>' + p.title + '</b></div>' +
-        '<div>Brand: ' + (p.brand || '—') + '</div>' +
-        '<div>₹' + p.price + '</div>' +
-      '</div>';
+      const html =
+        '<div>' +
+          '<img src="' + img + '" style="max-width:200px;" />' +
+          '<div><b>' + p.title + '</b></div>' +
+          '<div>Brand: ' + (p.brand || '—') + '</div>' +
+          '<div>₹' + p.price + '</div>' +
+        '</div>';
 
-    addMessage(html, "bot", true);
+      addMessage(html, "bot", true);
+    });
+
+    showBackButton();
+  })
+  .catch(() => {
+    addMessage(
+      "Failed to load products. Please try again.",
+      "bot"
+    );
+    showBackButton();
   });
-
-  showBackButton();
-})
-.catch(() => {
-  addMessage(
-    "Failed to load products. Please try again.",
-    "bot"
-  );
-  showBackButton();
-});
- 
 </script>
-  
 <script>
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
