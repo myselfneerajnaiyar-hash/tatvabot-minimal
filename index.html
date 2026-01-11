@@ -2107,12 +2107,21 @@ function showSupplementProductList(key) {
     return;
   }
 
-  addMessage(
-    `🛒 Showing ${key.replace(/_/g, ' ')} products available at this nursery…`,
-    "bot"
-  );
+addMessage(
+  `🛒 Showing ${key.replace(/_/g, ' ')} products available at this nursery…`,
+  "bot"
+);
 
- fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${typeId}&nursery_id=${nurseryId}`)
+// get nursery from storage (white-label context)
+const loc = JSON.parse(localStorage.getItem("tatvabot_location_v3") || "{}");
+const nurseryId = loc.nursery_id;
+
+if (!nurseryId) {
+  addMessage("Nursery not set. Please reload the page.", "bot");
+  return;
+}
+
+fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${typeId}&nursery_id=${nurseryId}`)
     .then(res => res.json())
     .then(products => {
       if (!products.length) {
