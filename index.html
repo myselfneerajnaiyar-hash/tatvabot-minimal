@@ -594,12 +594,15 @@ function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
 }
 function clearHistory(){ try { localStorage.removeItem(STORAGE_KEY); chatWindow.innerHTML = ''; ensureInitialMessage(); } catch(e){ console.warn(e); } }
 
-function saveLocation(loc){
+function saveLocation(loc) {
   try {
-    // Attach nursery_id when name is known
+    // Attach nursery_id when name matches a known nursery
     if (loc && loc.name) {
       const NURSERY_MAP = {
-        "demo_nursery": 6863
+        "demo_nursery": 6863,
+        "Demo Nursery": 6863,
+        "delhi_nursery": 7001,
+        "gurgaon_nursery": 7002
       };
 
       if (NURSERY_MAP[loc.name]) {
@@ -608,7 +611,7 @@ function saveLocation(loc){
     }
 
     localStorage.setItem(LOCATION_KEY, JSON.stringify(loc));
-  } catch(e){
+  } catch (e) {
     console.warn(e);
   }
 }
