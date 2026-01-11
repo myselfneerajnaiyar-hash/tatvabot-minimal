@@ -2187,28 +2187,19 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
 
   addMessage(
     `<div class="product-card">
-        <img src="${img}" class="product-img" />
-        <div class="product-body">
-          <div class="product-title">${p.title}</div>
-          <div class="product-brand">Brand: ${p.brand || "—"}</div>
-          <div class="product-price">₹${p.price}</div>
-        </div>
-     </div>`,
+      <img src="${img}" class="product-img" />
+      <div class="product-body">
+        <div class="product-title">${p.title}</div>
+        <div class="product-brand">Brand: ${p.brand || "—"}</div>
+        <div class="product-price">₹${p.price}</div>
+      </div>
+    </div>`,
     "bot",
     true
   );
 });
 
 showBackButton();
-
-  .catch(() => {
-  addMessage(
-    "Failed to load products. Please try again.",
-    "bot"
-  );
-  showBackButton();
-});
-}
 </script>
   
 <script>
