@@ -2181,28 +2181,24 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
         showBackButton();
         return;
       }
-.then(products => {
 
+.then(products => {
   products.forEach(p => {
     const img = p.image || "https://via.placeholder.com/300x200?text=Product";
 
-    addMessage(
-      `<div class="product-card">
-        <img src="${img}" class="product-img" />
-        <div class="product-body">
-          <div class="product-title">${p.title}</div>
-          <div class="product-brand">Brand: ${p.brand || "—"}</div>
-          <div class="product-price">₹${p.price}</div>
-        </div>
-      </div>`,
-      "bot",
-      true
-    );
+    const html =
+      '<div style="border:1px solid #ccc;padding:8px;margin:6px;border-radius:6px;">' +
+        '<img src="' + img + '" style="width:100%;max-width:200px;border-radius:4px;" />' +
+        '<div><b>' + p.title + '</b></div>' +
+        '<div>Brand: ' + (p.brand || '—') + '</div>' +
+        '<div>₹' + p.price + '</div>' +
+      '</div>';
+
+    addMessage(html, "bot", true);
   });
 
   showBackButton();
-});   // <-- this semicolon is the whole problem
-
+})
 .catch(() => {
   addMessage(
     "Failed to load products. Please try again.",
@@ -2210,8 +2206,6 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
   );
   showBackButton();
 });
- 
-
  
 </script>
   
