@@ -2181,8 +2181,7 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
         showBackButton();
         return;
       }
-
- 
+.then(products => {
 
   products.forEach(p => {
     const img = p.image || "https://via.placeholder.com/300x200?text=Product";
@@ -2202,7 +2201,8 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
   });
 
   showBackButton();
-})
+});   // <-- this semicolon is the whole problem
+
 .catch(() => {
   addMessage(
     "Failed to load products. Please try again.",
@@ -2210,6 +2210,9 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
   );
   showBackButton();
 });
+ 
+
+ 
 </script>
   
 <script>
