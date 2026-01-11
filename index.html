@@ -578,10 +578,11 @@ function scrollToElementTop(el) {
   chatWindow.scrollTop += elementTop - containerTop - 12;
 }
   
-function addMessage(text, from='bot', imageUrl=null, ts=Date.now(), save=true){
+function addMessage(text, from = "bot", imageUrl = null, ts = Date.now(), save = true) {
+  if (!text || text === "![image]" || text.trim() === "image") return;
+
   const el = createMessageElement({ text, from, imageUrl, ts });
   chatWindow.appendChild(el);
-
   // 🔒 HARD FIX: wait for DOM + images + layout to fully settle
   setTimeout(() => {
   if (from === 'user') {
