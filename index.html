@@ -2112,7 +2112,7 @@ function showSupplementProductList(key) {
     "bot"
   );
 
-  fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${id}&nursery_id=${nurseryId}`)
+ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${typeId}&nursery_id=${nurseryId}`)
     .then(res => res.json())
     .then(products => {
       if (!products.length) {
