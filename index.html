@@ -550,15 +550,18 @@ function createMessageElement({ text, from = 'bot', imageUrl = null, ts }) {
   span.innerHTML = (text || '').replace(/\n/g, '<br>');
   wrapper.appendChild(span);
 
-  if (imageUrl) {
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = 'image';
-    img.loading = 'lazy';
+ if (
+  imageUrl &&
+  typeof imageUrl === "string" &&
+  imageUrl.startsWith("http")
+) {
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.alt = '';
+  img.loading = 'lazy';
 
-   
-    wrapper.appendChild(img);
-  }
+  wrapper.appendChild(img);
+}
 
   const meta = document.createElement('div');
   meta.className = 'meta';
