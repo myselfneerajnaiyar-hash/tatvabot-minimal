@@ -2182,11 +2182,24 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
         return;
       }
 
-    products.forEach(p => {
+   products.forEach(p => {
   const img = p.image || "https://via.placeholder.com/300x200?text=Product";
 
-  addMessage("TEST PRODUCT CARD", "bot", true);
-  showBackButton();
+  addMessage(
+    `<div class="product-card">
+        <img src="${img}" class="product-img" />
+        <div class="product-body">
+          <div class="product-title">${p.title}</div>
+          <div class="product-brand">Brand: ${p.brand || "—"}</div>
+          <div class="product-price">₹${p.price}</div>
+        </div>
+     </div>`,
+    "bot",
+    true
+  );
+});
+
+showBackButton();
 });
 
 })
