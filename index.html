@@ -2181,16 +2181,18 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
     products.forEach(p => {
   const img = p.image || "https://via.placeholder.com/300x200?text=Product";
 
- addMessage("TEST PRODUCT CARD", "bot", true);
-      showBackButton();
-    })
-    .catch(() => {
-      addMessage(
-        "Failed to load products. Please try again.",
-        "bot"
-      );
-      showBackButton();
-    });
+  addMessage("TEST PRODUCT CARD", "bot", true);
+  showBackButton();
+});
+
+})
+.catch(() => {
+  addMessage(
+    "Failed to load products. Please try again.",
+    "bot"
+  );
+  showBackButton();
+});
 }
 </script>
   
