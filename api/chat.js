@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       const productTypeId = PRODUCT_TYPE_MAP[type];
       const nurseryId = nursery.nursery_id;
 
-      const url = `https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${productTypeId}&nursery_id=${nurseryId}`;
+     const url = `https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${productTypeId}&nursery_id=${nurseryId}`;
 
       try {
         const r = await fetch(url);
