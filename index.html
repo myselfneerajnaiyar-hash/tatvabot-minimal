@@ -1138,9 +1138,9 @@ products.forEach(p => {
   const yesBtn = document.createElement('button');
   yesBtn.className = 'quick-btn primary';
   yesBtn.textContent = '✅ Yes, show products';
-  yesBtn.onclick = () => {
-    showCocopeatProducts();
-  };
+ yesBtn.onclick = () => {
+  showSupplementProductList("cocopeat");
+};
 
   const noBtn = document.createElement('button');
   noBtn.className = 'quick-btn';
@@ -1186,9 +1186,9 @@ function showVermicompostEducation() {
   const yesBtn = document.createElement('button');
   yesBtn.className = 'quick-btn primary';
   yesBtn.textContent = '✅ Yes, show products';
-  yesBtn.onclick = () => {
-    showVermicompostProducts();
-  };
+ yesBtn.onclick = () => {
+  showSupplementProductList("vermicompost");
+};
 
   const noBtn = document.createElement('button');
   noBtn.className = 'quick-btn';
