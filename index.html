@@ -2133,12 +2133,24 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
         return;
       }
 
-      products.forEach(p => {
-        addMessage(
-          `🪴 ${p.name}\n₹${p.price}\nStock: ${p.stock}`,
-          "bot"
-        );
-      });
+     products.forEach(p => {
+  const img = p.image || "https://via.placeholder.com/120x120?text=Product";
+
+  addMessage(
+    `
+    <div style="display:flex; gap:12px; align-items:center;">
+      <img src="${img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />
+      <div>
+        <div style="font-weight:600;">${p.title}</div>
+        <div style="font-size:13px;color:#666;">Brand: ${p.brand || "—"}</div>
+        <div style="margin-top:4px;font-weight:600;color:#2e7d32;">₹${p.price}</div>
+      </div>
+    </div>
+    `,
+    "bot",
+    true   // allow HTML
+  );
+});
 
       showBackButton();
     })
