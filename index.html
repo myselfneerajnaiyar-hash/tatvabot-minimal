@@ -2181,7 +2181,7 @@ fetch(`https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${type
     products.forEach(p => {
   const img = p.image || "https://via.placeholder.com/300x200?text=Product";
 
-  addMessage(
+ addMessage(
   `
   <div class="product-card">
     <img src="${img}" class="product-img" />
