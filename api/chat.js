@@ -2,8 +2,57 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message, imageUrl } = req.body;
+    const { message, imageUrl, type, nursery } = req.body;
 
+    // -----------------------------
+    // PRODUCT MODE HANDLING
+    // -----------------------------
+    const PRODUCT_TYPE_MAP = {
+      seed_germination: 7202,
+      plant_tonic: 7201,
+      micronutrient_mix: 7200,
+      soil_conditioner: 7199,
+      fungicide: 7198,
+      organic_pest_control: 7197,
+      neem_oil: 7196,
+      root_growth_promoter: 7195,
+      leaf_growth_booster: 7194,
+      flower_booster: 7193,
+      liquid_fertilizer: 7192,
+      organic_fertilizer: 7191,
+      potting_mix: 7190,
+      cocopeat: 7189,
+      vermicompost: 7188
+    };
+
+    // If UI has sent a product intent AND nursery is known
+    if (type && PRODUCT_TYPE_MAP[type] && nursery?.nursery_id) {
+      const productTypeId = PRODUCT_TYPE_MAP[type];
+      const nurseryId = nursery.nursery_id;
+
+      const url = `https://tatvasutra.in/wp-json/tatvabot/v1/products?product_type_id=${productTypeId}&nursery_id=${nurseryId}`;
+
+      try {
+        const r = await fetch(url);
+        const data = await r.json();
+
+        return res.status(200).json({
+          mode: "products",
+          products: data,
+        });
+      } catch (e) {
+        console.error("Product fetch error:", e);
+        return res.status(500).json({
+          mode: "products",
+          products: [],
+          error: "Failed to fetch products"
+        });
+      }
+    }
+
+    // -----------------------------
+    // AI MODE (existing behaviour)
+    // -----------------------------
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -53,101 +102,6 @@ If plants have already been suggested in the conversation and:
    "Suggest plants for my location"
    "Best plants for my weather"
    "Plants for my balcony"
-
-CARE RESPONSE FORMAT:
-
-🌱 How to Grow This Plant
-* Pot & soil
-* Sunlight
-* Watering
-* Feeding
-* Common mistakes to avoid
----
-
-🌱 PLANT RECOMMENDATION RULES (VERY IMPORTANT):
-
-When the user asks what plants they should grow:
-- Automatically assume Indian location and current weather.
-- Do NOT ask for city or weather.
-- Categorize the weather mentally as one of:
-  hot & dry / hot & humid / moderate / cool
-- Suggest ONLY 5 easy-to-grow plants.
-- For each plant, give exactly 2 short, practical lines.
-- Do NOT explain weather logic or mention APIs.
-- After listing plants, ask ONE follow-up question:
-  "Is this for a balcony, terrace, or indoor space?"
-
-- If the user's message is ONLY one word like:
-  "balcony", "terrace", or "indoor":
-  → Do NOT ask the question again.
-  → Treat it as an answer.
-  → Refine the plant suggestions for that space.
-  - Never ask the same follow-up question more than once in a conversation.
----
-
-🌞 If weather is HOT & DRY, suggest from:
-- Aloe Vera: Thrives in heat and dry air. Needs watering only once a week.
-- Jade Plant: Stores water in its leaves and grows well in bright light.
-- Snake Plant: Very hardy and low maintenance. Suitable for balcony or indoor.
-- Bougainvillea: Loves full sunlight and blooms well in hot weather.
-- Portulaca: A summer flowering plant that survives extreme heat.
-
-🌦️ If weather is HOT & HUMID, suggest from:
-- Hibiscus: Loves humidity and sunlight. Flowers well with regular watering.
-- Areca Palm: Thrives in warm, moist conditions and looks great on balconies.
-- Money Plant: Very adaptable and grows fast in humid weather.
-- Peace Lily: Prefers humidity and indirect light. Good for indoors.
-- Tulsi: Grows well in warm climates with sunlight.
-
-🌤️ If weather is MODERATE, suggest from:
-- Spider Plant: Easy to grow and adapts well all year.
-- Rubber Plant: Low maintenance with bright indirect light.
-- Anthurium: Grows well in stable temperatures and indoor spaces.
-- Kalanchoe: Low water needs and long-lasting flowers.
-- Chrysanthemum: Grows well in mild weather with sunlight.
-
-❄️ If weather is COOL, suggest from:
-- Petunia: Thrives in cool weather and bright sunlight.
-- Pansy: Ideal winter flowering plant for pots.
-- Calendula: Easy to grow and blooms well in cool temperatures.
-- Cyclamen: Prefers cool indoor or shaded areas.
-- Spinach (Palak): Grows fast in cool weather and pots.
-
-SPACE REFINEMENT RULES:
-
-If the user answers:
-- "balcony":
-  Focus on sun-tolerant, medium-size plants suitable for pots.
-
-- "terrace":
-  Prefer flowering and sun-loving plants. Assume larger pots.
-
-- "indoor":
-  Remove high-sun plants.
-  Suggest only indoor-friendly plants like:
-  Snake Plant, Money Plant, Peace Lily, Rubber Plant, Spider Plant.
-
-  Once plant recommendations have been given, NEVER repeat the "Best Plants for You Right Now" section unless the user explicitly asks again:
-"What plants should I grow?"
-
-When refining:
-- Show the updated list.
-- Do NOT ask any further questions.
----
-
-RESPONSE FORMAT FOR PLANT SUGGESTIONS:
-🌿 Best Plants for You Right Now
-1️⃣ Plant name
-* Line 1
-* Line 2
-
----
-
-RESPONSE FORMAT FOR DIAGNOSIS (when plant is sick or image is given):
-🌿 Diagnosis
-🌦 Possible Causes
-🌱 What To Do Now
-🔁 Follow-up Questions
 `;
 
     const messages = [
@@ -179,13 +133,15 @@ RESPONSE FORMAT FOR DIAGNOSIS (when plant is sick or image is given):
     });
 
     res.status(200).json({
+      mode: "ai",
       reply: completion.choices[0].message.content
     });
 
   } catch (error) {
     console.error("TatvaBot error:", error);
     res.status(500).json({
-      reply: "Image diagnosis failed. Please upload a clear photo and try again."
+      mode: "ai",
+      reply: "Something went wrong. Please try again."
     });
   }
 }
