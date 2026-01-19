@@ -56,14 +56,16 @@ Rules:
 - Structured diagnostic format follow karo.
 `;
 
-    const messages = [
-      {
-        role: "system",
-        content: imageUrl
-          ? (isGardener ? GARDENER_PROMPT : CUSTOMER_DIAG_PROMPT)
-          : (isGardener ? GARDENER_PROMPT : CUSTOMER_PROMPT)
-      }
-    ];
+   const messages = [
+  {
+    role: "system",
+    content: isGardener
+      ? GARDENER_PROMPT
+      : imageUrl
+        ? CUSTOMER_DIAG_PROMPT
+        : CUSTOMER_PROMPT
+  }
+];
 
     if (imageUrl) {
       messages.push({
