@@ -1651,33 +1651,53 @@ mainQuickBarHTML = quickBar.innerHTML;
 
 // --- upload ---
 chooseFileBtn.addEventListener('click', () => fileInput.click());
-try {
-  const fd = new FormData();
-  fd.append('file', file, 'photo.jpg');
 
-  const res = await fetch('/api/upload', {
-    method: 'POST',
-    body: fd
-  });
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return;
 
-  const text = await res.text();
-  let data = null;
-  try { data = JSON.parse(text); } catch(e) {}
+  showStatus('Uploading image...');
+  chooseFileBtn.disabled = true;
+  sendBtn.disabled = true;
 
-  if (res.ok && data && (data.url || data.secure_url || data.result?.secure_url)) {
-    uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url;
-    showStatus('Upload OK');
+  try {
+    const fd = new FormData();
+    fd.append('file', file, 'photo.jpg');
 
-    if (uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown) {
-      addMessage('Image attached', 'user', uploadedImageUrl);
-      lastUploadedUrlShown = uploadedImageUrl;
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: fd
+    });
+
+    const text = await res.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch (e) {}
+
+    if (res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)) {
+      uploadedImageUrl = data.url || data.secure_url || data.result?.secure_url || data.result?.url;
+
+      showStatus('Upload OK');
+
+      if (uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown) {
+        addMessage('Image attached', 'user', uploadedImageUrl);
+        lastUploadedUrlShown = uploadedImageUrl;
+      }
+    } else {
+      console.error('Upload failed', res.status, text);
+      alert('Upload failed: ' + (text || res.status));
+      showStatus('Upload failed');
     }
-  } else {
-    console.error('Upload failed', res.status, text);
-    alert('Upload failed: ' + (text || res.status));
-    showStatus('Upload failed');
+  } catch (err) {
+    console.error('Upload error', err);
+    alert('Upload error: ' + (err.message || err));
+    showStatus('Upload error');
+  } finally {
+    fileInput.value = '';
+    chooseFileBtn.disabled = false;
+    sendBtn.disabled = false;
+    setTimeout(() => showStatus(''), 1600);
   }
-}
+});
 // --- diagnosis flows (config-driven) ---
 const DIAG_FLOWS = {
 
