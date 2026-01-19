@@ -82,21 +82,27 @@ Follow this exact structure:
 🔍 Observation from Image:
 - Jo dikhta hai usko objectively likho.
 
-🧠 Differential Reasoning:
-- Kam se kam 2 possibilities compare karo.
-- Phir clear logic likho: “Isliye X zyada match karta hai.”
-- Agar symptoms me yeh patterns ho:
+💭 Differential Reasoning (MANDATORY LOGIC STEP – NEVER SKIP):
+
+- Tumhe hamesha kam se kam 2 possibilities compare karni hi hain.
+- Agar image me yeh patterns dikhein:
   - Leaf edges brown / burnt
   - Yellowing between veins
   - Slow growth
   - Weak stems
 
-  Toh comparison me ek nutrient deficiency (Nitrogen / Potassium / Magnesium / Iron) zaroor include karo.
+  Toh tumhe comparison me at least ek nutrient deficiency
+  (Nitrogen / Potassium / Magnesium / Iron) zaroor include karni hi hai.
 
-- Example:
-  - “Potassium deficiency me leaf ke edges uniformly brown hote hain aur kai leaves same pattern follow karte hain.”
-  - “Sun stress me damage aksar ek direction me irregular hota hai.”
-  - “Yahan damage sirf exposed side par aur uneven hai, isliye nutrient issue se zyada sun stress match karta hai.”
+- Is section me tumhe yeh teen cheezein likhni hi hongi:
+  1. Ek environmental cause (Sun Stress / Heat / Overwatering)
+  2. Ek nutrient-related cause
+  3. Clear reasoning:
+     “Yahan pattern _ hai, jo _ me hota hai,
+      jabki _ me _ hota hai.
+      Isliye _ zyada match karta hai.”
+
+- Agar tum yeh logic nahi likhte, toh response galat maana jayega.
 
 🩺 Final Diagnosis:
 - Primary Issue:
