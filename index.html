@@ -2007,6 +2007,11 @@ diagnosisState = null;
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
 
+    let isGardener = false;
+
+if (messageRaw.toLowerCase().includes("gardener mode")) {
+  isGardener = true;
+}
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
