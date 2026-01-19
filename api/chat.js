@@ -52,6 +52,13 @@ Image ke basis par best match choose karo.
       mode === "gardener" ||
       (typeof message === "string" &&
         message.toLowerCase().includes("gardener mode"));
+    // If user is just activating gardener mode without image
+if (isGardener && !imageUrl && message.toLowerCase().includes("gardener mode")) {
+  return res.status(200).json({
+    mode: "ai",
+    reply: "Gardener mode ON. Ab plant ki photo upload karein ya problem likhein.",
+  });
+}
 
     const systemPrompt = isGardener ? GARDENER_PROMPT : CUSTOMER_PROMPT;
 
