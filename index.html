@@ -1655,7 +1655,7 @@ fileInput.addEventListener('change', async () => {
   const file = fileInput.files && fileInput.files[0]; if(!file) return;
   showStatus('Uploading image...'); chooseFileBtn.disabled = true; sendBtn.disabled = true;
   try {
-    const fd = new FormData(); fd.append('file', file);
+    const fd = new FormData(); fd.append('file', file,'photo.jpg');
     const res = await fetch('/api/upload', { method:'POST', body:fd });
     const data = await res.json().catch(()=>null);
     if(res.ok && data && (data.url || data.secure_url || data.result?.secure_url || data.result?.url)){
