@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message, imageUrl, mode } = req.body || {};
+    const { message, imageUrl, isGardener } = req.body || {};
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -12,85 +12,81 @@ export default async function handler(req, res) {
     const CUSTOMER_PROMPT = `
 You are TatvaBot — an expert gardening assistant for Indian users.
 Be friendly, clear, and practical.
-Reply in the same language as the user (English/Hindi/Hinglish).
-If an image is provided, analyze it and give helpful guidance.
-Do not invent diseases. Ask follow-up questions if unsure.
+Respond in the same language as the user (English or Hindi/Hinglish).
+Help home gardeners with simple, actionable advice.
+`;
+
+    const CUSTOMER_DIAG_PROMPT = `
+You are TatvaBot — an expert gardening assistant for Indian home gardeners.
+
+When an IMAGE is provided:
+- Visually analyze the plant.
+- Identify the MOST likely issue.
+- Do NOT list many possibilities.
+- Give ONE clear diagnosis.
+- Explain in the user's language (English or Hinglish).
+- Use this structure:
+
+🌱 Problem:
+(short, clear)
+
+🔍 Why this is happening:
+(simple explanation)
+
+🛠 What to do (3 steps only):
+1.
+2.
+3.
+
+Tone: reassuring, friendly, practical.
 `;
 
     const GARDENER_PROMPT = `
 You are TatvaBot – a trainer for Indian gardeners (mali).
 
-Allowed issues (choose ONLY from this list):
+Allowed issues (choose only from this list):
 ${JSON.stringify(GARDENER_ISSUES, null, 2)}
 
 Rules:
-- Sirf upar diye gaye issues me se hi ek choose karo.
+- Sirf upar wale issues me se hi choose karo.
 - Hinglish me simple aur practical jawab do.
-- Field-level guidance do (kya karna hai, kaise karna hai).
+- Field-level guidance do, theory nahi.
 - Nayi disease invent mat karo.
-- Agar sure na ho, closest match lo aur confidence LOW rakho.
-- Output format hamesha aisa ho:
-
-Issue: <title_hi>
-Confidence: High / Medium / Low
-
-Symptoms (jo dikhta hai):
-- ...
-
-Root Cause (kyon hota hai):
-- ...
-
-Action Plan (field me kya kare):
-1. ...
-2. ...
-3. ...
-
-Image ke basis par best match choose karo.
+- Agar sure na ho, closest match lo aur confidence Low rakho.
+- Structured diagnostic format follow karo.
 `;
-
-    const isGardener =
-      mode === "gardener" ||
-      (typeof message === "string" &&
-        message.toLowerCase().includes("gardener mode"));
-    // If user is just activating gardener mode without image
-if (isGardener && !imageUrl && message.toLowerCase().includes("gardener mode")) {
-  return res.status(200).json({
-    mode: "ai",
-    reply: "Gardener mode ON. Ab plant ki photo upload karein ya problem likhein.",
-  });
-}
-
-    const systemPrompt = isGardener ? GARDENER_PROMPT : CUSTOMER_PROMPT;
 
     const messages = [
       {
         role: "system",
-        content: systemPrompt,
-      },
+        content: imageUrl
+          ? (isGardener ? GARDENER_PROMPT : CUSTOMER_DIAG_PROMPT)
+          : (isGardener ? GARDENER_PROMPT : CUSTOMER_PROMPT)
+      }
     ];
 
     if (imageUrl) {
       messages.push({
         role: "user",
         content: [
-          { type: "text", text: message || "Diagnose this plant" },
+          { type: "text", text: message || "Is plant me kya dikkat hai?" },
           {
             type: "image_url",
-            image_url: { url: imageUrl },
-          },
-        ],
+            image_url: { url: imageUrl }
+          }
+        ]
       });
     } else {
       messages.push({
         role: "user",
-        content: message || "Hello",
+        content: message || "Hello"
       });
     }
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      temperature: isGardener ? 0.2 : 0.4,
+      temperature: 0.3,
     });
 
     const reply =
@@ -101,12 +97,13 @@ if (isGardener && !imageUrl && message.toLowerCase().includes("gardener mode")) 
       mode: "ai",
       reply,
     });
+
   } catch (error) {
     console.error("TatvaBot error:", error);
 
     return res.status(500).json({
       mode: "ai",
-      reply: "Something went wrong. Please try again.",
+      reply: "Something went wrong. Please try again."
     });
   }
 }
