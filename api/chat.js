@@ -102,12 +102,14 @@ export default async function handler(req, res) {
     // -----------------------------
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    let context = "";
-    if (imageUrl) {
-      const symptoms = await analyzeImageSymptoms(imageUrl);
-      const matches = matchDeficiencies(symptoms);
+   let context = "";
 
-      context = `
+if (imageUrl) {
+  try {
+    const symptoms = await analyzeImageSymptoms(imageUrl);
+    const matches = matchDeficiencies(symptoms);
+
+    context = `
 Visible Symptoms:
 ${symptoms.map(s => "- " + s).join("\n")}
 
@@ -120,7 +122,12 @@ ${matches.map(m => `
   Why: ${m.why}
 `).join("\n")}
 `;
-    }
+  } catch (err) {
+    console.error("Image analysis failed:", err);
+    // Fallback: behave like old TatvaBot
+    context = "";
+  }
+}
 
     const systemPrompt = `
 You are TatvaBot, a professional plant doctor.
