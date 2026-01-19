@@ -61,34 +61,13 @@ function matchDeficiencies(symptoms) {
 }
 
 async function analyzeImageSymptoms(imageUrl) {
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are a horticulture vision engine. Only list visible plant symptoms from the image. Do NOT give advice. Do NOT guess diseases."
-    },
-    {
-      role: "user",
-      content: [
-        { type: "text", text: "List visible plant symptoms from this image." },
-        { type: "image_url", image_url: { url: imageUrl } }
-      ]
-    }
+  // TEMP SAFE MODE – no OpenAI call
+  return [
+    "Yellowing on part of the leaf",
+    "One leaf appears pale compared to others",
+    "No visible holes or insect damage"
   ];
-
-  const response = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages,
-    temperature: 0.2
-  });
-
-  const text = response.choices[0].message.content || "";
-  return text
-    .split("\n")
-    .map(s => s.replace(/^[\-\*\d\.\s]+/, "").trim())
-    .filter(Boolean);
 }
-
 export default async function handler(req, res) {
   try {
     const { message, imageUrl, type, nursery } = req.body;
