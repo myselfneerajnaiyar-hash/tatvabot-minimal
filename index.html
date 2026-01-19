@@ -2019,7 +2019,7 @@ if (messageRaw.toLowerCase().includes("gardener mode")) {
       body: JSON.stringify({
         message: messageRaw,
         imageUrl: uploadedImageUrl || null,
-        location: loadLocation() || null
+        location: loadLocation() || null,
         isGardener
       })
     });
