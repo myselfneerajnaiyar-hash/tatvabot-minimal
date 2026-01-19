@@ -129,6 +129,7 @@ Rules:
       model: "gpt-4o-mini",
       messages,
       temperature: 0.3,
+      max_tokens: 900,
     });
 
     const reply =
