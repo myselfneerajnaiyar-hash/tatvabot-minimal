@@ -1995,7 +1995,7 @@ diagnosisState = null;
   // show user message
   addMessage(messageRaw || 'Image', 'user', imageToSend);
   input.value = '';
-
+uploadedImageUrl = null;
   // diagnosis flow
   if (diagnosisState) {
     await handleDiagnosisAnswer(messageRaw);
