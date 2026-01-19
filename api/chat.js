@@ -1,13 +1,16 @@
 import OpenAI from "openai";
-import { analyzeImageSymptoms } from "./image-analyzer.js";
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // ---- DEFICIENCY BRAIN (Batch 1) ----
 const DEFICIENCIES = [
   {
     issue_id: "DEF_NITROGEN",
     issue_name: "Nitrogen Deficiency",
-    visible_symptoms: ["yellowing of older leaves", "pale green color", "slow growth", "weak stems"],
-    leaf_pattern_clues: "Yellowing starts from bottom leaves upward",
+    visible_symptoms: ["yellowing", "pale", "slow growth", "weak"],
+    leaf_pattern_clues: "Yellowing starts from older leaves",
     root_cause: "Low nitrogen in soil",
     fix_steps: ["Add vermicompost – 2 handfuls per pot", "Apply liquid seaweed feed – 5 ml per litre"],
     why: "Nitrogen is essential for chlorophyll and leaf growth."
@@ -15,7 +18,7 @@ const DEFICIENCIES = [
   {
     issue_id: "DEF_POTASSIUM",
     issue_name: "Potassium Deficiency",
-    visible_symptoms: ["brown leaf edges", "burnt margins", "weak flowering"],
+    visible_symptoms: ["brown edge", "burnt", "weak flowering"],
     leaf_pattern_clues: "Leaf margins appear scorched",
     root_cause: "Low potassium in soil",
     fix_steps: ["Add potash-rich compost", "Use balanced NPK feed"],
@@ -24,7 +27,7 @@ const DEFICIENCIES = [
   {
     issue_id: "DEF_PHOSPHORUS",
     issue_name: "Phosphorus Deficiency",
-    visible_symptoms: ["purple leaves", "poor root growth", "delayed flowering"],
+    visible_symptoms: ["purple", "poor root", "delayed flowering"],
     leaf_pattern_clues: "Leaves turn dark or purplish",
     root_cause: "Low phosphorus availability",
     fix_steps: ["Add bone meal", "Improve soil aeration"],
@@ -33,7 +36,7 @@ const DEFICIENCIES = [
   {
     issue_id: "DEF_IRON",
     issue_name: "Iron Deficiency",
-    visible_symptoms: ["yellowing of young leaves", "green veins with yellow tissue"],
+    visible_symptoms: ["yellow young", "green veins"],
     leaf_pattern_clues: "Interveinal chlorosis on new leaves",
     root_cause: "High soil pH blocking iron uptake",
     fix_steps: ["Apply chelated iron", "Use acidic compost"],
@@ -42,7 +45,7 @@ const DEFICIENCIES = [
   {
     issue_id: "DEF_MAGNESIUM",
     issue_name: "Magnesium Deficiency",
-    visible_symptoms: ["yellowing between veins", "leaf curling"],
+    visible_symptoms: ["yellow between veins", "curling"],
     leaf_pattern_clues: "Green veins with yellow tissue on older leaves",
     root_cause: "Nutrient imbalance",
     fix_steps: ["Apply Epsom salt solution", "Add balanced compost"],
@@ -50,12 +53,40 @@ const DEFICIENCIES = [
   }
 ];
 
-// simple matcher
 function matchDeficiencies(symptoms) {
   const s = symptoms.join(" ").toLowerCase();
   return DEFICIENCIES.filter(d =>
-    d.visible_symptoms.some(v => s.includes(v.split(" ")[0]))
+    d.visible_symptoms.some(v => s.includes(v))
   ).slice(0, 3);
+}
+
+async function analyzeImageSymptoms(imageUrl) {
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are a horticulture vision engine. Only list visible plant symptoms from the image. Do NOT give advice. Do NOT guess diseases."
+    },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "List visible plant symptoms from this image." },
+        { type: "image_url", image_url: { url: imageUrl } }
+      ]
+    }
+  ];
+
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages,
+    temperature: 0.2
+  });
+
+  const text = response.choices[0].message.content || "";
+  return text
+    .split("\n")
+    .map(s => s.replace(/^[\-\*\d\.\s]+/, "").trim())
+    .filter(Boolean);
 }
 
 export default async function handler(req, res) {
@@ -63,7 +94,7 @@ export default async function handler(req, res) {
     const { message, imageUrl, type, nursery } = req.body;
 
     // -----------------------------
-    // PRODUCT MODE (unchanged)
+    // PRODUCT MODE (UNCHANGED)
     // -----------------------------
     const PRODUCT_TYPE_MAP = {
       seed_germination: 7202,
@@ -98,18 +129,16 @@ export default async function handler(req, res) {
     }
 
     // -----------------------------
-    // DIAGNOSTIC AI MODE
+    // DIAGNOSTIC MODE
     // -----------------------------
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    let context = "";
 
-   let context = "";
+    if (imageUrl) {
+      try {
+        const symptoms = await analyzeImageSymptoms(imageUrl);
+        const matches = matchDeficiencies(symptoms);
 
-if (imageUrl) {
-  try {
-    const symptoms = await analyzeImageSymptoms(imageUrl);
-    const matches = matchDeficiencies(symptoms);
-
-    context = `
+        context = `
 Visible Symptoms:
 ${symptoms.map(s => "- " + s).join("\n")}
 
@@ -122,25 +151,27 @@ ${matches.map(m => `
   Why: ${m.why}
 `).join("\n")}
 `;
-  } catch (err) {
-    console.error("Image analysis failed:", err);
-    // Fallback: behave like old TatvaBot
-    context = "";
-  }
-}
+      } catch (err) {
+        console.error("Image analysis failed:", err);
+        context = "";
+      }
+    }
 
     const systemPrompt = `
 You are TatvaBot, a professional plant doctor.
 
 If diagnostic context is provided:
-- Do NOT invent new diseases.
+- Do NOT invent diseases.
 - Use ONLY the provided issues.
-- Explain clearly:
+- Explain:
   1. Most likely issue
   2. Why it fits
   3. What to do (steps)
   4. Why that fix works
 - If unsure, ask ONE clarifying question.
+
+If no diagnostic context is provided:
+- Behave exactly like the original TatvaBot.
 `;
 
     const messages = [
@@ -158,7 +189,6 @@ If diagnostic context is provided:
       mode: "ai",
       reply: completion.choices[0].message.content
     });
-
   } catch (error) {
     console.error("TatvaBot error:", error);
     res.status(500).json({
