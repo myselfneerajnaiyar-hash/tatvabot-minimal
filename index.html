@@ -1995,7 +1995,7 @@ diagnosisState = null;
   // show user message
   addMessage(messageRaw || 'Image', 'user', imageToSend);
   input.value = '';
-uploadedImageUrl = null;
+
   // diagnosis flow
   if (diagnosisState) {
     await handleDiagnosisAnswer(messageRaw);
@@ -2036,6 +2036,7 @@ uploadedImageUrl = null;
     removeTypingIndicator(typingEl);
     addMessage('Network error. Please try again.', 'bot');
   } finally {
+    uploadedImageUrl = null
     sendBtn.disabled = false;
     showStatus('');
   }
