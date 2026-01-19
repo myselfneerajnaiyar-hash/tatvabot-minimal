@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message, imageUrl, mode = "customer" } = req.body || {};
+    const { message, imageUrl, mode } = req.body || {};
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -12,29 +12,48 @@ export default async function handler(req, res) {
     const CUSTOMER_PROMPT = `
 You are TatvaBot — an expert gardening assistant for Indian users.
 Be friendly, clear, and practical.
-Always respond in the same language as the user.
-If the user writes in Hindi or Hinglish, reply in Hinglish.
-If the user writes in English, reply in English.
+Reply in the same language as the user (English/Hindi/Hinglish).
+If an image is provided, analyze it and give helpful guidance.
+Do not invent diseases. Ask follow-up questions if unsure.
 `;
 
     const GARDENER_PROMPT = `
 You are TatvaBot – a trainer for Indian gardeners (mali).
 
-Allowed issues (choose only from this list):
+Allowed issues (choose ONLY from this list):
 ${JSON.stringify(GARDENER_ISSUES, null, 2)}
 
 Rules:
-- Sirf upar wale issues me se hi choose karo.
+- Sirf upar diye gaye issues me se hi ek choose karo.
 - Hinglish me simple aur practical jawab do.
-- Field-level guidance do, theory nahi.
+- Field-level guidance do (kya karna hai, kaise karna hai).
 - Nayi disease invent mat karo.
-- Agar sure na ho, closest match lo aur confidence Low rakho.
-- Jab image mile, plant ko visually analyse karo aur ek hi issue choose karo.
-- Structured diagnostic report do.
+- Agar sure na ho, closest match lo aur confidence LOW rakho.
+- Output format hamesha aisa ho:
+
+Issue: <title_hi>
+Confidence: High / Medium / Low
+
+Symptoms (jo dikhta hai):
+- ...
+
+Root Cause (kyon hota hai):
+- ...
+
+Action Plan (field me kya kare):
+1. ...
+2. ...
+3. ...
+
+Image ke basis par best match choose karo.
 `;
 
-    const systemPrompt =
-      mode === "gardener" ? GARDENER_PROMPT : CUSTOMER_PROMPT;
+    const isGardener =
+      mode === "gardener" ||
+      (typeof message === "string" &&
+        message.toLowerCase().includes("gardener mode"));
+
+    const systemPrompt = isGardener ? GARDENER_PROMPT : CUSTOMER_PROMPT;
 
     const messages = [
       {
@@ -64,7 +83,7 @@ Rules:
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      temperature: 0.3,
+      temperature: isGardener ? 0.2 : 0.4,
     });
 
     const reply =
@@ -80,7 +99,7 @@ Rules:
 
     return res.status(500).json({
       mode: "ai",
-      reply: "Something went wrong while diagnosing. Please try again.",
+      reply: "Something went wrong. Please try again.",
     });
   }
 }
