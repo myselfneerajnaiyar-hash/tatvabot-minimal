@@ -29,6 +29,12 @@ ISSUES (choose one only):
 
 3. Produce a structured diagnostic report in this exact format:
 
+🌿 Plant Identification:
+Plant Name: <common name>
+Botanical Name: <if known, else "Unknown">
+Confidence: <High / Medium / Low>
+
+📌 Diagnosis Report (Image-Based)
 🧠 Diagnosis Report (Image-Based)
 
 Likely Issue: <one from the list>
