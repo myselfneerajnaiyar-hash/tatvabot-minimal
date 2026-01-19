@@ -2007,16 +2007,34 @@ diagnosisState = null;
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
 
-    let isGardener = localStorage.getItem("isGardener") === "true";
+   let isGardener = localStorage.getItem("isGardener") === "true";
 
-if (messageRaw.toLowerCase().includes("gardener mode")) {
+const text = messageRaw.toLowerCase().trim();
+
+// Turn ON gardener mode
+if (text === "gardener mode") {
   isGardener = true;
   localStorage.setItem("isGardener", "true");
+
+  addMessage(
+    "🌱 Gardener mode ON.\nAb photo upload karein ya plant ki problem likhein.",
+    "bot"
+  );
+
+  return; // <-- VERY IMPORTANT: stop here, no API call
 }
 
-if (messageRaw.toLowerCase().includes("customer mode")) {
+// Turn OFF gardener mode
+if (text === "customer mode") {
   isGardener = false;
   localStorage.setItem("isGardener", "false");
+
+  addMessage(
+    "👤 Customer mode ON.\nAap normal gardening help pooch sakte hain.",
+    "bot"
+  );
+
+  return; // <-- stop here as well
 }
   try {
     const res = await fetch('/api/chat', {
