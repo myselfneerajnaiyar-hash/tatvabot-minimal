@@ -1,82 +1,46 @@
+import { GARDENER_ISSUES } from "../lib/gardener_issues.js";
 import OpenAI from "openai";
 
 export default async function handler(req, res) {
   try {
-    const { message, imageUrl } = req.body || {};
+    const { message, imageUrl, mode = "customer" } = req.body || {};
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const DIAG_PROMPT = `
-You are TatvaBot in Gardener / Internal Training Mode.
-
-When an IMAGE is provided, you MUST:
-1. Visually analyze the plant.
-2. Choose EXACTLY ONE issue from this fixed list:
-
-ISSUES (choose one only):
-1. Nitrogen Deficiency
-2. Potassium Deficiency
-3. Iron Deficiency
-4. Magnesium Deficiency
-5. Overwatering Stress
-6. Underwatering Stress
-7. Root Rot
-8. Fungal Leaf Disease
-9. Pest Infestation
-10. Sun Stress
-
-3. Produce a structured diagnostic report in this exact format:
-
-🌿 Plant Identification:
-Plant Name: <common name>
-Botanical Name: <if known, else "Unknown">
-Confidence: <High / Medium / Low>
-
-📌 Diagnosis Report (Image-Based)
-🧠 Diagnosis Report (Image-Based)
-
-Likely Issue: <one from the list>
-Confidence: <Low / Medium / High>
-
-🔍 Visible Symptoms:
-- bullet points from the image
-
-🌱 Root Cause:
-- short explanation
-
-🛠 Action Plan:
-1. step
-2. step
-3. step
-4. step
-
-🧪 Treatment Mapping:
-intent_key: <one of these only>
-- liquid_fertilizer
-- micronutrient_mix
-- soil_conditioner
-- plant_tonic
-- fungicide
-- neem_oil
-
-application: <dosage & frequency>
-
-RULES:
-- Never invent diseases outside the list.
-- If unsure, choose the closest match and set Confidence to Low.
-- Be practical for Indian urban gardening.
-- Do NOT be verbose outside the structure.
+    const CUSTOMER_PROMPT = `
+You are TatvaBot — an expert gardening assistant for Indian users.
+Be friendly, clear, and practical.
+Always respond in the same language as the user.
+If the user writes in Hindi or Hinglish, reply in Hinglish.
+If the user writes in English, reply in English.
 `;
+
+    const GARDENER_PROMPT = `
+You are TatvaBot – a trainer for Indian gardeners (mali).
+
+Allowed issues (choose only from this list):
+${JSON.stringify(GARDENER_ISSUES, null, 2)}
+
+Rules:
+- Sirf upar wale issues me se hi choose karo.
+- Hinglish me simple aur practical jawab do.
+- Field-level guidance do, theory nahi.
+- Nayi disease invent mat karo.
+- Agar sure na ho, closest match lo aur confidence Low rakho.
+- Jab image mile, plant ko visually analyse karo aur ek hi issue choose karo.
+- Structured diagnostic report do.
+`;
+
+    const systemPrompt =
+      mode === "gardener" ? GARDENER_PROMPT : CUSTOMER_PROMPT;
 
     const messages = [
       {
         role: "system",
-        content: imageUrl
-          ? DIAG_PROMPT
-          : `You are TatvaBot — an expert gardening assistant for Indian conditions. Be concise and practical.`
-      }
+        content: systemPrompt,
+      },
     ];
 
     if (imageUrl) {
@@ -86,14 +50,14 @@ RULES:
           { type: "text", text: message || "Diagnose this plant" },
           {
             type: "image_url",
-            image_url: { url: imageUrl }
-          }
-        ]
+            image_url: { url: imageUrl },
+          },
+        ],
       });
     } else {
       messages.push({
         role: "user",
-        content: message || "Hello"
+        content: message || "Hello",
       });
     }
 
@@ -111,13 +75,12 @@ RULES:
       mode: "ai",
       reply,
     });
-
   } catch (error) {
     console.error("TatvaBot error:", error);
 
     return res.status(500).json({
       mode: "ai",
-      reply: "Something went wrong while diagnosing. Please try again."
+      reply: "Something went wrong while diagnosing. Please try again.",
     });
   }
 }
