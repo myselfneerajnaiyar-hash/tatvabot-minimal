@@ -1648,7 +1648,23 @@ mainQuickBarHTML = quickBar.innerHTML;
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
 })();
+async function compressImage(file, maxWidth = 1280, quality = 0.7) {
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(file);
+  await img.decode();
 
+  const scale = Math.min(1, maxWidth / img.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width * scale;
+  canvas.height = img.height * scale;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+  });
+}
 // --- upload ---
 chooseFileBtn.addEventListener('click', () => fileInput.click());
 
@@ -1661,14 +1677,16 @@ fileInput.addEventListener('change', async () => {
   sendBtn.disabled = true;
 
   try {
-    const fd = new FormData();
-    fd.append('file', file, 'photo.jpg');
+   // Compress image in browser to avoid Vercel limit
+const compressedBlob = await compressImage(file, 1280, 0.7);
 
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: fd
-    });
+const fd = new FormData();
+fd.append('file', compressedBlob, 'photo.jpg');
 
+const res = await fetch('/api/upload', {
+  method: 'POST',
+  body: fd
+})
     const text = await res.text();
     let data = null;
     try { data = JSON.parse(text); } catch (e) {}
