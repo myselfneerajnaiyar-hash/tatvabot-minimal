@@ -1696,10 +1696,11 @@ const res = await fetch('/api/upload', {
 
       showStatus('Upload OK');
 
-      if (uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown) {
-        addMessage('Image attached', 'user', uploadedImageUrl);
-        lastUploadedUrlShown = uploadedImageUrl;
-      }
+     if (uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown) {
+  addMessage('Image attached', 'user', uploadedImageUrl);
+  lastUploadedUrlShown = uploadedImageUrl;
+  uploadedImageUrl = null;   // 🔴 prevent re-sending on Send
+}
     } else {
       console.error('Upload failed', res.status, text);
       alert('Upload failed: ' + (text || res.status));
