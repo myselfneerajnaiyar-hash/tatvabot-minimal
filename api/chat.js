@@ -8,19 +8,69 @@ export default async function handler(req, res) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const systemPrompt = `
-You are TatvaBot — an expert AI Plant Doctor and Gardening Assistant 🌱, built for Indian conditions.
+    const DIAG_PROMPT = `
+You are TatvaBot in Gardener / Internal Training Mode.
 
-Rules:
-- Be practical and concise.
-- If an image is provided, analyze it visually.
-- If unsure, ask 1–2 clarifying questions.
-- Give actionable Indian gardening advice.
-- Do NOT hallucinate diseases.
+When an IMAGE is provided, you MUST:
+1. Visually analyze the plant.
+2. Choose EXACTLY ONE issue from this fixed list:
+
+ISSUES (choose one only):
+1. Nitrogen Deficiency
+2. Potassium Deficiency
+3. Iron Deficiency
+4. Magnesium Deficiency
+5. Overwatering Stress
+6. Underwatering Stress
+7. Root Rot
+8. Fungal Leaf Disease
+9. Pest Infestation
+10. Sun Stress
+
+3. Produce a structured diagnostic report in this exact format:
+
+🧠 Diagnosis Report (Image-Based)
+
+Likely Issue: <one from the list>
+Confidence: <Low / Medium / High>
+
+🔍 Visible Symptoms:
+- bullet points from the image
+
+🌱 Root Cause:
+- short explanation
+
+🛠 Action Plan:
+1. step
+2. step
+3. step
+4. step
+
+🧪 Treatment Mapping:
+intent_key: <one of these only>
+- liquid_fertilizer
+- micronutrient_mix
+- soil_conditioner
+- plant_tonic
+- fungicide
+- neem_oil
+
+application: <dosage & frequency>
+
+RULES:
+- Never invent diseases outside the list.
+- If unsure, choose the closest match and set Confidence to Low.
+- Be practical for Indian urban gardening.
+- Do NOT be verbose outside the structure.
 `;
 
     const messages = [
-      { role: "system", content: systemPrompt }
+      {
+        role: "system",
+        content: imageUrl
+          ? DIAG_PROMPT
+          : `You are TatvaBot — an expert gardening assistant for Indian conditions. Be concise and practical.`
+      }
     ];
 
     if (imageUrl) {
@@ -44,7 +94,7 @@ Rules:
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      temperature: 0.4,
+      temperature: 0.3,
     });
 
     const reply =
@@ -61,7 +111,7 @@ Rules:
 
     return res.status(500).json({
       mode: "ai",
-      reply: "Something went wrong while thinking. Please try again."
+      reply: "Something went wrong while diagnosing. Please try again."
     });
   }
 }
