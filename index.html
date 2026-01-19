@@ -2007,10 +2007,16 @@ diagnosisState = null;
   sendBtn.disabled = true;
   const typingEl = showTypingIndicator();
 
-    let isGardener = false;
+    let isGardener = localStorage.getItem("isGardener") === "true";
 
 if (messageRaw.toLowerCase().includes("gardener mode")) {
   isGardener = true;
+  localStorage.setItem("isGardener", "true");
+}
+
+if (messageRaw.toLowerCase().includes("customer mode")) {
+  isGardener = false;
+  localStorage.setItem("isGardener", "false");
 }
   try {
     const res = await fetch('/api/chat', {
