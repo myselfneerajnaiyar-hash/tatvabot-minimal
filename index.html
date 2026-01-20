@@ -2126,6 +2126,11 @@ diagnosisState = null;
     await handleDiagnosisAnswer(messageRaw);
     return;
   }
+    / Academy TEXT answer flow
+if (academyMode && !uploadedImageUrl) {
+  handleAcademyText(messageRaw);
+  return;
+}
     // Academy / Training flow
 if (academyMode && uploadedImageUrl) {
   handleAcademyImage(uploadedImageUrl);
