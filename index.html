@@ -1041,6 +1041,10 @@ function renderMainQuickBar() {
 }
 
 function handleMainAction(action) {
+  if (action === 'academy') {
+  showAcademyCourses();
+  return;
+}
   if (action === 'daily_care') {
     renderDailyCareSelection();
     return;
