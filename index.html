@@ -2167,8 +2167,8 @@ diagnosisState = null;
     await handleDiagnosisAnswer(messageRaw);
     return;
   }
-    / Academy TEXT answer flow
-if (academyMode && !uploadedImageUrl) {
+   // Academy TEXT answer flow
+if (academyMode && !uploadedImageUrl && messageRaw) {
   handleAcademyText(messageRaw);
   return;
 }
