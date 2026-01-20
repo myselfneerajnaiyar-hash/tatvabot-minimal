@@ -1865,6 +1865,10 @@ const res = await fetch('/api/upload', {
     if (uploadedImageUrl && uploadedImageUrl !== lastUploadedUrlShown) {
   addMessage('Image attached', 'user', uploadedImageUrl);
   lastUploadedUrlShown = uploadedImageUrl;
+      // 🔥 AUTO-TRIGGER ACADEMY IMAGE FLOW
+if (academyMode && uploadedImageUrl) {
+  handleAcademyImage(uploadedImageUrl);
+}
 }
     } else {
       console.error('Upload failed', res.status, text);
