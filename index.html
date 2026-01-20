@@ -1432,6 +1432,32 @@ Pehle identify karo: yeh indoor category ka plant hai ya nahi.`,
     "bot"
   );
 }
+  function handleAcademyImage(imageUrl) {
+  if (academyMode === "types-indoor") {
+    addMessage(
+      `🧠 Training Check – Indoor Plants
+
+Tumne ek plant ki photo upload ki hai.
+
+Pehla kaam: classify karo.
+
+Socho:
+- Kya yeh ghar ke andar reh sakta hai?
+- Kya iski leaves soft aur broad hain?
+- Kya yeh low-light tolerate karta lagta hai?
+
+Reply me sirf yeh likho:
+“Indoor” ya “Not Indoor”
+
+Phir main tumhe bataunga:
+- Tum sahi ho ya nahi
+- Aur kyun`,
+      "bot"
+    );
+  }
+
+  uploadedImageUrl = null;
+}
   
 function renderDailyCareSelection() {
   const items = Object.keys(PLANT_KNOWLEDGE).map(k => ({
@@ -2100,6 +2126,11 @@ diagnosisState = null;
     await handleDiagnosisAnswer(messageRaw);
     return;
   }
+    // Academy / Training flow
+if (academyMode && uploadedImageUrl) {
+  handleAcademyImage(uploadedImageUrl);
+  return;
+}
 
   // normal chat
   showStatus('TatvaBot is thinking...');
