@@ -1339,6 +1339,99 @@ function renderPlantInfoOptions() {
   showBackButton()
 }
 
+function showAcademyCourses() {
+  quickBar.innerHTML = '';
+
+  const courses = [
+    { key: "obs", label: "Course 1 – Observation Fundamentals" },
+    { key: "types", label: "Course 2 – Plant Types & Their Nature" },
+    { key: "root", label: "Course 3 – Root Cause Thinking" },
+    { key: "problems", label: "Course 4 – Common Plant Problems" },
+    { key: "soil", label: "Course 5 – Soil & Nutrition" },
+    { key: "field", label: "Course 6 – Field Operations" }
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  courses.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = c.label;
+    btn.onclick = () => openCourse(c.key);
+    row.appendChild(btn);
+  });
+
+  quickBar.appendChild(row);
+  showBackButton();
+}
+  function openCourse(key) {
+  if (key === "types") {
+    showPlantTypeModules();
+    return;
+  }
+
+  addMessage(
+    "This course is part of the Plant Care Academy. You will learn this skill by applying it on real plants.\n\nUpload a plant photo to begin practice.",
+    "bot"
+  );
+}
+  function showPlantTypeModules() {
+  quickBar.innerHTML = '';
+
+  const modules = [
+    { key: "indoor", label: "Indoor Plants" },
+    { key: "flowering", label: "Outdoor Flowering Plants" },
+    { key: "vegetable", label: "Vegetables & Herbs" },
+    { key: "succulent", label: "Succulents & Cacti" },
+    { key: "trees", label: "Trees & Large Shrubs" }
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'quick-row actions';
+
+  modules.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = m.label;
+    btn.onclick = () => startPlantTypeLesson(m.key);
+    row.appendChild(btn);
+  });
+
+  quickBar.appendChild(row);
+  showBackButton();
+}
+  function startPlantTypeLesson(key) {
+  if (key === "indoor") {
+    addMessage(
+`📘 Lesson: Indoor Plants
+
+Indoor plants (Money Plant, Snake Plant, Peace Lily, Areca) grow slowly.
+They:
+- Use less water
+- React slowly to problems
+- Die mostly due to overwatering
+
+Common mistake:
+Roz pani dena aur low-light me rakhna.
+
+🧠 Key Rule:
+Indoor plants = Less water, more patience.
+
+🛠 Practice:
+Apne kisi indoor plant ki photo upload karo.
+Pehle identify karo: yeh indoor category ka plant hai ya nahi.`,
+      "bot"
+    );
+    return;
+  }
+
+  addMessage(
+    "This lesson teaches how this plant type behaves. Upload a plant photo to practice.",
+    "bot"
+  );
+}
+  
 function renderDailyCareSelection() {
   const items = Object.keys(PLANT_KNOWLEDGE).map(k => ({
     key: k,
