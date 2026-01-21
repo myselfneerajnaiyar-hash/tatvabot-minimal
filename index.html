@@ -667,7 +667,7 @@ function degreeToDirection(deg) {
 
 function sendSunDataToBot(lux, direction) {
   addMessage(
-    🌞 Sun data captured\nLight: ${lux || "N/A"} lux\nDirection: ${direction || "Unknown"},
+    `🌞 Sun data captured\nLight: ${lux || "N/A"} lux\nDirection: ${direction || "Unknown"}`,
     "bot"
   );
 
