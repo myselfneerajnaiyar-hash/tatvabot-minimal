@@ -15,7 +15,41 @@ function buildIssueIndex() {
 
 export default async function handler(req, res) {
   try {
-    const { message, imageUrl, isGardener } = req.body || {};
+    const { message, imageUrl, isGardener,sunData } = req.body || {};
+    // 🌞 Sun / Direction training flow
+if (sunData) {
+  const { lux, direction, time, location } = sunData;
+
+  let advice = `🌞 Balcony Sun Analysis\n\n`;
+
+  if (lux == null) {
+    advice += `Light sensor not supported on this device.\n`;
+  } else if (lux < 500) {
+    advice += `Low light (${lux} lux)\nThis spot is suitable only for shade plants like Snake Plant, ZZ Plant, Peace Lily.\n\n`;
+  } else if (lux < 2000) {
+    advice += `Medium light (${lux} lux)\nGood for indoor foliage plants like Money Plant, Areca Palm.\n\n`;
+  } else {
+    advice += `Bright light (${lux} lux)\nSuitable for flowering plants and vegetables.\n\n`;
+  }
+
+  if (direction) {
+    advice += `🧭 Direction: ${direction}\n`;
+
+    if (direction.includes("North")) {
+      advice += `North-facing balconies get soft light – best for indoor plants.\n`;
+    } else if (direction.includes("East")) {
+      advice += `East-facing balconies get morning sun – ideal for most plants.\n`;
+    } else if (direction.includes("South")) {
+      advice += `South-facing balconies get strong sun – good for roses, vegetables, hibiscus.\n`;
+    } else if (direction.includes("West")) {
+      advice += `West-facing balconies get harsh evening sun – protect plants in summer.\n`;
+    }
+  }
+
+  return res.json({
+    reply: advice
+  });
+}
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
