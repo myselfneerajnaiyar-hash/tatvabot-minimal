@@ -22,8 +22,21 @@ if (sunData) {
 
   let advice = `🌞 Balcony Sun Analysis\n\n`;
 
-  if (lux == null) {
-    advice += `Light sensor not supported on this device.\n`;
+ if (lux == null) {
+  const hour = new Date(time).getHours();
+
+  let estimated = "low";
+  if (direction && direction.includes("East") && hour >= 6 && hour <= 11) {
+    estimated = "bright morning light";
+  } else if (direction && direction.includes("South") && hour >= 10 && hour <= 15) {
+    estimated = "strong direct light";
+  } else if (direction && direction.includes("West") && hour >= 15) {
+    estimated = "harsh evening light";
+  }
+
+  advice += `📏 Direct light sensor not available.\n`;
+  advice += `Based on time + direction, this spot has *${estimated}*.\n\n`;
+}
   } else if (lux < 500) {
     advice += `Low light (${lux} lux)\nThis spot is suitable only for shade plants like Snake Plant, ZZ Plant, Peace Lily.\n\n`;
   } else if (lux < 2000) {
@@ -45,7 +58,10 @@ if (sunData) {
       advice += `West-facing balconies get harsh evening sun – protect plants in summer.\n`;
     }
   }
-
+advice += `\n🎓 Training Tip:\n`;
+advice += `Repeat this test at 8am, 12pm, and 4pm.\n`;
+advice += `You will learn how sun moves in your balcony.\n`;
+advice += `A good gardener always knows his light.`;
   return res.json({
     reply: advice
   });
