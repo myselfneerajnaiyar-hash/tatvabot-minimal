@@ -615,6 +615,7 @@ function createMessageElement({ text, from = 'bot', imageUrl = null, ts }) {
 
   return wrapper;
 }
+
 async function startSunCheck() {
   addMessage(
     "Is jagah khade ho jao jahan plant rakhna chahte ho.\nPhone ko roshni ki taraf point karo aur 3 second tak steady rakho.",
@@ -625,31 +626,48 @@ async function startSunCheck() {
   let direction = null;
 
   // 🌞 Light sensor
-  if ('AmbientLightSensor' in window) {
+  if ("AmbientLightSensor" in window) {
     try {
       const sensor = new AmbientLightSensor();
-      sensor.addEventListener('reading', () => {
+      sensor.addEventListener("reading", () => {
         lux = Math.round(sensor.illuminance);
-        sensor.stop();
       });
       sensor.start();
+
+      setTimeout(() => {
+        sensor.stop();
+      }, 3000);
     } catch (e) {
       console.warn("Light sensor not available");
     }
   }
 
-  // 🧭 Compass
-  function handleOrientation(e) {
+  // 🧭 Compass (with permission for modern browsers)
+  let orientationHandler = (e) => {
     if (e.alpha != null) {
       direction = degreeToDirection(e.alpha);
-      window.removeEventListener('deviceorientation', handleOrientation);
     }
+  };
+
+  if (
+    typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission === "function"
+  ) {
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm === "granted") {
+        window.addEventListener("deviceorientation", orientationHandler, true);
+      }
+    } catch (e) {
+      console.warn("Orientation permission denied");
+    }
+  } else {
+    window.addEventListener("deviceorientation", orientationHandler, true);
   }
 
-  window.addEventListener('deviceorientation', handleOrientation);
-
-  // wait 3 seconds
+  // wait 3 seconds, then finalize
   setTimeout(() => {
+    window.removeEventListener("deviceorientation", orientationHandler);
     sendSunDataToBot(lux, direction);
   }, 3000);
 }
@@ -667,29 +685,28 @@ function degreeToDirection(deg) {
 
 function sendSunDataToBot(lux, direction) {
   addMessage(
-    `🌞 Sun data captured\nLight: ${lux || "N/A"} lux\nDirection: ${direction || "Unknown"}`,
+    `🌞 Sun data captured\nLight: ${lux ?? "N/A"} lux\nDirection: ${direction ?? "Unknown"}`,
     "bot"
   );
 
-  fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       message: "Sun check",
       sunData: {
         lux,
         direction,
         time: new Date().toISOString(),
-        location: loadLocation() || null
-      }
-    })
+        location: loadLocation() || null,
+      },
+    }),
   })
-    .then(r => r.json())
-    .then(d => {
-      if (d.reply) addMessage(d.reply, 'bot');
+    .then((r) => r.json())
+    .then((d) => {
+      if (d.reply) addMessage(d.reply, "bot");
     });
-}
-  
+}  
 function loadHistory(){ try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ console.warn(e); return null; } }
 function saveHistory(msgs){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs)); } catch(e){ console.warn(e); } }
 function appendHistoryItem(item){ const h = loadHistory() || []; h.push(item); saveHistory(h); }
